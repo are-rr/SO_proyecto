@@ -1,0 +1,2 @@
+DIV EAX,0
+END
