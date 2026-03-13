@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <ncurses.h>
 #include <curses.h>
-
+//estrucutra para las listas
 struct Nodo {
     int PID;       // identificador unico
     char Archivo[100];//nombre del archivo
