@@ -43,7 +43,7 @@ void reiniciarVariables_cerrar(FILE **file,char *comando,char *archivo, int *EAX
 void insertar(struct Nodo **cabeza, int pid,const char *archivo,char status, int pc);
 void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso);
 struct Nodo *extraerPrimero(struct Nodo **cabeza);
-void imprimir(struct Nodo *lista);
+void imprimirlista(struct Nodo *lista);
 void imprimirEstado(struct Nodo *listo, struct Nodo *ejecucion, struct Nodo *terminados);
 
 //Registros
@@ -57,6 +57,7 @@ int y_renglon = 1;
 int y_mensajes = 3;
 int y_linea_comando = 5;
 int y_header2 = 7;
+int y_procesos = 8;
 //int lineaProceso = 8;
 
 int ejecutando = 1;
@@ -146,9 +147,20 @@ int main(){
             refresh();
             int encontroEND = 0; //Variable para ver casos de la instruccion END(si hay en el documento)
             int cerrado = 0; //Variable para indicar si el archivo se cerro o sigue abierto
-            mvprintw(y_header2, 0, "%-5s %-20s %-15s %8s", "PID", "Nombre", "Status", "PC");
+            mvprintw(y_header2, 0, "%-5s %-20s %-12s %-5s %-20s %8s %8s %8s %8s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
             refresh();
+            
+            //Se pasa a lista de Ejecucion ---------------------------------------------------------------------------------------------
+            if(ejecucion == NULL){
+                struct Nodo *proceso = extraerPrimero(&listo); //+++++++++++++++++++++++ puntero a proceso????
+                if(proceso != NULL){
+                    proceso -> Status = 'E';
+                    insertarFinal(&ejecucion,proceso);
+                }
+            }
+            struct Nodo *procesoEjecucion = extraerPrimero(&ejecucion);
             imprimirEstado(listo,ejecucion,terminados);
+
             while (fgets(linea, sizeof(linea), file) != NULL){ //(loquelee, maximocaracteres,archivodedondelee)
                 contadorLinea++;
 
@@ -687,24 +699,24 @@ struct Nodo *extraerPrimero(struct Nodo **cabeza) {
     temp->sig = NULL; //desconecta el nodo
     return temp;
 }
-
-int buscar(struct Nodo lista, int PID){
-    
+void imprimirproceso(struct Nodo *p){
+    int lineaTerminal = y_procesos + (p-> PID -1);
 }
-
 // Imprimir una lista
-void imprimir(struct Nodo *lista) {
-    int lineaProceso = 8;
-    while (lista != NULL) {
-        mvprintw(lineaProceso,0,"%-5d %-20s %-15c %8d", lista->PID, lista->Archivo,lista->Status, lista->PC);
-        refresh();
-        lineaProceso++;
+void imprimirlista(struct Nodo *lista) {
+    while (lista != NULL) {  
+        int lineaTerminal = y_procesos + (lista -> PID -1);      
+        move(lineaTerminal,0);
+        clrtoeol();                                                             //seria PC IR EAX....
+        mvprintw(lineaTerminal,0,"%-5d %-20s %-12c %-5d", lista->PID, lista->Archivo,lista->Status, lista->PC);
+
         lista = lista->sig;
     }
 }
 // Mostrar todas las listas
 void imprimirEstado(struct Nodo *listo, struct Nodo *ejecucion, struct Nodo *terminados) {
-    imprimir(listo);
-    imprimir(ejecucion);
-    imprimir(terminados);
+    imprimirlista(listo);
+    imprimirlista(ejecucion);
+    imprimirlista(terminados);
+    refresh();
 }
