@@ -63,6 +63,7 @@ int y_procesosListos = 9;
 
 int ejecutando = 1;
 int pid =0;
+FILE *salida;
 
 int main(){
     char comando[100];
@@ -126,6 +127,8 @@ int main(){
 
             FILE *file = fopen(archivo, "r");
             
+            salida = fopen("salida.txt","w");
+
 
             if (file == NULL){
                 move(y_mensajes, 0); clrtoeol();
@@ -138,8 +141,11 @@ int main(){
             pid++;
             insertar(&lista_listos,pid,file,archivo,'L',0); 
             imprimirlista(lista_listos);
+            fprintf(salida,"%d %s %-c %d\n", lista_listos->PID, lista_listos->nombrePro,lista_listos->Status, lista_listos->PC);
 
         }
+                   
+
         else{
             move(y_mensajes, 0); clrtoeol();
             refresh();
@@ -171,6 +177,7 @@ int main(){
             
 
             //imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
+            //fprintf(salida,"%d %s %-c %d\n", lista_ejecucion->PID, lista_ejecucion->nombrePro,lista_ejecucion->Status, lista_ejecucion->PC);
             imprimirlista(lista_ejecucion);
             //imprimirlista(lista_listos);
 
@@ -243,7 +250,10 @@ int main(){
                                 procesoTerminado -> Status = 'T';
                                 insertarFinal(&lista_terminados,procesoTerminado);
                             }
-                            //imprimirlista(lista_terminados);
+                            
+                            imprimirlista(lista_terminados);
+                            
+                            mvprintw(6,0,"HOLA---------------");
                             reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
 
                             break;
@@ -716,12 +726,12 @@ void imprimirproceso(struct Nodo *p){
 }
 // Imprimir una lista
 void imprimirlista(struct Nodo *lista) {
+    //mvprintw(y_procesoEjecucion,0,"%c", lista -> Status);
     while (lista != NULL) {  
-       
-        clrtoeol();                  //p para la direccion de memoria                         //seria PC IR EAX....
-        mvprintw(y_procesoEjecucion,0,"%-5d %-20s %-12c %-5d", lista->PID, lista->nombrePro,lista->Status, lista->PC);
-
+        //clrtoeol();                  //p para la direccion de memoria                         //seria PC IR EAX....
+        mvprintw(y_procesosListos,0,"%-5d %-20s %-12c %-5d", lista->PID, lista->nombrePro,lista->Status, lista->PC);
         lista = lista->sig;
+        y_procesosListos++;
     }
 }
 // Mostrar todas las listas
