@@ -12,7 +12,7 @@ struct Nodo {
     FILE* Archivo;//nombre del archivo
     char nombrePro[100]; //para el nombre del archivo
     //Guardar el puntero al archivo FILE *, con eso ya no tendriamos que saltarnos los renglones 
-    int EAX;
+    int EAX; //Registros
     int EBX;
     int ECX;
     int EDX;
@@ -25,14 +25,14 @@ struct Nodo {
 int Registro(char *token);
 int Operaciones(char *token, int contadorLinea, const char *linea_original);
 int Digito(char *token);
-int *ObtenerRegistro(char *nombre);
-int MOV(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
-int ADD(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
-int SUB(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
-int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
-int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
-int INC(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
-int DEC(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
+int *ObtenerRegistro(char *nombre, struct Nodo *p);
+int MOV(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
+int ADD(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
+int SUB(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
+int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
+int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
+int INC(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
+int DEC(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
 int filtroIncDec(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 void salirPrograma();
@@ -49,11 +49,6 @@ void imprimirEstado(struct Nodo *listo, struct Nodo *ejecucion, struct Nodo *ter
 const char *statusTexto(char status);
 void imprimirProceso(struct Nodo *p,int y_ncurse);
 
-//Registros
-int EAX = 0;
-int EBX = 0;
-int ECX = 0;
-int EDX = 0;
 // cordenadas de fila
 int y_header = 0;
 int y_renglon = 1;
@@ -140,7 +135,7 @@ int main(){
 
                 pid++;
                 insertar(&lista_listos,pid,file,archivo,'L',0); 
-                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                //imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
             }
             else{
@@ -229,13 +224,13 @@ int main(){
                         break;
                     }
 
-                    if ((strcmp(instruccion, "MOV") == 0 && !MOV(arg1,arg2,contadorLinea,linea_original)) ||
-                        (strcmp(instruccion, "ADD") == 0 && !ADD(arg1,arg2,contadorLinea,linea_original)) ||
-                        (strcmp(instruccion, "SUB") == 0 && !SUB(arg1,arg2,contadorLinea,linea_original)) ||
-                        (strcmp(instruccion, "MUL") == 0 && !MUL(arg1,arg2,contadorLinea,linea_original)) ||
-                        (strcmp(instruccion, "DIV") == 0 && !DIV(arg1,arg2,contadorLinea,linea_original)) ||
-                        (strcmp(instruccion, "INC") == 0 && !INC(arg1,arg2,contadorLinea,linea_original)) ||
-                        (strcmp(instruccion, "DEC") == 0 && !DEC(arg1,arg2,contadorLinea,linea_original))) {
+                    if ((strcmp(instruccion, "MOV") == 0 && !MOV(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
+                        (strcmp(instruccion, "ADD") == 0 && !ADD(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
+                        (strcmp(instruccion, "SUB") == 0 && !SUB(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
+                        (strcmp(instruccion, "MUL") == 0 && !MUL(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
+                        (strcmp(instruccion, "DIV") == 0 && !DIV(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
+                        (strcmp(instruccion, "INC") == 0 && !INC(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
+                        (strcmp(instruccion, "DEC") == 0 && !DEC(arg1,arg2,contadorLinea,linea_original,procesoEjecucion))) {
                         if(lista_listos == NULL && lista_ejecucion == NULL){
                             reiniciarVariables(comando,archivo,procesoEjecucion);
                         }
@@ -248,15 +243,11 @@ int main(){
                         //por que hace break y no se guardaria el END
                         procesoEjecucion->PC = contadorLinea;
                         strcpy(procesoEjecucion->IR, linea_original);
-                        procesoEjecucion->EAX = EAX;
-                        procesoEjecucion->EBX = EBX;
-                        procesoEjecucion->ECX = ECX;
-                        procesoEjecucion->EDX = EDX;
                         
                         if(feof(procesoEjecucion -> Archivo)){//Encontro END y se acabo el archivo(correcto)
                             move(y_renglon, 0); clrtoeol();
                             refresh();
-                            mvprintw(y_renglon, 0, "%-5d %-20s %8d %8d %8d %8d", contadorLinea, linea_original, EAX, EBX, ECX, EDX);
+                            mvprintw(y_renglon, 0, "%-5d %-20s %8d %8d %8d %8d", contadorLinea, linea_original, procesoEjecucion->EAX, procesoEjecucion->EBX,procesoEjecucion->ECX,procesoEjecucion->EDX);
                             refresh();
                             napms(1000);
                             
@@ -265,12 +256,12 @@ int main(){
                                 procesoTerminado -> Status = 'T';
                                 insertarFinal(&lista_terminados,procesoTerminado);
                             }
-                            reiniciarVariables(comando,archivo,procesoEjecucion);
+                            
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
-                            //if(lista_listos == NULL && lista_ejecucion == NULL){
-                            //reiniciarVariables(comando,archivo,procesoEjecucion);
-                            //}
-                            //reiniciarVariables(comando,archivo,procesoEjecucion);
+                            if(lista_listos == NULL && lista_ejecucion == NULL){
+                            reiniciarVariables(comando,archivo,procesoEjecucion);
+                            }
+                            
                             break;
                         } else { //Solo encontro END
                             mvprintw(y_mensajes, 0, "ERROR: END encontrado sin que el archivo terminara linea %d:\"%s\"", contadorLinea, linea_original);
@@ -282,19 +273,15 @@ int main(){
                                 insertarFinal(&lista_terminados,procesoTerminado);
                             }
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
-                            //if(lista_listos == NULL && lista_ejecucion == NULL){
+                            if(lista_listos == NULL && lista_ejecucion == NULL){
                                 reiniciarVariables(comando,archivo,procesoEjecucion);
-                            //}
+                            }
                             break;
                         }
                     }
 
                     procesoEjecucion->PC = contadorLinea;
                     strcpy(procesoEjecucion->IR, linea_original);
-                    procesoEjecucion->EAX = EAX;
-                    procesoEjecucion->EBX = EBX;
-                    procesoEjecucion->ECX = ECX;
-                    procesoEjecucion->EDX = EDX;
 
                     refresh();
                     napms(1000); //Tiempo para ver las lineas de impresion para renglon
@@ -386,24 +373,25 @@ int main(){
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                     refresh();
                     napms(1000);
-                    //if(lista_listos == NULL && lista_ejecucion == NULL){
+                    if(lista_listos == NULL && lista_ejecucion == NULL){
                         reiniciarVariables(comando,archivo,procesoEjecucion);
-                    //}
+                    }
                     continue;
             }
+            
     }
     endwin();
 }
 
-int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *linea_original,char tipoOp) { 
+int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *linea_original,char tipoOp, struct Nodo *proceso) { 
     if (!filtro(arg1, arg2, contadorLinea, linea_original)) return 0;
     if (!Comas_2pam(linea_original, contadorLinea)) return 0;
 
-    int *R1 = ObtenerRegistro(arg1);
+    int *R1 = ObtenerRegistro(arg1,proceso);
     int valor = 0;
 
     if (Registro(arg2)) {
-        valor = *ObtenerRegistro(arg2);
+        valor = *ObtenerRegistro(arg2,proceso);
     }
     else if (Digito(arg2)) {
         valor = atoi(arg2);//convierte a tipo int
@@ -430,12 +418,12 @@ int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *l
     }
 
     move(y_renglon,0); clrtoeol(); refresh();
-    mvprintw(y_renglon,0,"%-5d %-20s %8d %8d %8d %8d", contadorLinea, linea_original, EAX, EBX, ECX, EDX);
+    mvprintw(y_renglon,0,"%-5d %-20s %8d %8d %8d %8d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX);
 
     return 1;
 }
 
-int INC_DEC(char *arg1,char *arg2, int contadorLinea, const char *linea_original, int incremento){
+int INC_DEC(char *arg1,char *arg2, int contadorLinea, const char *linea_original, int incremento,struct Nodo *proceso){
     if (!filtroIncDec(arg1, NULL, contadorLinea, linea_original)) return 0;
     if (!Comas_1pam(linea_original, contadorLinea)) return 0;
     if (!Registro(arg1)){
@@ -444,37 +432,37 @@ int INC_DEC(char *arg1,char *arg2, int contadorLinea, const char *linea_original
         return 0;
     }
 
-    int *R = ObtenerRegistro(arg1);
+    int *R = ObtenerRegistro(arg1,proceso);
     *R += incremento;
 
     move(y_renglon,0); clrtoeol(); refresh();
-    mvprintw(y_renglon,0,"%-5d %-20s %8d %8d %8d %8d", contadorLinea, linea_original, EAX, EBX, ECX, EDX);
+    mvprintw(y_renglon,0,"%-5d %-20s %8d %8d %8d %8d", contadorLinea, linea_original,proceso->EAX, proceso->EBX,proceso-> ECX,proceso-> EDX);
 
     return 1;
 }
 
-int MOV(char *arg1, char *arg2, int contadorLinea, const char *linea_original)
-{ return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'M'); }
-int ADD(char *arg1, char *arg2, int contadorLinea, const char *linea_original)
-{ return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'A'); }
-int SUB(char *arg1, char *arg2, int contadorLinea, const char *linea_original)
-{ return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'S'); }
-int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original)
-{ return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'U'); }
-int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original)
-{ return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'D'); }
-int INC(char *arg1, char *arg2, int contadorLinea, const char *linea_original)
-{ return INC_DEC(arg1,arg2,contadorLinea,linea_original,1); } //positivo para que sume
-int DEC(char *arg1, char *arg2, int contadorLinea, const char *linea_original)
-{ return INC_DEC(arg1,arg2,contadorLinea,linea_original,-1); } //argumento negativo para que decremente
+int MOV(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso)
+{ return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'M',proceso); }
+int ADD(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso)
+{ return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'A',proceso); }
+int SUB(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso)
+{ return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'S',proceso); }
+int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso)
+{ return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'U',proceso); }
+int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso)
+{ return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'D',proceso); }
+int INC(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso)
+{ return INC_DEC(arg1,arg2,contadorLinea,linea_original,1,proceso); } //positivo para que sume
+int DEC(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso)
+{ return INC_DEC(arg1,arg2,contadorLinea,linea_original,-1,proceso); } //argumento negativo para que decremente
 
 
 // ** almacena la dirección de memoria de otro puntero, debido a que la variable file es un puntero y queremos la direccion del puntero
 void reiniciarVariables(char *comando,char *archivo, struct Nodo *proceso){
     proceso->EAX = 0;
     proceso->EBX = 0;
-    proceso->EBX = 0;
-    proceso->EBX = 0;
+    proceso->ECX = 0;
+    proceso->EDX = 0;
     comando[0] = '\0';
     archivo[0] = '\0';
 }
@@ -601,18 +589,18 @@ int Digito(char *token){
     return 1;
 }
 
-int *ObtenerRegistro(char *nombre){
+int *ObtenerRegistro(char *nombre, struct Nodo *p){
     if (strcmp(nombre, "EAX") == 0){
-        return &EAX;
+        return &p->EAX;
     }
     else if (strcmp(nombre, "EBX") == 0){
-        return &EBX;
+        return &p->EBX;
     }
     else if (strcmp(nombre, "ECX") == 0){
-        return &ECX;
+        return &p->ECX;
     }
     else if (strcmp(nombre, "EDX") == 0){
-        return &EDX;
+        return &p->EDX;
     }
     return NULL;
 }
