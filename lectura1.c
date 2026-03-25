@@ -59,12 +59,11 @@ int y_mensajes = 3;
 int y_linea_comando = 5;
 int y_header2 = 7;
 int y_procesoEjecucion = 8;
-int y_procesosListos = 9;
-int y_procesoTerminado = 10;
 
 int ejecutando = 1;
 int pid =0;
 FILE *salida;
+int encolarListos = 0;
 
 int main(){
     char comando[100];
@@ -78,84 +77,97 @@ int main(){
     struct Nodo *lista_terminados = NULL;
 
     while (ejecutando){
-    comando[0] = '\0';
-    archivo[0] = '\0';
-      
 
         if ((lista_ejecucion == NULL && lista_listos == NULL)){
             char entrada[200];
             char extra[100];
-            move(y_linea_comando, 0); clrtoeol();refresh();
+            comando[0] = '\0';
+            archivo[0] = '\0';
+
+            move(y_linea_comando, 0); clrtoeol();
             mvprintw(y_linea_comando, 0, "> ");
+            refresh();
+
             getnstr(entrada, 199);
             num_palabras = sscanf(entrada, "%99s %99s %99s", comando, archivo, extra); //sscanf(cadena, formato, &variable1, etc.);
-        }
-
-        if (strcmp(comando, "Salir") == 0){
-            if (num_palabras > 1){
-                move(y_mensajes, 0); clrtoeol();
-                refresh();
-                mvprintw(y_mensajes, 0, "ERROR: comando invalido");
-                refresh();
-                comando[0] = '\0';
-                archivo[0] = '\0';
-                num_palabras = 0;
-                continue;
-            }
-            salirPrograma();
-        }
-
-        else if (strcmp(comando, "Ejecuta") == 0){
-            if (num_palabras < 2) {
-                move(y_mensajes, 0); clrtoeol();
-                refresh();
-                mvprintw(y_mensajes, 0, "ERROR: falta el nombre del archivo");
-                comando[0] = '\0';
-                archivo[0] = '\0';
-                refresh();
-                continue;
-            }
-            else if (num_palabras > 2){
-                move(y_mensajes, 0); clrtoeol();
-                refresh();
-                mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
-                refresh();
-                comando[0] = '\0';
-                archivo[0] = '\0';
-                num_palabras = 0;
-                continue;
-            }
-
-            FILE *file = fopen(archivo, "r");
-            
-            salida = fopen("salida.txt","w");
-
-
-            if (file == NULL){
-                move(y_mensajes, 0); clrtoeol();
-                mvprintw(y_mensajes, 0, "No se pudo abrir el archivo %s", archivo);
-                refresh();
-                comando[0] = '\0';
-                archivo[0] = '\0';
-                continue;
-            }
-            pid++;
-            
-            insertar(&lista_listos,pid,file,archivo,'L',0); 
-            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
-            refresh();            
-            fprintf(salida,"%d %s %-c %d\n", lista_listos->PID, lista_listos->nombrePro,lista_listos->Status, lista_listos->PC);
-
-        }
-        else if((strcmp(comando, "Ejecuta") != 0)&& (strcmp(comando, "Salir") != 0)){
-            move(y_mensajes, 0); clrtoeol();
+            move(y_linea_comando, 0); clrtoeol();
             refresh();
-            mvprintw(y_mensajes, 0, "Comando no valido");
+            if (strcmp(comando, "Salir") == 0){
+                if (num_palabras > 1){
+                    move(y_mensajes, 0); clrtoeol();
+                    refresh();
+                    mvprintw(y_mensajes, 0, "ERROR: comando invalido");
+                    refresh();
+                    comando[0] = '\0';
+                    archivo[0] = '\0';
+                    num_palabras = 0;
+                    continue;
+                }
+                salirPrograma();
+            }
+            else if (strcmp(comando, "Ejecuta") == 0){
+                if (num_palabras < 2) {
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: falta el nombre del archivo");
+                    refresh();
+                    //comando[0] = '\0';
+                    //archivo[0] = '\0';
+                    refresh();
+                    continue;
+                }
+                else if (num_palabras > 2){
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
+                    refresh();
+                    //comando[0] = '\0';
+                    //archivo[0] = '\0';
+                    num_palabras = 0;
+                    continue;
+                }
+
+                FILE *file = fopen(archivo, "r");
+
+                if (file == NULL){
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "No se pudo abrir el archivo %s", archivo);
+                    refresh();
+                    //comando[0] = '\0';
+                    //archivo[0] = '\0';
+                    continue;
+                }
+
+                pid++;
+                insertar(&lista_listos,pid,file,archivo,'L',0); 
+                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                refresh();            
+            }
+            else{
+                move(y_mensajes, 0); clrtoeol();
+                mvprintw(y_mensajes, 0, "Comando no valido");
+                refresh();
+                comando[0] = '\0';
+                archivo[0] = '\0';
+                num_palabras = 0;
+                continue;
+            }
+        }
+        //Si no se tiene nada en ejecucion, pero si hay algo en listos
+        if(lista_ejecucion == NULL && lista_listos != NULL){
+            struct Nodo *proceso = extraerPrimero(&lista_listos); //+++++++++++++++++++++++ puntero a proceso????
+            if(proceso != NULL){
+                proceso -> Status = 'E';
+                insertarFinal(&lista_ejecucion,proceso);
+            }
+            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+            refresh(); 
+        }
+        //Si no hay nada en ejecucion
+        if(lista_ejecucion == NULL){
             continue;
         }
-                   
 
-        
+            move(y_mensajes, 0); clrtoeol();
+                   
             char linea[100];
             int contadorLinea = 0;
             char *token, *arg1, *arg2, *instruccion;
@@ -167,22 +179,9 @@ int main(){
             mvprintw(y_header2, 0, "%-5s %-20s %-12s %-5s %-20s %8s %8s %8s %8s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
             refresh();
             
-            //Se pasa a lista de Ejecucion ---------------------------------------------------------------------------------------------
-            if(lista_ejecucion == NULL){
-                struct Nodo *proceso = extraerPrimero(&lista_listos); //+++++++++++++++++++++++ puntero a proceso????
-                if(proceso != NULL){
-                    proceso -> Status = 'E';
-                    insertarFinal(&lista_ejecucion,proceso);
-                }
-            }
-            
 
-            //imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
-            //fprintf(salida,"%d %s %-c %d\n", lista_ejecucion->PID, lista_ejecucion->nombrePro,lista_ejecucion->Status, lista_ejecucion->PC);
-imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
-refresh();            //imprimirlista(lista_listos);
 
-struct Nodo *procesoEjecucion = lista_ejecucion;
+            struct Nodo *procesoEjecucion = lista_ejecucion;
                 if(procesoEjecucion != NULL){
                 while (fgets(linea, sizeof(linea), procesoEjecucion -> Archivo) != NULL){ //(loquelee, maximocaracteres,archivodedondelee)
                     contadorLinea++;
@@ -217,15 +216,15 @@ struct Nodo *procesoEjecucion = lista_ejecucion;
                     if (!validarEspacios(linea_original, instruccion, contadorLinea)){
                         cerrado = 1;
                         if(lista_listos == NULL && lista_ejecucion == NULL){
-    reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
-}
+                            reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
+                        }
                         break;
                     }//Verifica si la instruccion es valida
                     if (!Operaciones(instruccion, contadorLinea, linea_original)){
                         cerrado = 1;
                         if(lista_listos == NULL && lista_ejecucion == NULL){
-    reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
-}
+                            reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
+                        }
                         break;
                     }
 
@@ -236,10 +235,10 @@ struct Nodo *procesoEjecucion = lista_ejecucion;
                         (strcmp(instruccion, "DIV") == 0 && !DIV(arg1,arg2,contadorLinea,linea_original)) ||
                         (strcmp(instruccion, "INC") == 0 && !INC(arg1,arg2,contadorLinea,linea_original)) ||
                         (strcmp(instruccion, "DEC") == 0 && !DEC(arg1,arg2,contadorLinea,linea_original))) {
-if(lista_listos == NULL && lista_ejecucion == NULL){
-    reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
-}
-                            cerrado = 1;
+                        if(lista_listos == NULL && lista_ejecucion == NULL){
+                            reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
+                        }
+                        cerrado = 1;
                         break;
                     }
 
@@ -257,22 +256,25 @@ if(lista_listos == NULL && lista_ejecucion == NULL){
                                 procesoTerminado -> Status = 'T';
                                 insertarFinal(&lista_terminados,procesoTerminado);
                             }
-
-                                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);   
-                            //imprimirlista(lista_terminados, y_procesoTerminado);
-                            
+                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                             if(lista_listos == NULL && lista_ejecucion == NULL){
-    reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
-}
+                                reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
+                            }
 
                             break;
                         } else { //Solo encontro END
                             mvprintw(y_mensajes, 0, "ERROR: END encontrado sin que el archivo terminara linea %d:\"%s\"", contadorLinea, linea_original);
                             refresh();
                             napms(1000);
+                            struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
+                            if(procesoTerminado != NULL){
+                                procesoTerminado -> Status = 'T';
+                                insertarFinal(&lista_terminados,procesoTerminado);
+                            }
+                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                             if(lista_listos == NULL && lista_ejecucion == NULL){
-    reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
-}
+                                reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
+                            }
                             break;
                         }
                     }
@@ -285,21 +287,17 @@ if(lista_listos == NULL && lista_ejecucion == NULL){
                         mvprintw(y_linea_comando, 0, "(D)> "); //Linea de comando que interrumpe(Dentro del kbhit)
                         char entrada[200];
                         char extra[100];
-
                         getnstr(entrada, 199);
-
                         num_palabras = sscanf(entrada, "%99s %99s %99s", comando, archivo, extra);
 
-                        FILE *file_interrupcion = fopen(archivo, "r");
 
                         if (strcmp(comando, "Salir") == 0){
                             if (num_palabras > 1){
                                 move(y_mensajes, 0); clrtoeol();
-                                refresh();
                                 mvprintw(y_mensajes, 0, "(D)ERROR: comando invalido");
                                 refresh();
-                                comando[0] = '\0';
-                                archivo[0] = '\0';
+                                //comando[0] = '\0';
+                                //archivo[0] = '\0';
                                 num_palabras = 0;
                                 continue;
                             }
@@ -309,45 +307,47 @@ if(lista_listos == NULL && lista_ejecucion == NULL){
                         else if (strcmp(comando, "Ejecuta") == 0){
                             if (num_palabras < 2){
                                 move(y_mensajes, 0); clrtoeol();
-                                refresh();
                                 mvprintw(y_mensajes, 0, "(D)ERROR: falta el nombre del archivo");
                                 refresh();
+                                comando[0] = '\0';
+                                archivo[0] = '\0';
+                                num_palabras = 0;
                                 continue;
                             }
                             else if (num_palabras > 2){
                                 move(y_mensajes, 0); clrtoeol();
-                                refresh();
                                 mvprintw(y_mensajes, 0, "(D)ERROR: demasiados argumentos");
                                 refresh();
-
                                 comando[0] = '\0';
                                 archivo[0] = '\0';
                                 num_palabras = 0;
-
                                 continue;
                             }
+
+                            FILE *file_interrupcion = fopen(archivo, "r");
                             if (file_interrupcion == NULL){
                                 move(y_mensajes, 0); clrtoeol();
-                                refresh();
                                 mvprintw(y_mensajes, 0, "(D)No se pudo abrir el archivo %s", archivo);
                                 refresh();
+                                comando[0] = '\0';
+                                archivo[0] = '\0';
+                                num_palabras = 0;
                                 continue;
                             }
-                            //clear();
                             //fclose(file);
-                            //FILE *file = fopen(archivo, "r");
+                            
                             pid++;
                             insertar(&lista_listos,pid,file_interrupcion,archivo,'L',0); 
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
-                           // comando[0] = '\0';
-                           // archivo[0] = '\0';
-
-                            cerrado = 1;
-                            EAX = EBX = ECX = EDX = 0; // Reiciar los valores
-                            
-                            refresh();   
-
-                            break;
+                            move(y_linea_comando, 0); clrtoeol();
+                            refresh();
+                            comando[0] = '\0';
+                            archivo[0] = '\0';
+                            num_palabras = 0;
+                            //cerrado = 1;
+                            //EAX = EBX = ECX = EDX = 0; // Reiciar los valores  
+                            continue;
+                            //break;
                         }
                         else{//La interrupcion con un comando que no es Salir o Ejecuta
                             move(y_mensajes, 0); clrtoeol();
@@ -362,22 +362,23 @@ if(lista_listos == NULL && lista_ejecucion == NULL){
                     move(y_mensajes, 0); clrtoeol();
                     refresh();
                     mvprintw(y_mensajes, 0, "ERROR: Fin de archivo sin END");
+                    struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
+                    if(procesoTerminado != NULL){
+                        procesoTerminado -> Status = 'T';
+                        insertarFinal(&lista_terminados,procesoTerminado);
+                    }
+                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                     refresh();
                     napms(1000);
                     if(lista_listos == NULL && lista_ejecucion == NULL){
-    reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
-}
-
+                        reiniciarVariables_cerrar(comando,archivo,&EAX,&EBX,&ECX,&EDX);
+                    }
                     continue;
             }
-
-        //imprimirlista(lista_terminados, y_procesoTerminado);
-            
+        //}
     }
     endwin();
 }
-
-
 
 int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *linea_original,char tipoOp) { 
     if (!filtro(arg1, arg2, contadorLinea, linea_original)) return 0;
