@@ -48,6 +48,7 @@ void imprimirlista(struct Nodo *lista, int y_ncurses);
 void imprimirEstado(struct Nodo *listo, struct Nodo *ejecucion, struct Nodo *terminados);
 const char *statusTexto(char status);
 void imprimirProceso(struct Nodo *p,int y_ncurse);
+void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados);
 
 // cordenadas de fila
 int y_header = 0;
@@ -161,27 +162,27 @@ int main(){
         if(lista_ejecucion == NULL){
             continue;
         }
-
+        struct Nodo *procesoEjecucion = lista_ejecucion;
             move(y_mensajes, 0); clrtoeol();
                    
             char linea[100];
-            int contadorLinea = 0;
+            int contadorLinea = procesoEjecucion -> PC;
             char *token, *arg1, *arg2, *instruccion;
 
             mvprintw(y_header, 0, "%-5s %-20s %8s %8s %8s %8s", "PC", "IR", "EAX", "EBX", "ECX", "EDX");
             refresh();
             int encontroEND = 0; //Variable para ver casos de la instruccion END(si hay en el documento)
             int cerrado = 0; //Variable para indicar si el archivo se cerro o sigue abierto
-            mvprintw(y_header2, 0, "%-5s %-20s %-12s %-5s %-20s %8s %8s %8s %8s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
+            mvprintw(y_header2, 0, "%-5s %-20s %-18s %-5s %-20s %8s %8s %8s %8s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
             refresh();
             
 
 
-            struct Nodo *procesoEjecucion = lista_ejecucion;
+            
                 if(procesoEjecucion != NULL){
                 while (fgets(linea, sizeof(linea), procesoEjecucion -> Archivo) != NULL){ //(loquelee, maximocaracteres,archivodedondelee)
                     contadorLinea++;
-
+                    procesoEjecucion -> PC = contadorLinea;
                     char linea_original[100];
                     strcpy(linea_original, linea);
                     linea_original[strcspn(linea_original, "\r\n")] = '\0';//(lineaaescanear, loquevaaencontrar)
@@ -210,6 +211,8 @@ int main(){
 
                     // Sintaxis para los espacios
                     if (!validarEspacios(linea_original, instruccion, contadorLinea)){
+                        A_terminadosError(&lista_ejecucion,&lista_terminados);
+                        imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                         cerrado = 1;
                         if(lista_listos == NULL && lista_ejecucion == NULL){
                             reiniciarVariables(comando,archivo,procesoEjecucion);
@@ -217,6 +220,8 @@ int main(){
                         break;
                     }//Verifica si la instruccion es valida
                     if (!Operaciones(instruccion, contadorLinea, linea_original)){
+                        A_terminadosError(&lista_ejecucion,&lista_terminados);
+                        imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                         cerrado = 1;
                         if(lista_listos == NULL && lista_ejecucion == NULL){
                             reiniciarVariables(comando,archivo,procesoEjecucion);
@@ -231,10 +236,12 @@ int main(){
                         (strcmp(instruccion, "DIV") == 0 && !DIV(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                         (strcmp(instruccion, "INC") == 0 && !INC(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                         (strcmp(instruccion, "DEC") == 0 && !DEC(arg1,arg2,contadorLinea,linea_original,procesoEjecucion))) {
-                        if(lista_listos == NULL && lista_ejecucion == NULL){
+                        A_terminadosError(&lista_ejecucion,&lista_terminados);
+                        imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                        cerrado = 1;
+                            if(lista_listos == NULL && lista_ejecucion == NULL){
                             reiniciarVariables(comando,archivo,procesoEjecucion);
                         }
-                        cerrado = 1;
                         break;
                     }
                     
@@ -266,16 +273,18 @@ int main(){
                         } else { //Solo encontro END
                             mvprintw(y_mensajes, 0, "ERROR: END encontrado sin que el archivo terminara linea %d:\"%s\"", contadorLinea, linea_original);
                             refresh();
-                            napms(1000);
-                            struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
+                            //napms(1000);
+                            /*struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
                             if(procesoTerminado != NULL){
                                 procesoTerminado -> Status = 'T';
                                 insertarFinal(&lista_terminados,procesoTerminado);
-                            }
+                            }*/
+                            A_terminadosError(&lista_ejecucion,&lista_terminados);
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                             if(lista_listos == NULL && lista_ejecucion == NULL){
                                 reiniciarVariables(comando,archivo,procesoEjecucion);
                             }
+                            cerrado = 1;
                             break;
                         }
                     }
@@ -363,16 +372,15 @@ int main(){
             }
             if (encontroEND == 0 && cerrado == 0){
                     move(y_mensajes, 0); clrtoeol();
-                    refresh();
                     mvprintw(y_mensajes, 0, "ERROR: Fin de archivo sin END");
-                    struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
-                    if(procesoTerminado != NULL){
-                        procesoTerminado -> Status = 'T';
-                        insertarFinal(&lista_terminados,procesoTerminado);
-                    }
-                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                     refresh();
-                    napms(1000);
+                    /*struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
+                    if(procesoTerminado != NULL){
+                        procesoTerminado -> Status = 'X';
+                        insertarFinal(&lista_terminados,procesoTerminado);
+                    }*/
+                    A_terminadosError(&lista_ejecucion,&lista_terminados);
+                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                     if(lista_listos == NULL && lista_ejecucion == NULL){
                         reiniciarVariables(comando,archivo,procesoEjecucion);
                     }
@@ -788,6 +796,7 @@ const char *statusTexto(char status){
         case 'L' : return "Listos";
         case 'E' : return "Ejecucion";
         case 'T' : return "Terminados";
+        case 'X' : return "Terminados-Error";
     }
 }
 
@@ -802,8 +811,16 @@ void imprimirProceso(struct Nodo *p,int y_ncurse){
         mvprintw(y_ncurse,0,"%-5d %-20s %-12s %-5d %-20s %8d %8d %8d %8d",
             p->PID,p->nombrePro,statusTexto(p->Status),0,"",0,0,0,0);
     }
-    else if(p->Status == 'T'){
-        mvprintw(y_ncurse,0,"%-5d %-20s %-12s %-5d %-20s %8d %8d %8d %8d",
+    else if(p->Status == 'T' || p-> Status == 'X'){
+        mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-5d %-20s %8d %8d %8d %8d",
             p->PID,p->nombrePro,statusTexto(p->Status),p->PC,p->IR,p->EAX,p->EBX,p->ECX,p->EDX);
+    }
+}
+
+void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados){
+    struct Nodo *procesoError = extraerPrimero(lista_ejecucion);
+    if(procesoError != NULL){
+        procesoError->Status = 'X';
+        insertarFinal(lista_terminados, procesoError);
     }
 }
