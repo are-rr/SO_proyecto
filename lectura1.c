@@ -177,10 +177,10 @@ int main(){
             refresh();
             
 
-
-            
-                if(procesoEjecucion != NULL){
-                while (fgets(linea, sizeof(linea), procesoEjecucion -> Archivo) != NULL){ //(loquelee, maximocaracteres,archivodedondelee)
+            int quantum=3;
+            int q=0;
+            if(procesoEjecucion != NULL){
+                while (fgets(linea, sizeof(linea), procesoEjecucion -> Archivo) != NULL && q<quantum){ //(loquelee, maximocaracteres,archivodedondelee)
                     contadorLinea++;
                     procesoEjecucion -> PC = contadorLinea;
                     char linea_original[100];
@@ -378,17 +378,18 @@ int main(){
                             continue;
                         }
                     }
+                    q++;
                 }// Por si no hay END en el archivo y ya EOF
-            }
+                procesoEjecucion -> Status = 'L';
+                insertarFinal(&lista_listos,procesoEjecucion);
+                imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
+            } 
+            //mandarlo a lista "Listos"
             if (encontroEND == 0 && cerrado == 0){
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "ERROR: Fin de archivo sin END");
                     refresh();
-                    /*struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
-                    if(procesoTerminado != NULL){
-                        procesoTerminado -> Status = 'X';
-                        insertarFinal(&lista_terminados,procesoTerminado);
-                    }*/
+                
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                     if(lista_listos == NULL && lista_ejecucion == NULL){
