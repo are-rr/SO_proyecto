@@ -211,6 +211,7 @@ int main(){
 
                     // Sintaxis para los espacios
                     if (!validarEspacios(linea_original, instruccion, contadorLinea)){
+                        strcpy(procesoEjecucion->IR, linea_original);
                         A_terminadosError(&lista_ejecucion,&lista_terminados);
                         imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                         cerrado = 1;
@@ -220,6 +221,7 @@ int main(){
                         break;
                     }//Verifica si la instruccion es valida
                     if (!Operaciones(instruccion, contadorLinea, linea_original)){
+                        strcpy(procesoEjecucion->IR, linea_original);
                         A_terminadosError(&lista_ejecucion,&lista_terminados);
                         imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                         cerrado = 1;
@@ -236,6 +238,7 @@ int main(){
                         (strcmp(instruccion, "DIV") == 0 && !DIV(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                         (strcmp(instruccion, "INC") == 0 && !INC(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                         (strcmp(instruccion, "DEC") == 0 && !DEC(arg1,arg2,contadorLinea,linea_original,procesoEjecucion))) {
+                        strcpy(procesoEjecucion->IR, linea_original);
                         A_terminadosError(&lista_ejecucion,&lista_terminados);
                         imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                         cerrado = 1;
@@ -296,6 +299,13 @@ int main(){
                     napms(1000); //Tiempo para ver las lineas de impresion para renglon
 
                     if (kbhit()){
+                        int EAX_temp = procesoEjecucion->EAX;
+                        int EBX_temp = procesoEjecucion->EBX;
+                        int ECX_temp = procesoEjecucion->ECX;
+                        int EDX_temp = procesoEjecucion->EDX;
+                        char PC_temp = procesoEjecucion->PC;
+                        imprimirlista(procesoEjecucion, y_procesoEjecucion);
+
                         move(y_linea_comando, 0); clrtoeol();
                         refresh();
                         mvprintw(y_linea_comando, 0, "(D)> "); //Linea de comando que interrumpe(Dentro del kbhit)
@@ -804,12 +814,12 @@ void imprimirProceso(struct Nodo *p,int y_ncurse){
     //mvprintw(y_header, 0, "%-5s %-20s %8s %8s %8s %8s", "PC", "IR", "EAX", "EBX", "ECX", "EDX");
     //mvprintw(y_header2, 0, "%-5s %-20s %-12s %-5s %-20s %8s %8s %8s %8s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
     if(p->Status == 'E'){
-        mvprintw(y_ncurse,0,"%-5d %-20s %-12s %-5s %-20s %8s %8s %8s %8s",
-            p->PID,p->nombrePro,statusTexto(p->Status),"---","---","---","---","---","---");
+        mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-5d %-20s %8d %8d %8d %8d",
+            p->PID,p->nombrePro,statusTexto(p->Status),p->PC,p->IR,p->EAX,p->EBX,p->ECX,p->EDX);
     }
     else if(p->Status == 'L'){
-        mvprintw(y_ncurse,0,"%-5d %-20s %-12s %-5d %-20s %8d %8d %8d %8d",
-            p->PID,p->nombrePro,statusTexto(p->Status),0,"",0,0,0,0);
+        mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-5d %-20s %8d %8d %8d %8d",
+            p->PID,p->nombrePro,statusTexto(p->Status),p->PC,p->IR,p->EAX,p->EBX,p->ECX,p->EDX);
     }
     else if(p->Status == 'T' || p-> Status == 'X'){
         mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-5d %-20s %8d %8d %8d %8d",
