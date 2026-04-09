@@ -73,7 +73,7 @@ int main(){
     struct Nodo *lista_listos = NULL;
     struct Nodo *lista_ejecucion = NULL;
     struct Nodo *lista_terminados = NULL;
-
+    int cerrado = 0; //Variable para indicar si el archivo se cerro o sigue abierto
     while (ejecutando){
 
         if ((lista_ejecucion == NULL && lista_listos == NULL)){
@@ -172,13 +172,14 @@ int main(){
             mvprintw(y_header, 0, "%-5s %-20s %8s %8s %8s %8s", "PC", "IR", "EAX", "EBX", "ECX", "EDX");
             refresh();
             int encontroEND = 0; //Variable para ver casos de la instruccion END(si hay en el documento)
-            int cerrado = 0; //Variable para indicar si el archivo se cerro o sigue abierto
+            
             mvprintw(y_header2, 0, "%-5s %-20s %-18s %-5s %-20s %8s %8s %8s %8s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
             refresh();
             
 
             int quantum=3;
             int q=0;
+            int QuantumFinal = (q>=3);
             if(procesoEjecucion != NULL){
                 while (fgets(linea, sizeof(linea), procesoEjecucion -> Archivo) != NULL && q<quantum){ //(loquelee, maximocaracteres,archivodedondelee)
                     contadorLinea++;
@@ -380,12 +381,22 @@ int main(){
                     }
                     q++;
                 }// Por si no hay END en el archivo y ya EOF
-                procesoEjecucion -> Status = 'L';
-                insertarFinal(&lista_listos,procesoEjecucion);
-                imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
+
+                if(QuantumFinal){
+                    struct Nodo *p = extraerPrimero(&lista_ejecucion);
+                    insertarFinal(&lista_listos,p);
+                    procesoEjecucion -> Status = 'L';
+                    imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
+                    //cerrado = 1;
+                }
+
+                //procesoEjecucion -> Status = 'L';
+                //insertarFinal(&lista_listos,procesoEjecucion);
+                //imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
+                //cerrado =1;
             } 
             //mandarlo a lista "Listos"
-            if (encontroEND == 0 && cerrado == 0){
+            if (encontroEND == 0 && cerrado == 0 && !QuantumFinal){
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "ERROR: Fin de archivo sin END");
                     refresh();
