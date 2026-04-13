@@ -306,7 +306,7 @@ int main(){
                             break;
                         }
                 }
-
+                procesoEjecucion->PC = contadorLinea;
                 strcpy(procesoEjecucion->IR, linea_original);
                 refresh();
                 napms(1000); //Tiempo para ver las lineas de impresion para renglon
@@ -406,8 +406,8 @@ int main(){
                                 num_palabras = 0;
                                 continue;
                             }
-                            procesoEjecucion->PC = contadorLinea;
-                            strcpy(procesoEjecucion->IR, linea_original);
+                            //procesoEjecucion->PC = contadorLinea;
+                            //strcpy(procesoEjecucion->IR, linea_original);
                             //aqui se mata
                             int lista = matar(&lista_ejecucion,&lista_terminados,&lista_listos,num_PID);
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
