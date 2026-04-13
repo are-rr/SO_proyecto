@@ -49,6 +49,9 @@ void imprimirEstado(struct Nodo *listo, struct Nodo *ejecucion, struct Nodo *ter
 const char *statusTexto(char status);
 void imprimirProceso(struct Nodo *p,int y_ncurse);
 void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados);
+struct Nodo* extraerNodo(struct Nodo **lista, int id);
+int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p);
+
 
 // cordenadas de fila
 int y_header = 0;
@@ -66,6 +69,7 @@ int encolarListos = 0;
 int main(){
     char comando[100];
     char archivo[100];
+    int num_PID;
     int num_palabras;
     initscr();
     comando[0] = '\0';
@@ -73,10 +77,8 @@ int main(){
     struct Nodo *lista_listos = NULL;
     struct Nodo *lista_ejecucion = NULL;
     struct Nodo *lista_terminados = NULL;
-    int cerrado = 0; //Variable para indicar si el archivo se cerro o sigue abierto
     int huboError = 0;
     while (ejecutando){
-        cerrado = 0;//reinicia para cada interaccion
         huboError = 0; //reiniciamos a cada interacion los errores encontrados
 
         if ((lista_ejecucion == NULL && lista_listos == NULL)){
@@ -93,26 +95,21 @@ int main(){
             num_palabras = sscanf(entrada, "%99s %99s %99s", comando, archivo, extra); //sscanf(cadena, formato, &variable1, etc.);
             move(y_linea_comando, 0); clrtoeol();
             refresh();
-            if (strcmp(comando, "Salir") == 0){
+            if (strcmp(comando, "salir") == 0){
                 if (num_palabras > 1){
                     move(y_mensajes, 0); clrtoeol();
                     refresh();
                     mvprintw(y_mensajes, 0, "ERROR: comando invalido");
                     refresh();
-                    comando[0] = '\0';
-                    archivo[0] = '\0';
                     num_palabras = 0;
                     continue;
                 }
                 salirPrograma();
             }
-            else if (strcmp(comando, "Ejecuta") == 0){
+            else if (strcmp(comando, "ejecuta") == 0){
                 if (num_palabras < 2) {
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "ERROR: falta el nombre del archivo");
-                    refresh();
-                    //comando[0] = '\0';
-                    //archivo[0] = '\0';
                     refresh();
                     continue;
                 }
@@ -120,8 +117,6 @@ int main(){
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
                     refresh();
-                    //comando[0] = '\0';
-                    //archivo[0] = '\0';
                     num_palabras = 0;
                     continue;
                 }
@@ -132,8 +127,6 @@ int main(){
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "No se pudo abrir el archivo %s", archivo);
                     refresh();
-                    //comando[0] = '\0';
-                    //archivo[0] = '\0';
                     continue;
                 }
 
@@ -141,8 +134,38 @@ int main(){
                 insertar(&lista_listos,pid,file,archivo,'L',0); 
                 //imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
-            }
-            else{
+            } else if (strcmp(comando, "mata") == 0){
+                //como no hay nada debe marcar un error-------------------------------------------------------------------------
+                if (num_palabras < 2) {
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: falta el PID del proceso");
+                    refresh();
+                    num_palabras= 0;
+                    continue;
+                }
+                num_PID = atoi(archivo);
+                if(!num_PID){
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: PID debe ser un entero");
+                    refresh();
+                    continue;
+                }
+                if (num_palabras > 2){
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
+                    refresh();
+                    num_palabras= 0;
+                    continue;
+                }
+                if(lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL){
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: no hay procesos que matar");
+                    refresh();
+                    num_palabras= 0;
+                    continue;
+                }
+
+            }else{
                 move(y_mensajes, 0); clrtoeol();
                 mvprintw(y_mensajes, 0, "Comando no valido");
                 refresh();
@@ -181,9 +204,15 @@ int main(){
         refresh();
         
         if(procesoEjecucion != NULL){
-            while (fgets(linea, sizeof(linea), procesoEjecucion -> Archivo) != NULL && q<quantum){ //(loquelee, maximocaracteres,archivodedondelee)
+            int finArchivo = 0;
+            while (q < quantum) {
+                if (fgets(linea, sizeof(linea), procesoEjecucion->Archivo) == NULL) {
+                    finArchivo = 1;
+                    break;
+                }
+                q++;  
                 contadorLinea++;
-                procesoEjecucion -> PC = contadorLinea;
+                
                 
                 char linea_original[100];
                 strcpy(linea_original, linea);
@@ -196,7 +225,6 @@ int main(){
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
-                    //cerrado = 1;
                     huboError = 1;
                     comando[0] = '\0';
                     archivo[0] = '\0';
@@ -219,23 +247,12 @@ int main(){
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
-                    //cerrado = 1;
                     huboError = 1;
                     //if(lista_listos == NULL && lista_ejecucion == NULL){
                         reiniciarVariables(comando,archivo,procesoEjecucion);
                     //}
                     break;
-                }//Verifica si la instruccion es valida
-                /*if (!Operaciones(instruccion, contadorLinea, linea_original)){
-                        strcpy(procesoEjecucion->IR, linea_original);
-                        A_terminadosError(&lista_ejecucion,&lista_terminados);
-                        imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
-                        cerrado = 1;
-                        if(lista_listos == NULL && lista_ejecucion == NULL){
-                            reiniciarVariables(comando,archivo,procesoEjecucion);
-                        }
-                        break;
-                }*/
+                }
 
                 if ((strcmp(instruccion, "MOV") == 0 && !MOV(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                     (strcmp(instruccion, "ADD") == 0 && !ADD(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
@@ -247,7 +264,6 @@ int main(){
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
-                    //cerrado = 1;
                     huboError = 1;
                     //if(lista_listos == NULL && lista_ejecucion == NULL){
                             reiniciarVariables(comando,archivo,procesoEjecucion);
@@ -287,12 +303,10 @@ int main(){
                                 reiniciarVariables(comando,archivo,procesoEjecucion);
                             //}
                             huboError = 1;
-                            //cerrado = 1;
                             break;
                         }
                 }
 
-                procesoEjecucion->PC = contadorLinea;
                 strcpy(procesoEjecucion->IR, linea_original);
                 refresh();
                 napms(1000); //Tiempo para ver las lineas de impresion para renglon
@@ -309,7 +323,7 @@ int main(){
                         num_palabras = sscanf(entrada, "%99s %99s %99s", comando, archivo, extra);
 
 
-                        if (strcmp(comando, "Salir") == 0){
+                        if (strcmp(comando, "salir") == 0){
                             if (num_palabras > 1){
                                 move(y_mensajes, 0); clrtoeol();
                                 mvprintw(y_mensajes, 0, "(D)ERROR: comando invalido");
@@ -321,7 +335,7 @@ int main(){
                             salirPrograma();
                         }
 
-                        else if (strcmp(comando, "Ejecuta") == 0){
+                        else if (strcmp(comando, "ejecuta") == 0){
                             if (num_palabras < 2){
                                 move(y_mensajes, 0); clrtoeol();
                                 mvprintw(y_mensajes, 0, "(D)ERROR: falta el nombre del archivo");
@@ -355,7 +369,6 @@ int main(){
                                 continue;
                             }
                             //fclose(file);
-                            
                             pid++;
                             insertar(&lista_listos,pid,file_interrupcion,archivo,'L',0); 
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
@@ -366,17 +379,56 @@ int main(){
                 
                             continue;
                         }
-                        else{//La interrupcion con un comando que no es Salir o Ejecuta
+                        else if (strcmp(comando, "mata") == 0){
+                            if (num_palabras < 2) {
+                                move(y_mensajes, 0); clrtoeol();
+                                mvprintw(y_mensajes, 0, "(D)ERROR: falta el PID del proceso");
+                                refresh();
+                                comando[0] = '\0';
+                                num_PID = '\0';
+                                num_palabras = 0;
+                                refresh();
+                                continue;
+                            }
+                            num_PID = atoi(archivo);
+                            if(!num_PID){
+                                move(y_mensajes, 0); clrtoeol();
+                                mvprintw(y_mensajes, 0, "(D)ERROR: PID debe ser un entero");
+                                refresh();
+                                continue;
+                            }
+                            if (num_palabras > 2){
+                                move(y_mensajes, 0); clrtoeol();
+                                mvprintw(y_mensajes, 0, "(D)ERROR: demasiados argumentos");
+                                refresh();
+                                comando[0] = '\0';
+                                num_PID = '\0';
+                                num_palabras = 0;
+                                continue;
+                            }
+                            procesoEjecucion->PC = contadorLinea;
+                            strcpy(procesoEjecucion->IR, linea_original);
+                            //aqui se mata
+                            int lista = matar(&lista_ejecucion,&lista_terminados,&lista_listos,num_PID);
+                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                            move(y_linea_comando, 0); clrtoeol();
+                            refresh();
+                            num_palabras = 0;
+                            if(lista == 1){ //1 -> esta en lista ejecucion, 2-> terminados, 3 -> listos, 0->no esta el PID
+                                break;
+                            }
+                            continue;
+                        }else{//La interrupcion con un comando que no es Salir o Ejecuta
                             move(y_mensajes, 0); clrtoeol();
                             refresh();
                             mvprintw(y_mensajes, 0, "(D)Comando no valido");
                             continue;
                         }
                     }
-                q++;
             }
+            procesoEjecucion->PC = contadorLinea;
             
-            if(q==quantum && encontroEND == 0 && cerrado == 0 && huboError == 0){
+            if(q==quantum && encontroEND == 0 && huboError == 0){
                 struct Nodo *p = extraerPrimero(&lista_ejecucion);
                 if(p != NULL){
                     p -> Status = 'L';
@@ -384,8 +436,8 @@ int main(){
                 }
                 imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
             }
-            //else if (encontroEND == 0 && cerrado == 0 && huboError == 0 && feof(procesoEjecucion->Archivo)){
-            else if (encontroEND == 0 && cerrado == 0 && huboError == 0){
+            else if (encontroEND == 0 == 0 && huboError == 0 && feof(procesoEjecucion->Archivo)){
+            //else if (encontroEND == 0 && cerrado == 0 && huboError == 0){
                 move(y_mensajes, 0); clrtoeol();
                 mvprintw(y_mensajes, 0, "ERROR: Fin de archivo sin END");
                 refresh();
@@ -808,6 +860,7 @@ const char *statusTexto(char status){
         case 'E' : return "Ejecucion";
         case 'T' : return "Terminados";
         case 'X' : return "Terminados-Error";
+        case 'Z' : return "Terminados-Mata";
     }
 }
 
@@ -822,7 +875,7 @@ void imprimirProceso(struct Nodo *p,int y_ncurse){
         mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-5d %-20s %8d %8d %8d %8d",
             p->PID,p->nombrePro,statusTexto(p->Status),p->PC,p->IR,p->EAX,p->EBX,p->ECX,p->EDX);
     }
-    else if(p->Status == 'T' || p-> Status == 'X'){
+    else if(p->Status == 'T' || p-> Status == 'X' || p-> Status == 'Z'){
         mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-5d %-20s %8d %8d %8d %8d",
             p->PID,p->nombrePro,statusTexto(p->Status),p->PC,p->IR,p->EAX,p->EBX,p->ECX,p->EDX);
     }
@@ -834,4 +887,69 @@ void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_termina
         procesoError->Status = 'X';
         insertarFinal(lista_terminados, procesoError);
     }
+}
+
+int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p) {
+    struct Nodo *proceso_mata = NULL;
+
+    proceso_mata = extraerNodo(lista_ejecucion, id_p);
+    if(proceso_mata != NULL){
+        proceso_mata -> Status = 'Z';
+        insertarFinal(lista_terminados, proceso_mata);
+        return 1;
+    }
+
+    if (proceso_mata == NULL) {
+        proceso_mata = extraerNodo(lista_listos, id_p);
+        if(proceso_mata != NULL){
+            proceso_mata -> Status = 'Z';
+            insertarFinal(lista_terminados, proceso_mata);
+            return 2;
+        }
+    }
+
+    if (proceso_mata == NULL) {
+        struct Nodo *aux = *lista_terminados;
+        while (aux != NULL) {
+            if (aux->PID == id_p) {
+                move(y_mensajes, 0); clrtoeol();
+                mvprintw(y_mensajes,0,"El proceso con PID %d ya esta en terminados.", id_p);
+                refresh();
+                return 0;
+            }
+            aux = aux->sig;
+        }
+        if(proceso_mata != NULL){
+            proceso_mata -> Status = 'Z';
+            insertarFinal(lista_terminados, proceso_mata);
+            return 3;
+        }
+        move(y_mensajes, 0); clrtoeol();
+        mvprintw(y_mensajes,0,"No se encontro el proceso con PID %d.", id_p);
+        refresh();
+        return 0;
+    }
+}
+
+struct Nodo* extraerNodo(struct Nodo **lista, int id) {
+    struct Nodo *actual = *lista;
+    struct Nodo *anterior = NULL;
+
+    while (actual != NULL) {
+        if (actual->PID == id) {
+            if (anterior == NULL) { //si es el primer nodo en la lista, no tiene anterior
+                *lista = actual->sig;
+            } else {//desconectamos el nodo
+                anterior->sig = actual->sig; //nodo anterior apunta al sig del actual
+            }
+
+            actual->sig = NULL;// desenlazamos el nodo de la lista
+            return actual;
+        }
+
+        anterior = actual; 
+        actual = actual->sig;
+    }
+
+    return NULL; // No encontrado
 }
