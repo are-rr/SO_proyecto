@@ -40,7 +40,7 @@ int Comas_2pam(const char *linea_original, int contadorLinea);
 int Comas_1pam(const char *linea_original, int contadorLinea);
 int kbhit(void);
 int validarEspacios(const char *linea_original, char *instruccion, int contadorLinea);
-void reiniciarVariables(char *comando,char *archivo, struct Nodo *proceso);
+void reiniciarVariables(char *comando,char *archivo);
 void insertar(struct Nodo **cabeza, int pid,FILE *archivo,const char *nombre,char status, int pc);
 void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso);
 struct Nodo *extraerPrimero(struct Nodo **cabeza);
@@ -132,10 +132,9 @@ int main(){
 
                 pid++;
                 insertar(&lista_listos,pid,file,archivo,'L',0); 
-                //imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                //imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);????????????????
                 refresh();            
             } else if (strcmp(comando, "mata") == 0){
-                //como no hay nada debe marcar un error-------------------------------------------------------------------------
                 if (num_palabras < 2) {
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "ERROR: falta el PID del proceso");
@@ -248,9 +247,7 @@ int main(){
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                     huboError = 1;
-                    //if(lista_listos == NULL && lista_ejecucion == NULL){
-                        reiniciarVariables(comando,archivo,procesoEjecucion);
-                    //}
+                    reiniciarVariables(comando,archivo);
                     break;
                 }
 
@@ -265,9 +262,7 @@ int main(){
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                     huboError = 1;
-                    //if(lista_listos == NULL && lista_ejecucion == NULL){
-                            reiniciarVariables(comando,archivo,procesoEjecucion);
-                    //}
+                    reiniciarVariables(comando,archivo);
                     break;
                 }
                     
@@ -290,18 +285,14 @@ int main(){
                             }
                             
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
-                            //if(lista_listos == NULL && lista_ejecucion == NULL){
-                            reiniciarVariables(comando,archivo,procesoEjecucion);
-                            //}
+                            reiniciarVariables(comando,archivo);
                             break;
                         } else { //Solo encontro END
                             mvprintw(y_mensajes, 0, "ERROR: END encontrado sin que el archivo terminara linea %d:\"%s\"", contadorLinea, linea_original);
                             refresh();
                             A_terminadosError(&lista_ejecucion,&lista_terminados);
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
-                            //if(lista_listos == NULL && lista_ejecucion == NULL){
-                                reiniciarVariables(comando,archivo,procesoEjecucion);
-                            //}
+                                reiniciarVariables(comando,archivo);
                             huboError = 1;
                             break;
                         }
@@ -321,7 +312,7 @@ int main(){
                         char extra[100];
                         getnstr(entrada, 199);
                         num_palabras = sscanf(entrada, "%99s %99s %99s", comando, archivo, extra);
-
+                        //move(y_linea_comando, 0); clrtoeol();
 
                         if (strcmp(comando, "salir") == 0){
                             if (num_palabras > 1){
@@ -374,41 +365,39 @@ int main(){
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();
-                            num_palabras = 0;
-                            //cerrado = 1;
-                
+                            num_palabras = 0;                
                             continue;
                         }
                         else if (strcmp(comando, "mata") == 0){
                             if (num_palabras < 2) {
                                 move(y_mensajes, 0); clrtoeol();
                                 mvprintw(y_mensajes, 0, "(D)ERROR: falta el PID del proceso");
+                                move(y_linea_comando, 0); clrtoeol();
                                 refresh();
                                 comando[0] = '\0';
                                 num_PID = '\0';
                                 num_palabras = 0;
-                                refresh();
                                 continue;
                             }
                             num_PID = atoi(archivo);
                             if(!num_PID){
                                 move(y_mensajes, 0); clrtoeol();
                                 mvprintw(y_mensajes, 0, "(D)ERROR: PID debe ser un entero");
+                                move(y_linea_comando, 0); clrtoeol();
                                 refresh();
                                 continue;
                             }
                             if (num_palabras > 2){
                                 move(y_mensajes, 0); clrtoeol();
                                 mvprintw(y_mensajes, 0, "(D)ERROR: demasiados argumentos");
+                                move(y_linea_comando, 0); clrtoeol();
                                 refresh();
                                 comando[0] = '\0';
                                 num_PID = '\0';
                                 num_palabras = 0;
                                 continue;
                             }
-                            //procesoEjecucion->PC = contadorLinea;
-                            //strcpy(procesoEjecucion->IR, linea_original);
-                            //aqui se mata
+
                             int lista = matar(&lista_ejecucion,&lista_terminados,&lista_listos,num_PID);
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
@@ -418,10 +407,11 @@ int main(){
                                 break;
                             }
                             continue;
-                        }else{//La interrupcion con un comando que no es Salir o Ejecuta
+                        }else{//La interrupcion con un comando que no es Salir o Ejecuta o mata
                             move(y_mensajes, 0); clrtoeol();
-                            refresh();
                             mvprintw(y_mensajes, 0, "(D)Comando no valido");
+                            move(y_linea_comando, 0); clrtoeol();
+                            refresh();
                             continue;
                         }
                     }
@@ -436,17 +426,14 @@ int main(){
                 }
                 imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
             }
-            else if (encontroEND == 0 == 0 && huboError == 0 && feof(procesoEjecucion->Archivo)){
-            //else if (encontroEND == 0 && cerrado == 0 && huboError == 0){
+            else if (encontroEND == 0 && huboError == 0 && feof(procesoEjecucion->Archivo)){
                 move(y_mensajes, 0); clrtoeol();
                 mvprintw(y_mensajes, 0, "ERROR: Fin de archivo sin END");
                 refresh();
                 
                 A_terminadosError(&lista_ejecucion,&lista_terminados);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
-                    //if(lista_listos == NULL && lista_ejecucion == NULL){
-                reiniciarVariables(comando,archivo,procesoEjecucion);
-                    //}
+                reiniciarVariables(comando,archivo);
                 continue;
             }
         }   
@@ -529,11 +516,7 @@ int DEC(char *arg1, char *arg2, int contadorLinea, const char *linea_original,st
 
 
 // ** almacena la dirección de memoria de otro puntero, debido a que la variable file es un puntero y queremos la direccion del puntero
-void reiniciarVariables(char *comando,char *archivo, struct Nodo *proceso){
-    //proceso->EAX = 0;
-    //proceso->EBX = 0;
-    //proceso->ECX = 0;
-    //proceso->EDX = 0;
+void reiniciarVariables(char *comando,char *archivo){
     comando[0] = '\0';
     archivo[0] = '\0';
 }
