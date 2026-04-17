@@ -9,14 +9,13 @@
 //estrucutra para las listas
 struct Nodo {
     int PID;       // identificador unico
-    FILE* Archivo;//nombre del archivo
+    FILE* Archivo;//nombre del archivo, Guardar el puntero al archivo FILE *
     char nombrePro[100]; //para el nombre del archivo
-    //Guardar el puntero al archivo FILE *, con eso ya no tendriamos que saltarnos los renglones 
     int EAX; //Registros
     int EBX;
     int ECX;
     int EDX;
-    char Status;     // L = listo E= ejecucion  T =terminado
+    char Status;     // L = listo E= ejecucion  T =terminado X=Terminado-Error Z=Terminado-mata
     int PC;    // contador de programa(contadorLInea)
     char IR[100];//para guardar la ultima instruccion
     struct Nodo *sig;  // puntero al siguiente nodo
@@ -52,7 +51,6 @@ void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_termina
 struct Nodo* extraerNodo(struct Nodo **lista, int id);
 int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p);
 
-
 // cordenadas de fila
 int y_header = 0;
 int y_renglon = 1;
@@ -63,8 +61,6 @@ int y_procesoEjecucion = 8;
 
 int ejecutando = 1;
 int pid =0;
-FILE *salida;
-int encolarListos = 0;
 
 int main(){
     char comando[100];
@@ -132,7 +128,7 @@ int main(){
 
                 pid++;
                 insertar(&lista_listos,pid,file,archivo,'L',0); 
-                //imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);????????????????
+                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
             } else if (strcmp(comando, "mata") == 0){
                 if (num_palabras < 2) {
@@ -198,8 +194,8 @@ int main(){
         int quantum=3;
         int q=0;
 
-        mvprintw(y_header, 0, "%-5s %-20s %8s %8s %8s %8s", "PC", "IR", "EAX", "EBX", "ECX", "EDX");
-        mvprintw(y_header2, 0, "%-5s %-20s %-18s %-5s %-20s %8s %8s %8s %8s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
+        mvprintw(y_header, 0, "%-10s %-20s %10s %10s %10s %10s", "PC", "IR", "EAX", "EBX", "ECX", "EDX");
+        mvprintw(y_header2, 0, "%-5s %-20s %-18s %-10s %-20s %10s %10s %10s %10s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
         refresh();
         
         if(procesoEjecucion != NULL){
@@ -274,7 +270,7 @@ int main(){
                         
                         if(feof(procesoEjecucion -> Archivo)){//Encontro END y se acabo el archivo(correcto)
                             move(y_renglon, 0); clrtoeol();
-                            mvprintw(y_renglon, 0, "%-5d %-20s %8d %8d %8d %8d", contadorLinea, linea_original, procesoEjecucion->EAX, procesoEjecucion->EBX,procesoEjecucion->ECX,procesoEjecucion->EDX);
+                            mvprintw(y_renglon, 0, "%-10d %-20s %10d %10d %10d %10d", contadorLinea, linea_original, procesoEjecucion->EAX, procesoEjecucion->EBX,procesoEjecucion->ECX,procesoEjecucion->EDX);
                             refresh();
                             napms(1000);
                             
@@ -312,7 +308,6 @@ int main(){
                         char extra[100];
                         getnstr(entrada, 199);
                         num_palabras = sscanf(entrada, "%99s %99s %99s", comando, archivo, extra);
-                        //move(y_linea_comando, 0); clrtoeol();
 
                         if (strcmp(comando, "salir") == 0){
                             if (num_palabras > 1){
@@ -403,10 +398,11 @@ int main(){
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();
                             num_palabras = 0;
-                            if(lista == 1){ //1 -> esta en lista ejecucion, 2-> terminados, 3 -> listos, 0->no esta el PID
+                            if(lista == 1){ //1 -> esta en lista ejecucion, 2-> listos, 3 -> terminados, 0->no esta el PID
                                 break;
                             }
                             continue;
+                            
                         }else{//La interrupcion con un comando que no es Salir o Ejecuta o mata
                             move(y_mensajes, 0); clrtoeol();
                             mvprintw(y_mensajes, 0, "(D)Comando no valido");
@@ -476,7 +472,7 @@ int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *l
     }
 
     move(y_renglon,0); clrtoeol(); refresh();
-    mvprintw(y_renglon,0,"%-5d %-20s %8d %8d %8d %8d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX);
+    mvprintw(y_renglon,0,"%-10d %-20s %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX);
 
     return 1;
 }
@@ -820,7 +816,6 @@ int contarNodos(struct Nodo *lista){
 // Imprimir una lista
 void imprimirlista(struct Nodo *lista, int y_ncurses) {
     while (lista != NULL) {  
-            //mvprintw(y_ncurses,0,"%-5d %-20s %-12c %-5d", lista->PID, lista->nombrePro,lista->Status, lista->PC);
             imprimirProceso(lista,y_ncurses);
             lista = lista->sig;
             y_ncurses++;
@@ -848,18 +843,17 @@ const char *statusTexto(char status){
 }
 
 void imprimirProceso(struct Nodo *p,int y_ncurse){
-    //mvprintw(y_header, 0, "%-5s %-20s %8s %8s %8s %8s", "PC", "IR", "EAX", "EBX", "ECX", "EDX");
-    //mvprintw(y_header2, 0, "%-5s %-20s %-12s %-5s %-20s %8s %8s %8s %8s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
+    //mvprintw(y_header2, 0, "%-5s %-20s %-18s %-10s %-20s %10s %10s %10s %10s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
     if(p->Status == 'E'){
-        mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-5d %-20s %8d %8d %8d %8d",
+        mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-10d %-20s %10d %10d %10d %10d",
             p->PID,p->nombrePro,statusTexto(p->Status),p->PC,p->IR,p->EAX,p->EBX,p->ECX,p->EDX);
     }
     else if(p->Status == 'L'){
-        mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-5d %-20s %8d %8d %8d %8d",
+        mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-10d %-20s %10d %10d %10d %10d",
             p->PID,p->nombrePro,statusTexto(p->Status),p->PC,p->IR,p->EAX,p->EBX,p->ECX,p->EDX);
     }
     else if(p->Status == 'T' || p-> Status == 'X' || p-> Status == 'Z'){
-        mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-5d %-20s %8d %8d %8d %8d",
+        mvprintw(y_ncurse,0,"%-5d %-20s %-18s %-10d %-20s %10d %10d %10d %10d",
             p->PID,p->nombrePro,statusTexto(p->Status),p->PC,p->IR,p->EAX,p->EBX,p->ECX,p->EDX);
     }
 }
@@ -898,14 +892,9 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
                 move(y_mensajes, 0); clrtoeol();
                 mvprintw(y_mensajes,0,"El proceso con PID %d ya esta en terminados.", id_p);
                 refresh();
-                return 0;
+                return 3;
             }
             aux = aux->sig;
-        }
-        if(proceso_mata != NULL){
-            proceso_mata -> Status = 'Z';
-            insertarFinal(lista_terminados, proceso_mata);
-            return 3;
         }
         move(y_mensajes, 0); clrtoeol();
         mvprintw(y_mensajes,0,"No se encontro el proceso con PID %d.", id_p);
