@@ -102,9 +102,11 @@ void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_termina
     struct Nodo *procesoError = extraerPrimero(lista_ejecucion);
     if(procesoError != NULL){
         procesoError->Status = 'X';
+        if(procesoError->Archivo != NULL){
+            fclose(procesoError -> Archivo);
+            procesoError -> Archivo = NULL;
+        }
         insertarFinal(lista_terminados, procesoError);
-        fclose(procesoError -> Archivo);
-        procesoError-> Archivo = NULL;
     }
 }
 
@@ -114,8 +116,10 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
     proceso_mata = extraerNodo(lista_ejecucion, id_p);
     if(proceso_mata != NULL){
         proceso_mata -> Status = 'Z';
-        fclose(proceso_mata->Archivo);
-        proceso_mata->Archivo = NULL;
+        if(proceso_mata->Archivo != NULL){
+            fclose(proceso_mata -> Archivo);
+            proceso_mata -> Archivo = NULL;
+        }
         insertarFinal(lista_terminados, proceso_mata);
         return 1;
     }
@@ -124,8 +128,10 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
         proceso_mata = extraerNodo(lista_listos, id_p);
         if(proceso_mata != NULL){
             proceso_mata -> Status = 'Z';
-            fclose(proceso_mata->Archivo);
-            proceso_mata->Archivo = NULL;
+            if(proceso_mata->Archivo != NULL){
+                fclose(proceso_mata -> Archivo);
+                proceso_mata -> Archivo = NULL;
+            }
             insertarFinal(lista_terminados, proceso_mata);
             return 2;
         }
@@ -147,4 +153,5 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
         refresh();
         return 0;
     }
+    return 0;
 }

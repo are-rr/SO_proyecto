@@ -225,14 +225,16 @@ int main(){
                             move(y_renglon, 0); clrtoeol();
                             mvprintw(y_renglon, 0, "%-10d %-20s %10d %10d %10d %10d", contadorLinea, linea_original, procesoEjecucion->EAX, procesoEjecucion->EBX,procesoEjecucion->ECX,procesoEjecucion->EDX);
                             refresh();
-                            napms(1000);
+                            //napms(1000);
                             
                             struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
                             if(procesoTerminado != NULL){
                                 procesoTerminado -> Status = 'T';
+                                if(procesoTerminado -> Archivo != NULL){
+                                    fclose(procesoTerminado->Archivo);
+                                    procesoTerminado->Archivo = NULL;
+                                }
                                 insertarFinal(&lista_terminados,procesoTerminado);
-                                fclose(procesoTerminado->Archivo);
-                                procesoTerminado->Archivo = NULL;
                             }
                             
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
@@ -243,7 +245,7 @@ int main(){
                             refresh();
                             A_terminadosError(&lista_ejecucion,&lista_terminados);
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
-                                reiniciarVariables(comando,archivo);
+                            reiniciarVariables(comando,archivo);
                             huboError = 1;
                             break;
                         }
@@ -251,7 +253,7 @@ int main(){
                 procesoEjecucion->PC = contadorLinea;
                 strcpy(procesoEjecucion->IR, linea_original);
                 refresh();
-                napms(1000); //Tiempo para ver las lineas de impresion para renglon
+               // napms(1000); //Tiempo para ver las lineas de impresion para renglon
                     
                     if (kbhit()){
                         imprimirlista(procesoEjecucion, y_procesoEjecucion);
@@ -348,6 +350,7 @@ int main(){
                                 continue;
                             }
 
+                            refresh();
                             int lista = matar(&lista_ejecucion,&lista_terminados,&lista_listos,num_PID);
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
@@ -356,6 +359,7 @@ int main(){
                             if(lista == 1){ //1 -> esta en lista ejecucion, 2-> listos, 3 -> terminados, 0->no esta el PID
                                 break;
                             }
+                            
                             continue;
                             
                         }else{//La interrupcion con un comando que no es Salir o Ejecuta o mata
@@ -367,6 +371,10 @@ int main(){
                         }
                     }
             }
+            if (lista_ejecucion == NULL) {
+                reiniciarVariables(comando, archivo);
+                continue;
+            }
             procesoEjecucion->PC = contadorLinea;
             
             if(q==quantum && encontroEND == 0 && huboError == 0){
@@ -377,11 +385,13 @@ int main(){
                 }
                 imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
             }
-            else if (encontroEND == 0 && huboError == 0 && feof(procesoEjecucion->Archivo)){
+            else if (encontroEND == 0 && huboError == 0 && finArchivo == 1){
+                //else if (encontroEND == 0 && huboError == 0 && feof(procesoEjecucion->Archivo)){
                 move(y_mensajes, 0); clrtoeol();
                 mvprintw(y_mensajes, 0, "ERROR: Fin de archivo sin END");
                 refresh();
                 
+               
                 A_terminadosError(&lista_ejecucion,&lista_terminados);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                 reiniciarVariables(comando,archivo);
