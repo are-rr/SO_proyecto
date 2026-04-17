@@ -278,6 +278,8 @@ int main(){
                             if(procesoTerminado != NULL){
                                 procesoTerminado -> Status = 'T';
                                 insertarFinal(&lista_terminados,procesoTerminado);
+                                fclose(procesoTerminado->Archivo);
+                                procesoTerminado->Archivo = NULL;
                             }
                             
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
@@ -354,7 +356,7 @@ int main(){
                                 num_palabras = 0;
                                 continue;
                             }
-                            //fclose(file);
+                            
                             pid++;
                             insertar(&lista_listos,pid,file_interrupcion,archivo,'L',0); 
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
@@ -863,6 +865,8 @@ void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_termina
     if(procesoError != NULL){
         procesoError->Status = 'X';
         insertarFinal(lista_terminados, procesoError);
+        fclose(procesoError -> Archivo);
+        procesoError-> Archivo = NULL;
     }
 }
 
@@ -872,6 +876,8 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
     proceso_mata = extraerNodo(lista_ejecucion, id_p);
     if(proceso_mata != NULL){
         proceso_mata -> Status = 'Z';
+        fclose(proceso_mata->Archivo);
+        proceso_mata->Archivo = NULL;
         insertarFinal(lista_terminados, proceso_mata);
         return 1;
     }
@@ -880,6 +886,8 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
         proceso_mata = extraerNodo(lista_listos, id_p);
         if(proceso_mata != NULL){
             proceso_mata -> Status = 'Z';
+            fclose(proceso_mata->Archivo);
+            proceso_mata->Archivo = NULL;
             insertarFinal(lista_terminados, proceso_mata);
             return 2;
         }
