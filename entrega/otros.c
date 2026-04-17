@@ -1,0 +1,35 @@
+#include <stdlib.h>
+#include <sys/select.h>
+#include <unistd.h>
+#include <ncurses.h>
+
+#include "procesos.h"
+
+// ** almacena la dirección de memoria de otro puntero, debido a que la variable file es un puntero y queremos la direccion del puntero
+void reiniciarVariables(char *comando,char *archivo){
+    comando[0] = '\0';
+    archivo[0] = '\0';
+}
+
+int kbhit(void){
+    struct timeval tv;
+    fd_set read_fd;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+
+    FD_ZERO(&read_fd);
+    FD_SET(0, &read_fd); // 0 = STDIN
+
+    if (select(1, &read_fd, NULL, NULL, &tv) == -1)
+        return 0;
+    if (FD_ISSET(0, &read_fd))
+        return 1;
+
+    return 0;
+}
+
+void salirPrograma(){
+    endwin();
+    exit(0);
+}
