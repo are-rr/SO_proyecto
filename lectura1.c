@@ -47,6 +47,7 @@ void imprimirlista(struct Nodo *lista, int y_ncurses);
 void imprimirEstado(struct Nodo *listo, struct Nodo *ejecucion, struct Nodo *terminados);
 const char *statusTexto(char status);
 void imprimirProceso(struct Nodo *p,int y_ncurse);
+int contarNodos(struct Nodo *lista);
 void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados);
 struct Nodo* extraerNodo(struct Nodo **lista, int id);
 int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p);
