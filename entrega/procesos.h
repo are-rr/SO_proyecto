@@ -15,6 +15,7 @@ struct Nodo {
     char Status;     // L = listo, E= ejecucion,  T =terminado, X=Terminado-Error, Z=Terminado-mata
     int PC;    // contador de programa(contadorLInea)
     char IR[100];//para guardar la ultima instruccion
+    int GID; //indentificador del grupo
     struct Nodo *sig;  // puntero al siguiente nodo
 };
 
@@ -31,7 +32,7 @@ extern int pid;
 
 //prototipos de las funciones
 //listas
-void insertar(struct Nodo **cabeza, int pid,FILE *archivo,const char *nombre,char status, int pc);
+void insertar(struct Nodo **cabeza, int pid,int gid,FILE *archivo,const char *nombre,char status, int pc);
 void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso);
 struct Nodo *extraerPrimero(struct Nodo **cabeza);
 struct Nodo *extraerNodo(struct Nodo **lista, int id);
@@ -52,14 +53,14 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
 //operaciones
 int *ObtenerRegistro(char *nombre, struct Nodo *p);
 int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *linea_original,char tipoOp, struct Nodo *proceso);
-int INC_DEC(char *arg1,char *arg2, int contadorLinea, const char *linea_original, int incremento,struct Nodo *proceso);
+int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incremento,struct Nodo *proceso);
 int MOV(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
 int ADD(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
 int SUB(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
 int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
 int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
-int INC(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
-int DEC(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
+int INC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *proceso);
+int DEC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *proceso);
 
 //ncurses
 const char *statusTexto(char status);

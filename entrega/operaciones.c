@@ -56,12 +56,12 @@ int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *l
     }
 
     move(y_renglon,0); clrtoeol(); refresh();
-    mvprintw(y_renglon,0,"%-10d %-20s %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX);
+    mvprintw(y_renglon,0,"%-10d %-18s %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX);
 
     return 1;
 }
 
-int INC_DEC(char *arg1,char *arg2, int contadorLinea, const char *linea_original, int incremento,struct Nodo *proceso){
+int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incremento,struct Nodo *proceso){
     if (!filtroIncDec(arg1, NULL, contadorLinea, linea_original)) return 0;
     if (!Comas_1pam(linea_original, contadorLinea)) return 0;
     if (!Registro(arg1)){
@@ -74,7 +74,7 @@ int INC_DEC(char *arg1,char *arg2, int contadorLinea, const char *linea_original
     *R += incremento;
 
     move(y_renglon,0); clrtoeol(); refresh();
-    mvprintw(y_renglon,0,"%-5d %-20s %8d %8d %8d %8d", contadorLinea, linea_original,proceso->EAX, proceso->EBX,proceso-> ECX,proceso-> EDX);
+    mvprintw(y_renglon,0,"%-5d %-18s %8d %8d %8d %8d", contadorLinea, linea_original,proceso->EAX, proceso->EBX,proceso-> ECX,proceso-> EDX);
 
     return 1;
 }
@@ -89,7 +89,7 @@ int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original,st
 { return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'U',proceso); }
 int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso)
 { return ejecutarOperaciones(arg1,arg2,contadorLinea,linea_original,'D',proceso); }
-int INC(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso)
-{ return INC_DEC(arg1,arg2,contadorLinea,linea_original,1,proceso); } //positivo para que sume
-int DEC(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso)
-{ return INC_DEC(arg1,arg2,contadorLinea,linea_original,-1,proceso); } //argumento negativo para que decremente
+int INC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *proceso)
+{ return INC_DEC(arg1,contadorLinea,linea_original,1,proceso); } //positivo para que sume
+int DEC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *proceso)
+{ return INC_DEC(arg1,contadorLinea,linea_original,-1,proceso); } //argumento negativo para que decremente

@@ -7,10 +7,11 @@
 //Funciones para las listas:
 
 
-void insertar(struct Nodo **cabeza, int pid,FILE *archivo,const char *nombre,char status, int pc) {
+void insertar(struct Nodo **cabeza, int pid,int gid,FILE *archivo,const char *nombre,char status, int pc) {
     struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo)); //reservar memoria para el nuevo nodo
     
     nuevo->PID = pid;
+    nuevo ->GID = gid;
     strncpy(nuevo->nombrePro, nombre, sizeof(nuevo->nombrePro) - 1); //strncpy(destino,origen,tamañp)
     nuevo->nombrePro[sizeof(nuevo->nombrePro) - 1] = '\0';//se copia pues nombre es un dato termporal
     nuevo-> Archivo = archivo;
@@ -155,4 +156,39 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
         return 0;
     }
     return 0;
+}
+
+int fork(struct Nodo **cabeza, int pid,int gid,FILE *archivo,const char *nombre,char status, int pc){
+    struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo)); //reservar memoria para el nuevo nodo
+    //busqueda del nodo
+    //una vez ubicado extraer los valores
+    //Revisar como funciona los punteros para guardar el contexto
+    //
+    nuevo->PID = pid;
+    nuevo ->GID = gid;
+    strncpy(nuevo->nombrePro, nombre, sizeof(nuevo->nombrePro) - 1); //strncpy(destino,origen,tamañp)
+    nuevo->nombrePro[sizeof(nuevo->nombrePro) - 1] = '\0';//se copia pues nombre es un dato termporal
+    nuevo-> Archivo = archivo;
+    nuevo->Status = status;
+    nuevo->PC = pc;
+
+    //nuevo->EAX = 0;
+    //nuevo->EBX = 0;
+    //nuevo->ECX = 0;
+    //nuevo->EDX = 0;
+    //nuevo->IR[0] = '\0';
+
+    nuevo->sig = NULL;
+
+    if (*cabeza == NULL) {
+        *cabeza = nuevo; //si la lista esta vacia, el nodo es la cabeza
+        return;
+    }
+
+    struct Nodo *temp = *cabeza;
+    while (temp->sig != NULL) { //noo esta vacia, recorre hasta el final
+        temp = temp->sig;
+    }
+    temp->sig = nuevo;//inserta el nuevo nodo al final
+
 }

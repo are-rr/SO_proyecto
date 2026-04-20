@@ -14,11 +14,13 @@ int y_procesoEjecucion = 8;
 
 int ejecutando = 1;
 int pid =0;
+int gid =0;
 
 int main(){
     char comando[100];
     char archivo[100];
-    int num_PID;
+    int num_PID; //pid que brindo en el comando
+    int num_GID;
     int num_palabras;
     initscr();
     comando[0] = '\0';
@@ -33,6 +35,7 @@ int main(){
         if ((lista_ejecucion == NULL && lista_listos == NULL)){
             char entrada[200];
             char extra[100];
+            char extra2[100];
             comando[0] = '\0';
             archivo[0] = '\0';
 
@@ -41,7 +44,7 @@ int main(){
             refresh();
 
             getnstr(entrada, 199); //lee la entrada
-            num_palabras = sscanf(entrada, "%99s %99s %99s", comando, archivo, extra); //sscanf(cadena, formato, &variable1, etc.);
+            num_palabras = sscanf(entrada, "%99s %99s %99s %99s", comando, archivo, extra, extra2); //sscanf(cadena, formato, &variable1, etc.);
             move(y_linea_comando, 0); clrtoeol();
             refresh();
             if (strcmp(comando, "salir") == 0){
@@ -80,7 +83,8 @@ int main(){
                 }
 
                 pid++;
-                insertar(&lista_listos,pid,file,archivo,'L',0); //el proceso se inserta en la lista de listos
+                gid++;
+                insertar(&lista_listos,pid,gid,file,archivo,'L',0); //el proceso se inserta en la lista de listos
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
             } else if (strcmp(comando, "mata") == 0){
@@ -113,6 +117,51 @@ int main(){
                     continue;
                 }
 
+            }else if(strcmp(comando, "fork") == 0){//----------------------------------------------------------------------------------------------------------------------
+                //aqui como va emoezando no debe tener proceso que duplicar
+                if (num_palabras < 2) {
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: falta pid del proceso");
+                    refresh();
+                    num_palabras= 0;
+                    continue;
+                }
+                if (num_palabras < 3) {
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: falta numero de instruccion");
+                    refresh();
+                    num_palabras= 0;
+                    continue;
+                }
+                num_PID = atoi(archivo);
+                num_GID = atoi(extra);
+                if(!num_PID){
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: PID debe ser un entero");
+                    refresh();
+                    continue;
+                }
+                if(!num_GID){
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: GID debe ser un entero");
+                    refresh();
+                    continue;
+                }
+                if (num_palabras > 3) {
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
+                    refresh();
+                    num_palabras= 0;
+                    continue;
+                }
+                if(lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL){
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: no hay procesos para duplicar");
+                    refresh();
+                    num_palabras= 0;
+                    //se deben reiniciar las variables de PID y GID???????????????????????????????????????
+                    continue;
+                }
             }else{
                 move(y_mensajes, 0); clrtoeol();
                 mvprintw(y_mensajes, 0, "Comando no valido");
@@ -147,8 +196,8 @@ int main(){
         int quantum=3;
         int q=0;
 
-        mvprintw(y_header, 0, "%-10s %-20s %10s %10s %10s %10s", "PC", "IR", "EAX", "EBX", "ECX", "EDX");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
-        mvprintw(y_header2, 0, "%-5s %-20s %-18s %-10s %-20s %10s %10s %10s %10s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
+        mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s", "PC", "IR", "EAX", "EBX", "ECX", "EDX");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
+        mvprintw(y_header2, 0, "%-5s %-5s %-18s %-18s %-10s %-18s %10s %10s %10s %10s", "PID","GID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
         refresh();
         
         if(procesoEjecucion != NULL){
@@ -205,8 +254,8 @@ int main(){
                     (strcmp(instruccion, "SUB") == 0 && !SUB(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                     (strcmp(instruccion, "MUL") == 0 && !MUL(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                     (strcmp(instruccion, "DIV") == 0 && !DIV(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
-                    (strcmp(instruccion, "INC") == 0 && !INC(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
-                    (strcmp(instruccion, "DEC") == 0 && !DEC(arg1,arg2,contadorLinea,linea_original,procesoEjecucion))) {
+                    (strcmp(instruccion, "INC") == 0 && !INC(arg1,contadorLinea,linea_original,procesoEjecucion)) ||
+                    (strcmp(instruccion, "DEC") == 0 && !DEC(arg1,contadorLinea,linea_original,procesoEjecucion))) {
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
@@ -223,7 +272,7 @@ int main(){
                         
                         if(feof(procesoEjecucion -> Archivo)){//Encontro END y se acabo el archivo(correcto)
                             move(y_renglon, 0); clrtoeol();
-                            mvprintw(y_renglon, 0, "%-10d %-20s %10d %10d %10d %10d", contadorLinea, linea_original, procesoEjecucion->EAX, procesoEjecucion->EBX,procesoEjecucion->ECX,procesoEjecucion->EDX);
+                            mvprintw(y_renglon, 0, "%-10d %-18s %10d %10d %10d %10d", contadorLinea, linea_original, procesoEjecucion->EAX, procesoEjecucion->EBX,procesoEjecucion->ECX,procesoEjecucion->EDX);
                             refresh();
                             //napms(1000);
                             
@@ -313,7 +362,8 @@ int main(){
                             }
                             
                             pid++;
-                            insertar(&lista_listos,pid,file_interrupcion,archivo,'L',0); 
+                            gid++;
+                            insertar(&lista_listos,pid,gid,file_interrupcion,archivo,'L',0); 
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();
@@ -362,6 +412,49 @@ int main(){
                             
                             continue;
                             
+                        }else if(strcmp(comando, "fork") == 0){//----------------------------------------------------------------------------------------------------------------------
+                            if (num_palabras < 2) {
+                                move(y_mensajes, 0); clrtoeol();
+                                mvprintw(y_mensajes, 0, "(D)ERROR: falta pid del proceso");
+                                refresh();
+                                num_palabras= 0;
+                                continue;
+                            }
+                            if (num_palabras < 3) {
+                                move(y_mensajes, 0); clrtoeol();
+                                mvprintw(y_mensajes, 0, "(D)ERROR: falta numero de instruccion");
+                                refresh();
+                                num_palabras= 0;
+                                continue;
+                            }
+                            num_PID = atoi(archivo);
+                            num_GID = atoi(extra);
+                            if(!num_PID){
+                                move(y_mensajes, 0); clrtoeol();
+                                mvprintw(y_mensajes, 0, "(D)ERROR: PID debe ser un entero");
+                                refresh();
+                                num_PID = '\0';
+                                continue;
+                            }
+                            if(!num_GID){
+                                move(y_mensajes, 0); clrtoeol();
+                                mvprintw(y_mensajes, 0, "(D)ERROR: GID debe ser un entero");
+                                refresh();
+                                num_GID = '\0';
+                                continue;
+                            }
+                            if (num_palabras > 3) {
+                                move(y_mensajes, 0); clrtoeol();
+                                mvprintw(y_mensajes, 0, "(D)ERROR: demasiados argumentos");
+                                refresh();
+                                num_palabras= 0;
+                                num_PID = '\0';
+                                num_GID = '\0';
+                                continue;
+                            }
+
+                            
+
                         }else{//La interrupcion con un comando que no es Salir o Ejecuta o mata
                             move(y_mensajes, 0); clrtoeol();
                             mvprintw(y_mensajes, 0, "(D)Comando no valido");

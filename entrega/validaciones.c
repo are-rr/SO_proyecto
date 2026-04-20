@@ -175,7 +175,7 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
         return 1;
     }
     i++; // para saltar la coma
-    const char *espacio = strchr(linea_original, ' ');
+    //const char *espacio = strchr(linea_original, ' ');
     int contadorEspacio = 0;
 
     for (int i = 0; linea_original[i] != '\0'; i++){
