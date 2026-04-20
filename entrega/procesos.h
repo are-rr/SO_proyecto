@@ -12,7 +12,7 @@ struct Nodo {
     int EBX;
     int ECX;
     int EDX;
-    char Status;     // L = listo E= ejecucion  T =terminado X=Terminado-Error Z=Terminado-mata
+    char Status;     // L = listo, E= ejecucion,  T =terminado, X=Terminado-Error, Z=Terminado-mata
     int PC;    // contador de programa(contadorLInea)
     char IR[100];//para guardar la ultima instruccion
     struct Nodo *sig;  // puntero al siguiente nodo

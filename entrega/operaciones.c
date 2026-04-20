@@ -7,7 +7,7 @@
 
 int *ObtenerRegistro(char *nombre, struct Nodo *p){
     if (strcmp(nombre, "EAX") == 0){
-        return &p->EAX;
+        return &p->EAX; //aqui devuelve donde esta guardado el registo
     }
     else if (strcmp(nombre, "EBX") == 0){
         return &p->EBX;

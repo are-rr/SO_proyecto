@@ -12,7 +12,7 @@ int Registro(char *token){
     char Registros[4][10] = {"EAX", "EBX", "ECX", "EDX"};
     for (int i = 0; i < 4; i++){
         if (strcmp(token, Registros[i]) == 0){
-            return 1;
+            return 1;// si encontro el registro en el arreglo
         }
     }
     return 0;
@@ -38,7 +38,7 @@ int Digito(char *token){
         i = 1;
     }
     for (; token[i] != '\0' && token[i] != '\n'; i++){
-        if (!isdigit(token[i])){
+        if (!isdigit(token[i])){ //si es digito
             return 0;
         }
     }

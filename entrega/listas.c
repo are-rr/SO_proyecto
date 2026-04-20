@@ -2,17 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
-
 #include "procesos.h"
 
 //Funciones para las listas:
-// crea e Inserta el proceso al final de una lista
+
+
 void insertar(struct Nodo **cabeza, int pid,FILE *archivo,const char *nombre,char status, int pc) {
-    struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo)); //reservar memoria
+    struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo)); //reservar memoria para el nuevo nodo
     
     nuevo->PID = pid;
-    strncpy(nuevo->nombrePro, nombre, sizeof(nuevo->nombrePro) - 1);
-    nuevo->nombrePro[sizeof(nuevo->nombrePro) - 1] = '\0';
+    strncpy(nuevo->nombrePro, nombre, sizeof(nuevo->nombrePro) - 1); //strncpy(destino,origen,tamañp)
+    nuevo->nombrePro[sizeof(nuevo->nombrePro) - 1] = '\0';//se copia pues nombre es un dato termporal
     nuevo-> Archivo = archivo;
     nuevo->Status = status;
     nuevo->PC = pc;
@@ -26,7 +26,7 @@ void insertar(struct Nodo **cabeza, int pid,FILE *archivo,const char *nombre,cha
     nuevo->sig = NULL;
 
     if (*cabeza == NULL) {
-        *cabeza = nuevo; //si la lista esta vacia
+        *cabeza = nuevo; //si la lista esta vacia, el nodo es la cabeza
         return;
     }
 
@@ -37,11 +37,12 @@ void insertar(struct Nodo **cabeza, int pid,FILE *archivo,const char *nombre,cha
     temp->sig = nuevo;//inserta el nuevo nodo al final
 }
 
-// inserta el proceso al final
-void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso) {
-    if (proceso == NULL) return;
 
-    proceso->sig = NULL;
+void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso) {
+    if (proceso == NULL) {
+        return;
+    }
+    proceso->sig = NULL;//asegura eu no apunte a otro nodo
 
     if (*cabeza == NULL) {
         *cabeza = proceso;
@@ -113,7 +114,7 @@ void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_termina
 int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p) {
     struct Nodo *proceso_mata = NULL;
 
-    proceso_mata = extraerNodo(lista_ejecucion, id_p);
+    proceso_mata = extraerNodo(lista_ejecucion, id_p); //busca en ejecucion
     if(proceso_mata != NULL){
         proceso_mata -> Status = 'Z';
         if(proceso_mata->Archivo != NULL){
@@ -125,7 +126,7 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
     }
 
     if (proceso_mata == NULL) {
-        proceso_mata = extraerNodo(lista_listos, id_p);
+        proceso_mata = extraerNodo(lista_listos, id_p); //sino busca en listos
         if(proceso_mata != NULL){
             proceso_mata -> Status = 'Z';
             if(proceso_mata->Archivo != NULL){
@@ -138,8 +139,8 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
     }
 
     if (proceso_mata == NULL) {
-        struct Nodo *aux = *lista_terminados;
-        while (aux != NULL) {
+        struct Nodo *aux = *lista_terminados; //por ultimo en terminados
+        while (aux != NULL) {                //pero solo busca, no lo mata, pues ya esta terminado
             if (aux->PID == id_p) {
                 move(y_mensajes, 0); clrtoeol();
                 mvprintw(y_mensajes,0,"El proceso con PID %d ya esta en terminados.", id_p);

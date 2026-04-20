@@ -28,7 +28,7 @@ int main(){
     struct Nodo *lista_terminados = NULL;
     int huboError = 0;
     while (ejecutando){
-        huboError = 0; //reiniciamos a cada interacion los errores encontrados
+        huboError = 0; //reiniciamos a cada interacion la bandera de errores
 
         if ((lista_ejecucion == NULL && lista_listos == NULL)){
             char entrada[200];
@@ -40,7 +40,7 @@ int main(){
             mvprintw(y_linea_comando, 0, "> ");
             refresh();
 
-            getnstr(entrada, 199);
+            getnstr(entrada, 199); //lee la entrada
             num_palabras = sscanf(entrada, "%99s %99s %99s", comando, archivo, extra); //sscanf(cadena, formato, &variable1, etc.);
             move(y_linea_comando, 0); clrtoeol();
             refresh();
@@ -80,7 +80,7 @@ int main(){
                 }
 
                 pid++;
-                insertar(&lista_listos,pid,file,archivo,'L',0); 
+                insertar(&lista_listos,pid,file,archivo,'L',0); //el proceso se inserta en la lista de listos
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
             } else if (strcmp(comando, "mata") == 0){
@@ -91,7 +91,7 @@ int main(){
                     num_palabras= 0;
                     continue;
                 }
-                num_PID = atoi(archivo);
+                num_PID = atoi(archivo); //convertimos el PID a entero
                 if(!num_PID){
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "ERROR: PID debe ser un entero");
@@ -133,7 +133,7 @@ int main(){
             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
             refresh(); 
         }
-        if(lista_ejecucion == NULL){
+        if(lista_ejecucion == NULL){//si no hay nada en ejecucion vuelve a empexar
             continue;
         }
 
@@ -147,14 +147,14 @@ int main(){
         int quantum=3;
         int q=0;
 
-        mvprintw(y_header, 0, "%-10s %-20s %10s %10s %10s %10s", "PC", "IR", "EAX", "EBX", "ECX", "EDX");
+        mvprintw(y_header, 0, "%-10s %-20s %10s %10s %10s %10s", "PC", "IR", "EAX", "EBX", "ECX", "EDX");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
         mvprintw(y_header2, 0, "%-5s %-20s %-18s %-10s %-20s %10s %10s %10s %10s", "PID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
         refresh();
         
         if(procesoEjecucion != NULL){
             int finArchivo = 0;
             while (q < quantum) {
-                if (fgets(linea, sizeof(linea), procesoEjecucion->Archivo) == NULL) {
+                if (fgets(linea, sizeof(linea), procesoEjecucion->Archivo) == NULL) { //lee la linea del archivo
                     finArchivo = 1;
                     break;
                 }
@@ -162,15 +162,15 @@ int main(){
                 contadorLinea++;
                 
                 
-                char linea_original[100];
+                char linea_original[100]; //gaurdamos copia de lalinea
                 strcpy(linea_original, linea);
                 linea_original[strcspn(linea_original, "\r\n")] = '\0';//(lineaaescanear, loquevaaencontrar)
 
-                if(linea_original[0] == '\0'){
+                if(linea_original[0] == '\0'){ //linea vacia
                     move(y_mensajes,0); clrtoeol();
                     mvprintw(y_mensajes,0,"ERROR: linea vacia en linea %d", contadorLinea);
                     refresh();
-                    strcpy(procesoEjecucion->IR, linea_original);
+                    strcpy(procesoEjecucion->IR, linea_original); //guardamos el IR
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                     huboError = 1;
@@ -250,7 +250,7 @@ int main(){
                             break;
                         }
                 }
-                procesoEjecucion->PC = contadorLinea;
+                procesoEjecucion->PC = contadorLinea; //guardamos la PC y IR ejecutado
                 strcpy(procesoEjecucion->IR, linea_original);
                 refresh();
                // napms(1000); //Tiempo para ver las lineas de impresion para renglon
@@ -377,7 +377,7 @@ int main(){
             }
             procesoEjecucion->PC = contadorLinea;
             
-            if(q==quantum && encontroEND == 0 && huboError == 0){
+            if(q==quantum && encontroEND == 0 && huboError == 0){ //leyo 3 inst y no termino
                 struct Nodo *p = extraerPrimero(&lista_ejecucion);
                 if(p != NULL){
                     p -> Status = 'L';
@@ -385,12 +385,11 @@ int main(){
                 }
                 imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
             }
-            else if (encontroEND == 0 && huboError == 0 && finArchivo == 1){
+            else if (encontroEND == 0 && huboError == 0 && finArchivo == 1){ //se acbo el archivo sin END
                 //else if (encontroEND == 0 && huboError == 0 && feof(procesoEjecucion->Archivo)){
                 move(y_mensajes, 0); clrtoeol();
                 mvprintw(y_mensajes, 0, "ERROR: Fin de archivo sin END");
                 refresh();
-                
                
                 A_terminadosError(&lista_ejecucion,&lista_terminados);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               

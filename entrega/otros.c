@@ -5,7 +5,6 @@
 
 #include "procesos.h"
 
-// ** almacena la dirección de memoria de otro puntero, debido a que la variable file es un puntero y queremos la direccion del puntero
 void reiniciarVariables(char *comando,char *archivo){
     comando[0] = '\0';
     archivo[0] = '\0';
