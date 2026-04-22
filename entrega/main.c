@@ -274,7 +274,7 @@ int main(){
                             move(y_renglon, 0); clrtoeol();
                             mvprintw(y_renglon, 0, "%-10d %-18s %10d %10d %10d %10d", contadorLinea, linea_original, procesoEjecucion->EAX, procesoEjecucion->EBX,procesoEjecucion->ECX,procesoEjecucion->EDX);
                             refresh();
-                            //napms(1000);
+                            napms(1000);
                             
                             struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
                             if(procesoTerminado != NULL){
@@ -302,7 +302,7 @@ int main(){
                 procesoEjecucion->PC = contadorLinea; //guardamos la PC y IR ejecutado
                 strcpy(procesoEjecucion->IR, linea_original);
                 refresh();
-               // napms(1000); //Tiempo para ver las lineas de impresion para renglon
+                napms(1000); //Tiempo para ver las lineas de impresion para renglon
                     
                     if (kbhit()){
                         imprimirlista(procesoEjecucion, y_procesoEjecucion);
@@ -452,8 +452,8 @@ int main(){
                                 num_GID = '\0';
                                 continue;
                             }
-
                             
+                            //insertarFinal(&lista_listos,nuevo);//agregarlo a listos
 
                         }else{//La interrupcion con un comando que no es Salir o Ejecuta o mata
                             move(y_mensajes, 0); clrtoeol();

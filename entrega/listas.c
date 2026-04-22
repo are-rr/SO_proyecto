@@ -158,37 +158,66 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
     return 0;
 }
 
-int fork(struct Nodo **cabeza, int pid,int gid,FILE *archivo,const char *nombre,char status, int pc){
+int buscar(struct Nodo **lista,int pid){
+        struct Nodo *actual = *lista;
+    struct Nodo *anterior = NULL;
+
+    while (actual != NULL) {
+        if (actual->PID == pid) {
+            return actual;
+        }
+        anterior = actual; 
+        actual = actual->sig;
+    }
+    return NULL; 
+}
+
+int fork(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int pid_comando, int pc,int pid,int gid){
     struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo)); //reservar memoria para el nuevo nodo
+    struct Nodo *original = (struct Nodo *)malloc(sizeof(struct Nodo));
+
     //busqueda del nodo
+    if(original=buscar(&lista_ejecucion,pid_comando)){
+        //operaciones para apuntar al pc que se necesita
+        while(nuevo != NULL){
+            if(pc >= 0){// asegura que no es negativo, si el pc no existe en el proceso que pasa??
+                nuevo->PC = pc;
+            }else{
+                nuevo->PC = original->PC;
+            }
+        }
+    }else if(original=buscar(&lista_listos,pid_comando)){
+        while(nuevo != NULL){
+            if(pc >= 0){
+                nuevo->PC = pc;
+            }else{
+                nuevo->PC = original->PC;
+            }
+        }
+
+    }else if(original=buscar(&lista_terminados,pid_comando)){
+        move(y_mensajes, 0); clrtoeol();
+        mvprintw(y_mensajes,0,"ERROR: no se puede duplicar un proceso que esta en terminados");
+        return NULL;//ya que regresa un nodo
+    }
+
     //una vez ubicado extraer los valores
     //Revisar como funciona los punteros para guardar el contexto
-    //
+    //meter a listos
     nuevo->PID = pid;
     nuevo ->GID = gid;
-    strncpy(nuevo->nombrePro, nombre, sizeof(nuevo->nombrePro) - 1); //strncpy(destino,origen,tamañp)
+    strncpy(nuevo->nombrePro, original->nombrePro, sizeof(nuevo->nombrePro) - 1); //strncpy(destino,origen,tamañp)
     nuevo->nombrePro[sizeof(nuevo->nombrePro) - 1] = '\0';//se copia pues nombre es un dato termporal
-    nuevo-> Archivo = archivo;
-    nuevo->Status = status;
-    nuevo->PC = pc;
+    //nuevo-> Archivo = archivo;//--------------------------------------------------
+    nuevo-> Archivo = original ->Archivo;
+    nuevo->Status = 'L';
 
-    //nuevo->EAX = 0;
-    //nuevo->EBX = 0;
-    //nuevo->ECX = 0;
-    //nuevo->EDX = 0;
+    nuevo->EAX = 0;
+    nuevo->EBX = 0;
+    nuevo->ECX = 0;
+    nuevo->EDX = 0;
     //nuevo->IR[0] = '\0';
 
     nuevo->sig = NULL;
-
-    if (*cabeza == NULL) {
-        *cabeza = nuevo; //si la lista esta vacia, el nodo es la cabeza
-        return;
-    }
-
-    struct Nodo *temp = *cabeza;
-    while (temp->sig != NULL) { //noo esta vacia, recorre hasta el final
-        temp = temp->sig;
-    }
-    temp->sig = nuevo;//inserta el nuevo nodo al final
 
 }

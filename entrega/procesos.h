@@ -39,6 +39,7 @@ struct Nodo *extraerNodo(struct Nodo **lista, int id);
 int contarNodos(struct Nodo *lista);
 void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados);
 int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p);
+int fork(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int pid_comando, int pc,int pid,int gid);
 
 //validaciones
 int Registro(char *token);
