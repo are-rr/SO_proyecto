@@ -20,7 +20,7 @@ int main(){
     char comando[100];
     char archivo[100];
     int num_PID; //pid que brindo en el comando
-    int num_GID;
+    int num_PC;
     int num_palabras;
     initscr();
     comando[0] = '\0';
@@ -134,14 +134,14 @@ int main(){
                     continue;
                 }
                 num_PID = atoi(archivo);
-                num_GID = atoi(extra);
+                num_PC = atoi(extra);
                 if(!num_PID){
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "ERROR: PID debe ser un entero");
                     refresh();
                     continue;
                 }
-                if(!num_GID){
+                if(!num_PC){
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "ERROR: GID debe ser un entero");
                     refresh();
@@ -428,7 +428,7 @@ int main(){
                                 continue;
                             }
                             num_PID = atoi(archivo);
-                            num_GID = atoi(extra);
+                            num_PC = atoi(extra);
                             if(!num_PID){
                                 move(y_mensajes, 0); clrtoeol();
                                 mvprintw(y_mensajes, 0, "(D)ERROR: PID debe ser un entero");
@@ -436,11 +436,11 @@ int main(){
                                 num_PID = '\0';
                                 continue;
                             }
-                            if(!num_GID){
+                            if(!num_PC){
                                 move(y_mensajes, 0); clrtoeol();
-                                mvprintw(y_mensajes, 0, "(D)ERROR: GID debe ser un entero");
+                                mvprintw(y_mensajes, 0, "(D)ERROR: PC debe ser un entero");
                                 refresh();
-                                num_GID = '\0';
+                                num_PC = '\0';
                                 continue;
                             }
                             if (num_palabras > 3) {
@@ -449,12 +449,28 @@ int main(){
                                 refresh();
                                 num_palabras= 0;
                                 num_PID = '\0';
-                                num_GID = '\0';
+                                num_PC = '\0';
                                 continue;
-                            }
-                            
-                            //insertarFinal(&lista_listos,nuevo);//agregarlo a listos
+                            }                                               //num_PID num_PC son las variables que estan en el comando
+                            pid++;
+                            gid++;
 
+                            struct Nodo *nuevo = forkProcesoComando(
+                                &lista_ejecucion,
+                                &lista_terminados,
+                                &lista_listos,
+                                num_PID,
+                                num_PC,
+                                pid,
+                                gid
+                            );
+
+                            if (nuevo == NULL) {
+                                pid--;
+                                gid--;
+                            }
+
+                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                         }else{//La interrupcion con un comando que no es Salir o Ejecuta o mata
                             move(y_mensajes, 0); clrtoeol();
                             mvprintw(y_mensajes, 0, "(D)Comando no valido");

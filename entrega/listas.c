@@ -158,66 +158,114 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
     return 0;
 }
 
-int buscar(struct Nodo **lista,int pid){
-        struct Nodo *actual = *lista;
-    struct Nodo *anterior = NULL;
+struct Nodo *buscar(struct Nodo *lista,int pid){
+    struct Nodo *actual = lista;
 
     while (actual != NULL) {
         if (actual->PID == pid) {
             return actual;
-        }
-        anterior = actual; 
+        } 
         actual = actual->sig;
     }
     return NULL; 
 }
 
-int fork(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int pid_comando, int pc,int pid,int gid){
-    struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo)); //reservar memoria para el nuevo nodo
-    struct Nodo *original = (struct Nodo *)malloc(sizeof(struct Nodo));
+int posicionarArchivoEnPC(FILE *copiaArchivo,int pc_buscar){
+    char buffer[200];
 
-    //busqueda del nodo
-    if(original=buscar(&lista_ejecucion,pid_comando)){
-        //operaciones para apuntar al pc que se necesita
-        while(nuevo != NULL){
-            if(pc >= 0){// asegura que no es negativo, si el pc no existe en el proceso que pasa??
-                nuevo->PC = pc;
-            }else{
-                nuevo->PC = original->PC;
-            }
-        }
-    }else if(original=buscar(&lista_listos,pid_comando)){
-        while(nuevo != NULL){
-            if(pc >= 0){
-                nuevo->PC = pc;
-            }else{
-                nuevo->PC = original->PC;
-            }
-        }
+    for(int i=0;i<pc_buscar;i++){
+        if(fgets(buffer,sizeof(buffer), copiaArchivo)==NULL){
+            return 0;
+          }  
 
-    }else if(original=buscar(&lista_terminados,pid_comando)){
-        move(y_mensajes, 0); clrtoeol();
-        mvprintw(y_mensajes,0,"ERROR: no se puede duplicar un proceso que esta en terminados");
-        return NULL;//ya que regresa un nodo
+    }
+    return 1;
+}
+
+struct Nodo* forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int nuevo_gid) {
+    struct Nodo *nuevo = (struct Nodo*) malloc(sizeof(struct Nodo));
+
+    if (nuevo == NULL) {
+        return NULL;
     }
 
-    //una vez ubicado extraer los valores
-    //Revisar como funciona los punteros para guardar el contexto
-    //meter a listos
-    nuevo->PID = pid;
-    nuevo ->GID = gid;
-    strncpy(nuevo->nombrePro, original->nombrePro, sizeof(nuevo->nombrePro) - 1); //strncpy(destino,origen,tamañp)
-    nuevo->nombrePro[sizeof(nuevo->nombrePro) - 1] = '\0';//se copia pues nombre es un dato termporal
-    //nuevo-> Archivo = archivo;//--------------------------------------------------
-    nuevo-> Archivo = original ->Archivo;
+    nuevo->GID = nuevo_gid;
+    nuevo->PID = nuevo_pid;
+    strcpy(nuevo->nombrePro, original->nombrePro);
+    nuevo->Archivo = fopen(original->nombrePro, "r");
+
+    if (nuevo->Archivo == NULL) {
+        free(nuevo);
+        return NULL;
+    }
+
+    nuevo->EAX = original->EAX;
+    nuevo->EBX = original->EBX;
+    nuevo->ECX = original->ECX;
+    nuevo->EDX = original->EDX;
+
+    strcpy(nuevo->IR, "");//-----------------------------------------------------------
+
+    if (nuevo_pc >= 0) {
+        nuevo->PC = nuevo_pc;
+    } else {
+        nuevo->PC = original->PC;
+    }
+
+    // 👇 posicionar archivo en ese PC
+    if (posicionarArchivoEnPC(nuevo->Archivo, nuevo->PC) == 0) {
+        printf("Error: PC invalido\n");
+        return NULL;
+    }
+
     nuevo->Status = 'L';
-
-    nuevo->EAX = 0;
-    nuevo->EBX = 0;
-    nuevo->ECX = 0;
-    nuevo->EDX = 0;
-    //nuevo->IR[0] = '\0';
-
     nuevo->sig = NULL;
 
+    return nuevo;
+}
+
+struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,struct Nodo **lista_listos,int pid_comando,int pc,int nuevo_pid,int nuevo_gid) {
+    struct Nodo *original = NULL;
+    struct Nodo *nuevo = NULL;
+
+    original = buscar(*lista_ejecucion, pid_comando);
+
+    if (original == NULL) {
+        original = buscar(*lista_listos, pid_comando);
+    }
+
+    if (original == NULL) {
+        if (buscar(*lista_terminados, pid_comando) != NULL) {
+            move(y_mensajes, 0); 
+            clrtoeol();
+            mvprintw(y_mensajes, 0, "ERROR: no se puede duplicar un proceso terminado");
+            refresh();
+            return NULL;
+        }
+
+        move(y_mensajes, 0); 
+        clrtoeol();
+        mvprintw(y_mensajes, 0, "ERROR: no existe el PID %d", pid_comando);
+        refresh();
+        return NULL;
+    }
+
+    nuevo = forkProceso(original, nuevo_pid,pc,nuevo_gid);
+
+    if (nuevo == NULL) {
+        move(y_mensajes, 0); 
+        clrtoeol();
+        mvprintw(y_mensajes, 0, "ERROR: PC invalido o no se pudo abrir el archivo");
+        refresh();
+        return NULL;
+    }
+
+    insertarFinal(lista_listos, nuevo);
+
+    move(y_mensajes, 0);
+    clrtoeol();
+    mvprintw(y_mensajes, 0, "Proceso duplicado: PID %d desde PC %d", nuevo_pid, pc);
+    refresh();
+
+    return nuevo;
 }
