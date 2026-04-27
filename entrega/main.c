@@ -453,7 +453,7 @@ int main(){
                                 continue;
                             }                                               //num_PID num_PC son las variables que estan en el comando
                             pid++;
-                            gid++;
+                            //gid++;
 
                             struct Nodo *nuevo = forkProcesoComando(
                                 &lista_ejecucion,

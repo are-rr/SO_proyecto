@@ -199,10 +199,10 @@ struct Nodo* forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int
         return NULL;
     }
 
-    nuevo->EAX = original->EAX;
-    nuevo->EBX = original->EBX;
-    nuevo->ECX = original->ECX;
-    nuevo->EDX = original->EDX;
+    nuevo->EAX = 0;
+    nuevo->EBX = 0;
+    nuevo->ECX = 0;
+    nuevo->EDX = 0;
 
     strcpy(nuevo->IR, "");//-----------------------------------------------------------
 
