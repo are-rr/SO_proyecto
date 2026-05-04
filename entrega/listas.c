@@ -273,15 +273,22 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **list
     return nuevo;
 }
 
-int CalculoPriodidad(struct Nodo *nodolis, int grupos, int Base){
+int CalculoPriodidad(struct Nodo **nodolis, int grupos, int Base){
     int P,CPU,GCPU;
+    struct Nodo *actual = *nodolis;
 
-    CPU=nodolis->CPU/2;
-    GCPU= nodolis->GCPU/2;
-    nodolis-> CPU = CPU;
-    nodolis -> GCPU = GCPU;
-    P = Base+(CPU/2)+(GCPU*(grupos/4));
-    return P;
+    while (actual != NULL) {
+        CPU=actual->CPU/2;
+        GCPU= actual->GCPU/2;
+        actual-> CPU = CPU;
+        actual -> GCPU = GCPU;
+        P = Base+(CPU/2)+(GCPU*(grupos/4));
+        actual ->PRIORY =P;
+
+        actual = actual->sig;
+    }
+
+    return 0;
 }
 
 struct Nodo* extraerNodo_Prioridad(struct Nodo **lista, int priory) {
@@ -309,17 +316,15 @@ struct Nodo* extraerNodo_Prioridad(struct Nodo **lista, int priory) {
 
 struct Nodo *Fair_Share(struct Nodo **lista_listos,int grupos,int Base){
     struct Nodo *actual = *lista_listos;
-    struct Nodo *nodo = *lista_listos;
     struct Nodo *anterior = NULL;
-    while (actual != NULL) {
-        actual->PRIORY = CalculoPriodidad(actual,grupos,Base);
-        actual = actual->sig;
-    }
+
+    CalculoPriodidad(lista_listos,grupos,Base);
+      
     //iniciar en la cabeza de la lista
     int prioridad;
     int prioridad_A;
-    while (nodo != NULL){
-        prioridad_A = nodo->PRIORY;
+    while (actual != NULL){
+        prioridad_A = actual->PRIORY;
 
         if(anterior == NULL){
             prioridad = prioridad_A;
