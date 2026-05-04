@@ -20,6 +20,7 @@ void insertar(struct Nodo **cabeza, int pid,int gid,FILE *archivo,const char *no
 
     nuevo -> CPU = 0;
     nuevo -> GCPU = 0;
+    nuevo -> PRIORY = 0;
     nuevo->EAX = 0;
     nuevo->EBX = 0;
     nuevo->ECX = 0;
@@ -270,4 +271,65 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **list
     refresh();
 
     return nuevo;
+}
+
+int CalculoPriodidad(struct Nodo *nodolis, int grupos, int Base){
+    int P,CPU,GCPU;
+
+    CPU=nodolis->CPU/2;
+    GCPU= nodolis->GCPU/2;
+    nodolis-> CPU = CPU;
+    nodolis -> GCPU = GCPU;
+    P = Base+(CPU/2)+(GCPU*(grupos/4));
+    return P;
+}
+
+struct Nodo* extraerNodo_Prioridad(struct Nodo **lista, int priory) {
+    struct Nodo *actual = *lista;
+    struct Nodo *anterior = NULL;
+
+    while (actual != NULL) {
+        if (actual->PRIORY == priory) {
+            if (anterior == NULL) { //si es el primer nodo en la lista, no tiene anterior
+                *lista = actual->sig;
+            } else {//desconectamos el nodo
+                anterior->sig = actual->sig; //nodo anterior apunta al sig del actual
+            }
+
+            actual->sig = NULL;// desenlazamos el nodo de la lista
+            return actual;
+        }
+
+        anterior = actual; 
+        actual = actual->sig;
+    }
+
+    return NULL; // No encontrado
+}
+
+struct Nodo *Fair_Share(struct Nodo **lista_listos,int grupos,int Base){
+    struct Nodo *actual = *lista_listos;
+    struct Nodo *nodo = *lista_listos;
+    struct Nodo *anterior = NULL;
+    while (actual != NULL) {
+        actual->PRIORY = CalculoPriodidad(actual,grupos,Base);
+        actual = actual->sig;
+    }
+    //iniciar en la cabeza de la lista
+    int prioridad;
+    int prioridad_A;
+    while (nodo != NULL){
+        prioridad_A = nodo->PRIORY;
+
+        if(anterior == NULL){
+            prioridad = prioridad_A;
+
+        }else if(prioridad_A < prioridad){
+            prioridad = prioridad_A;
+        }
+
+        anterior = actual; 
+        actual = actual->sig;
+    }
+    return extraerNodo_Prioridad(lista_listos,prioridad);
 }

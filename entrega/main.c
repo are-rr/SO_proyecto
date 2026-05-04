@@ -19,6 +19,9 @@ int gid =0;
 int CPU=0;
 int GCPU=0;
 
+int Base = 60;
+int grupos=0; //para contar cuantos grupos tenemos
+
 int main(){
     char comando[100];
     char archivo[100];
@@ -32,6 +35,7 @@ int main(){
     struct Nodo *lista_ejecucion = NULL;
     struct Nodo *lista_terminados = NULL;
     int huboError = 0;
+    
     while (ejecutando){
         huboError = 0; //reiniciamos a cada interacion la bandera de errores
 
@@ -87,6 +91,7 @@ int main(){
 
                 pid++;
                 gid++;
+                grupos++;
                 insertar(&lista_listos,pid,gid,file,archivo,'L',0); //el proceso se inserta en la lista de listos
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
@@ -177,7 +182,9 @@ int main(){
         }
         //Si no se tiene nada en ejecucion, pero si hay algo en listos
         if(lista_ejecucion == NULL && lista_listos != NULL){
-            struct Nodo *proceso = extraerPrimero(&lista_listos); 
+            //struct Nodo *proceso = extraerPrimero(&lista_listos); 
+            //Aqui la funcion para el planificado..............................................................
+            struct Nodo *proceso = Fair_Share(&lista_listos,grupos,Base);
             if(proceso != NULL){
                 proceso -> Status = 'E';
                 insertarFinal(&lista_ejecucion,proceso);
@@ -206,6 +213,8 @@ int main(){
         if(procesoEjecucion != NULL){
             int finArchivo = 0;
             while (q < quantum) {
+                //NOTA: ver si es necesario filtrar algo con la Base
+
                 if (fgets(linea, sizeof(linea), procesoEjecucion->Archivo) == NULL) { //lee la linea del archivo
                     finArchivo = 1;
                     break;
@@ -373,6 +382,7 @@ int main(){
                             
                             pid++;
                             gid++;
+                            grupos++;
                             insertar(&lista_listos,pid,gid,file_interrupcion,archivo,'L',0); 
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
@@ -412,6 +422,7 @@ int main(){
 
                             refresh();
                             int lista = matar(&lista_ejecucion,&lista_terminados,&lista_listos,num_PID);
+                            //NOTA: fijarse que los procesos de un grupo no esten en la listas terminados, si no ese grupo se descuenta
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();
@@ -470,6 +481,7 @@ int main(){
                             if (nuevo == NULL) {
                                 pid--;
                                 gid--;
+                                grupos--;
                             }
 
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
