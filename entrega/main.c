@@ -16,6 +16,9 @@ int ejecutando = 1;
 int pid =0;
 int gid =0;
 
+int CPU=0;
+int GCPU=0;
+
 int main(){
     char comando[100];
     char archivo[100];
@@ -196,8 +199,8 @@ int main(){
         int quantum=3;
         int q=0;
 
-        mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s", "PC", "IR", "EAX", "EBX", "ECX", "EDX");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
-        mvprintw(y_header2, 0, "%-5s %-5s %-18s %-18s %-10s %-18s %10s %10s %10s %10s", "PID","GID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
+        mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s %10s %10s", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "CPU","GCPU");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
+        mvprintw(y_header2, 0, "%-5s %-5s %-8s %-8s %-18s %-18s %-10s %-18s %10s %10s %10s %10s", "PID","GID", "CPU","GCPU", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
         refresh();
         
         if(procesoEjecucion != NULL){
@@ -209,7 +212,10 @@ int main(){
                 }
                 q++;  
                 contadorLinea++;
-                
+                CPU+=20;
+                GCPU+=20;
+                //procesoEjecucion->CPU+20;
+                //procesoEjecucion->GCPU+20;
                 
                 char linea_original[100]; //gaurdamos copia de lalinea
                 strcpy(linea_original, linea);
@@ -269,6 +275,8 @@ int main(){
                         
                     procesoEjecucion->PC = contadorLinea; //por que hace break y no se guardaria el END
                     strcpy(procesoEjecucion->IR, linea_original);
+                    procesoEjecucion->CPU = CPU;
+                    procesoEjecucion->GCPU = GCPU;
                         
                         if(feof(procesoEjecucion -> Archivo)){//Encontro END y se acabo el archivo(correcto)
                             move(y_renglon, 0); clrtoeol();
@@ -301,6 +309,8 @@ int main(){
                 }
                 procesoEjecucion->PC = contadorLinea; //guardamos la PC y IR ejecutado
                 strcpy(procesoEjecucion->IR, linea_original);
+                procesoEjecucion->CPU = CPU;
+                procesoEjecucion->GCPU = GCPU;
                 refresh();
                 napms(1000); //Tiempo para ver las lineas de impresion para renglon
                     
@@ -455,15 +465,7 @@ int main(){
                             pid++;
                             //gid++;
 
-                            struct Nodo *nuevo = forkProcesoComando(
-                                &lista_ejecucion,
-                                &lista_terminados,
-                                &lista_listos,
-                                num_PID,
-                                num_PC,
-                                pid,
-                                gid
-                            );
+                            struct Nodo *nuevo = forkProcesoComando(&lista_ejecucion,&lista_terminados,&lista_listos,num_PID,num_PC,pid,gid);
 
                             if (nuevo == NULL) {
                                 pid--;
@@ -485,7 +487,8 @@ int main(){
                 continue;
             }
             procesoEjecucion->PC = contadorLinea;
-            
+            //procesoEjecucion->CPU = CPU;
+            //procesoEjecucion->GCPU = GCPU;
             if(q==quantum && encontroEND == 0 && huboError == 0){ //leyo 3 inst y no termino
                 struct Nodo *p = extraerPrimero(&lista_ejecucion);
                 if(p != NULL){

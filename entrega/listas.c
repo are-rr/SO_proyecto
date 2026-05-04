@@ -18,6 +18,8 @@ void insertar(struct Nodo **cabeza, int pid,int gid,FILE *archivo,const char *no
     nuevo->Status = status;
     nuevo->PC = pc;
 
+    nuevo -> CPU = 0;
+    nuevo -> GCPU = 0;
     nuevo->EAX = 0;
     nuevo->EBX = 0;
     nuevo->ECX = 0;

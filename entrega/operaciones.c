@@ -54,10 +54,10 @@ int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *l
             *R1 /= valor;
             break;
     }
-
-    move(y_renglon,0); clrtoeol(); refresh();
-    mvprintw(y_renglon,0,"%-10d %-18s %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX);
-
+    //mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s %10s %10s", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "CPU","GCPU");
+    move(y_renglon,0); clrtoeol(); 
+    mvprintw(y_renglon,0,"%-10d %-18s %10d %10d %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX,proceso->CPU,proceso->GCPU);
+    refresh();
     return 1;
 }
 
@@ -74,8 +74,7 @@ int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incre
     *R += incremento;
 
     move(y_renglon,0); clrtoeol(); refresh();
-    mvprintw(y_renglon,0,"%-5d %-18s %8d %8d %8d %8d", contadorLinea, linea_original,proceso->EAX, proceso->EBX,proceso-> ECX,proceso-> EDX);
-
+    mvprintw(y_renglon,0,"%-10d %-18s %10d %10d %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX,proceso->CPU,proceso->GCPU);
     return 1;
 }
 

@@ -16,6 +16,9 @@ struct Nodo {
     int PC;    // contador de programa(contadorLInea)
     char IR[100];//para guardar la ultima instruccion
     int GID; //indentificador del grupo
+    int CPU;
+    int GCPU;
+    int PRIORY; //prioridad
     struct Nodo *sig;  // puntero al siguiente nodo
 };
 
