@@ -16,8 +16,7 @@ int ejecutando = 1;
 int pid =0;
 int gid =0;
 
-int CPU=0;
-int GCPU=0;
+int cpu_grupo[1000];
 
 int Base = 60;
 int grupos=0; //para contar cuantos grupos tenemos
@@ -205,6 +204,7 @@ int main(){
         int encontroEND = 0; //Variable para ver casos de la instruccion END(si hay en el documento)
         int quantum=3;
         int q=0;
+        
 
         mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s %10s %10s", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "CPU","GCPU");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
         mvprintw(y_header2, 0, "%-5s %-5s %-8s %-8s %-18s %-18s %-10s %-18s %10s %10s %10s %10s", "PID","GID", "CPU","GCPU", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
@@ -221,10 +221,11 @@ int main(){
                 }
                 q++;  
                 contadorLinea++;
-                CPU+=20;
-                GCPU+=20;
-                //procesoEjecucion->CPU+20;
-                //procesoEjecucion->GCPU+20;
+                //cpu_grupo[procesoEjecucion->GID] += 20;
+                //procesoEjecucion->GCPU = cpu_grupo[procesoEjecucion->GID];
+                procesoEjecucion->CPU+=20;
+                procesoEjecucion->GCPU+=20;
+                //NOTA:funcion que actualice el GCPU dependiendo el GID
                 
                 char linea_original[100]; //gaurdamos copia de lalinea
                 strcpy(linea_original, linea);
@@ -284,8 +285,7 @@ int main(){
                         
                     procesoEjecucion->PC = contadorLinea; //por que hace break y no se guardaria el END
                     strcpy(procesoEjecucion->IR, linea_original);
-                    procesoEjecucion->CPU = CPU;
-                    procesoEjecucion->GCPU = GCPU;
+                    
                         
                         if(feof(procesoEjecucion -> Archivo)){//Encontro END y se acabo el archivo(correcto)
                             move(y_renglon, 0); clrtoeol();
@@ -318,8 +318,7 @@ int main(){
                 }
                 procesoEjecucion->PC = contadorLinea; //guardamos la PC y IR ejecutado
                 strcpy(procesoEjecucion->IR, linea_original);
-                procesoEjecucion->CPU = CPU;
-                procesoEjecucion->GCPU = GCPU;
+                
                 refresh();
                 napms(1000); //Tiempo para ver las lineas de impresion para renglon
                     
