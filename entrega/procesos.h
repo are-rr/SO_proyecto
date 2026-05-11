@@ -49,6 +49,8 @@ int posicionarArchivoEnPC(FILE *copiaArchivo,int pc_buscar);
 int CalculoPriodidad(struct Nodo **nodolis, int grupos, int Base);
 struct Nodo* extraerNodo_Prioridad(struct Nodo **lista, int priory);
 struct Nodo *Fair_Share(struct Nodo **lista_listos,int grupos,int Base);
+void GCPU_Global(struct Nodo **lista_listos, int GID, int GCPU);
+int Busqueda_GID(struct Nodo **lista_listos,struct Nodo **lista_ejecucion, int GID);
 
 //validaciones
 int Registro(char *token);

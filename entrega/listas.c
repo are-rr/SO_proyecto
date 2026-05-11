@@ -282,7 +282,7 @@ int CalculoPriodidad(struct Nodo **nodolis, int grupos, int Base){
         GCPU= actual->GCPU/2;
         actual-> CPU = CPU;
         actual -> GCPU = GCPU;
-        P = Base+(CPU/2)+(GCPU*(grupos/4));
+        P = Base+(CPU/2)+((GCPU*grupos)/4);
         actual ->PRIORY =P;
 
         actual = actual->sig;
@@ -338,3 +338,38 @@ struct Nodo *Fair_Share(struct Nodo **lista_listos,int grupos,int Base){
     }
     return extraerNodo_Prioridad(lista_listos,prioridad);
 }
+
+void GCPU_Global(struct Nodo **lista_listos, int GID, int GCPU){
+    struct Nodo *actual = *lista_listos;
+
+    while (actual != NULL) {
+        if (actual->GID == GID) {
+            actual->GCPU = GCPU;
+        }
+        actual = actual->sig;
+    }
+}
+
+int Busqueda_GID(struct Nodo **lista_listos,struct Nodo **lista_ejecucion, int GID){
+    struct Nodo *actual = *lista_listos;
+    int grupos_restantes = 0;
+
+    while (actual != NULL) {
+        if (actual->GID == GID) {
+            grupos_restantes++;
+        }
+        actual = actual->sig;
+    }
+    actual = *lista_ejecucion;
+    while (actual != NULL) {
+        if (actual->GID == GID) {
+            grupos_restantes++;
+        }
+        actual = actual->sig;
+    }
+    if(grupos_restantes == 0){
+        return 0;
+    }
+    return 1;
+}
+

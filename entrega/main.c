@@ -9,6 +9,7 @@ int y_header = 0;
 int y_renglon = 1;
 int y_mensajes = 3;
 int y_linea_comando = 5;
+int y_variable = 6;
 int y_header2 = 7;
 int y_procesoEjecucion = 8;
 
@@ -188,6 +189,7 @@ int main(){
                 proceso -> Status = 'E';
                 insertarFinal(&lista_ejecucion,proceso);
             }
+            mvprintw(y_variable,0,"numero de grupos:%d",grupos);
             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
             refresh(); 
         }
@@ -204,10 +206,10 @@ int main(){
         int encontroEND = 0; //Variable para ver casos de la instruccion END(si hay en el documento)
         int quantum=3;
         int q=0;
-        
+        int gcpu_acum=0;
 
-        mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s %10s %10s", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "CPU","GCPU");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
-        mvprintw(y_header2, 0, "%-5s %-5s %-8s %-8s %-18s %-18s %-10s %-18s %10s %10s %10s %10s", "PID","GID", "CPU","GCPU", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX");
+        mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s %10s %10s ", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "CPU","GCPU");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
+        mvprintw(y_header2, 0, "%-5s %-5s %-8s %-8s %-18s %-18s %-10s %-18s %10s %10s %10s %10s %10s", "PID","GID", "CPU","GCPU", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX","Prioridad");
         refresh();
         
         if(procesoEjecucion != NULL){
@@ -225,7 +227,10 @@ int main(){
                 //procesoEjecucion->GCPU = cpu_grupo[procesoEjecucion->GID];
                 procesoEjecucion->CPU+=20;
                 procesoEjecucion->GCPU+=20;
+                gcpu_acum=procesoEjecucion->GCPU;
+                
                 //NOTA:funcion que actualice el GCPU dependiendo el GID
+
                 
                 char linea_original[100]; //gaurdamos copia de lalinea
                 strcpy(linea_original, linea);
@@ -238,6 +243,10 @@ int main(){
                     strcpy(procesoEjecucion->IR, linea_original); //guardamos el IR
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                    if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
+                        grupos--;
+                    }
+                    mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                     huboError = 1;
                     comando[0] = '\0';
                     archivo[0] = '\0';
@@ -259,6 +268,10 @@ int main(){
                     || !Operaciones(instruccion, contadorLinea, linea_original)){
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
+                    if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
+                        grupos--;
+                    }
+                    mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                     huboError = 1;
                     reiniciarVariables(comando,archivo);
@@ -274,6 +287,10 @@ int main(){
                     (strcmp(instruccion, "DEC") == 0 && !DEC(arg1,contadorLinea,linea_original,procesoEjecucion))) {
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
+                    if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
+                        grupos--;
+                    }
+                    mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                     huboError = 1;
                     reiniciarVariables(comando,archivo);
@@ -301,6 +318,10 @@ int main(){
                                     procesoTerminado->Archivo = NULL;
                                 }
                                 insertarFinal(&lista_terminados,procesoTerminado);
+                                if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
+                                    grupos--;
+                                }
+                                mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                             }
                             
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
@@ -310,6 +331,9 @@ int main(){
                             mvprintw(y_mensajes, 0, "ERROR: END encontrado sin que el archivo terminara linea %d:\"%s\"", contadorLinea, linea_original);
                             refresh();
                             A_terminadosError(&lista_ejecucion,&lista_terminados);
+                            if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
+                                grupos--;
+                            }
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                             reiniciarVariables(comando,archivo);
                             huboError = 1;
@@ -420,8 +444,24 @@ int main(){
                             }
 
                             refresh();
-                            int lista = matar(&lista_ejecucion,&lista_terminados,&lista_listos,num_PID);
-                            //NOTA: fijarse que los procesos de un grupo no esten en la listas terminados, si no ese grupo se descuenta
+                            int gid_matado = -1;
+                            struct Nodo *p_matar = buscar(lista_ejecucion, num_PID);
+
+                            if (p_matar == NULL) {
+                                p_matar = buscar(lista_listos, num_PID);
+                            }
+                            if (p_matar != NULL) {
+                                gid_matado = p_matar->GID;
+                            }
+
+                            int lista = matar(&lista_ejecucion, &lista_terminados, &lista_listos, num_PID);
+
+                            if (gid_matado != -1) {
+                                if (Busqueda_GID(&lista_listos, &lista_ejecucion, gid_matado) == 0) {
+                                    grupos--;
+                                }
+                            }
+                            mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();
@@ -476,14 +516,14 @@ int main(){
                             //gid++;
 
                             struct Nodo *nuevo = forkProcesoComando(&lista_ejecucion,&lista_terminados,&lista_listos,num_PID,num_PC,pid,gid);
-
+                            
                             if (nuevo == NULL) {
                                 pid--;
-                                gid--;
-                                grupos--;
                             }
 
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                            move(y_linea_comando, 0); clrtoeol();
+                            refresh();
                         }else{//La interrupcion con un comando que no es Salir o Ejecuta o mata
                             move(y_mensajes, 0); clrtoeol();
                             mvprintw(y_mensajes, 0, "(D)Comando no valido");
@@ -506,6 +546,7 @@ int main(){
                     p -> Status = 'L';
                     insertarFinal(&lista_listos,p);
                 }
+                GCPU_Global(&lista_listos,procesoEjecucion->GID,gcpu_acum);
                 imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
             }
             else if (encontroEND == 0 && huboError == 0 && finArchivo == 1){ //se acbo el archivo sin END
@@ -515,6 +556,10 @@ int main(){
                 refresh();
                
                 A_terminadosError(&lista_ejecucion,&lista_terminados);
+                if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
+                    grupos--;
+                }
+                mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                 reiniciarVariables(comando,archivo);
                 continue;
