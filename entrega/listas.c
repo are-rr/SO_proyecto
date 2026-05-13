@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ncurses.h>
+#include <math.h>
 #include "procesos.h"
 
 //Funciones para las listas:
-
 
 void insertar(struct Nodo **cabeza, int pid,int gid,FILE *archivo,const char *nombre,char status, int pc) {
     struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo)); //reservar memoria para el nuevo nodo
@@ -207,7 +207,7 @@ struct Nodo* forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int
     nuevo->ECX = 0;
     nuevo->EDX = 0;
 
-    strcpy(nuevo->IR, "");//-----------------------------------------------------------
+    strcpy(nuevo->IR, "");
 
     if (nuevo_pc >= 0) {
         nuevo->PC = nuevo_pc;
@@ -215,7 +215,6 @@ struct Nodo* forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int
         nuevo->PC = original->PC;
     }
 
-    // 👇 posicionar archivo en ese PC
     if (posicionarArchivoEnPC(nuevo->Archivo, nuevo->PC) == 0) {
         printf("Error: PC invalido\n");
         return NULL;
@@ -276,15 +275,13 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **list
 int CalculoPriodidad(struct Nodo **nodolis, int grupos, int Base){
     int P,CPU,GCPU;
     struct Nodo *actual = *nodolis;
-
     while (actual != NULL) {
-        CPU=actual->CPU/2;
-        GCPU= actual->GCPU/2;
+        CPU=actual->CPU*1/2;
+        GCPU= actual->GCPU*1/2;
         actual-> CPU = CPU;
         actual -> GCPU = GCPU;
-        P = Base+(CPU/2)+((GCPU*grupos)/4);
+        P = Base+(CPU*1/2)+((GCPU*grupos)*1/4);
         actual ->PRIORY =P;
-
         actual = actual->sig;
     }
 

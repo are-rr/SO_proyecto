@@ -125,8 +125,7 @@ int main(){
                     continue;
                 }
 
-            }else if(strcmp(comando, "fork") == 0){//----------------------------------------------------------------------------------------------------------------------
-                //aqui como va emoezando no debe tener proceso que duplicar
+            }else if(strcmp(comando, "fork") == 0){
                 if (num_palabras < 2) {
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "ERROR: falta pid del proceso");
@@ -167,7 +166,6 @@ int main(){
                     mvprintw(y_mensajes, 0, "ERROR: no hay procesos para duplicar");
                     refresh();
                     num_palabras= 0;
-                    //se deben reiniciar las variables de PID y GID???????????????????????????????????????
                     continue;
                 }
             }else{
@@ -182,8 +180,6 @@ int main(){
         }
         //Si no se tiene nada en ejecucion, pero si hay algo en listos
         if(lista_ejecucion == NULL && lista_listos != NULL){
-            //struct Nodo *proceso = extraerPrimero(&lista_listos); 
-            //Aqui la funcion para el planificado..............................................................
             struct Nodo *proceso = Fair_Share(&lista_listos,grupos,Base);
             if(proceso != NULL){
                 proceso -> Status = 'E';
@@ -215,7 +211,6 @@ int main(){
         if(procesoEjecucion != NULL){
             int finArchivo = 0;
             while (q < quantum) {
-                //NOTA: ver si es necesario filtrar algo con la Base
 
                 if (fgets(linea, sizeof(linea), procesoEjecucion->Archivo) == NULL) { //lee la linea del archivo
                     finArchivo = 1;
@@ -223,14 +218,9 @@ int main(){
                 }
                 q++;  
                 contadorLinea++;
-                //cpu_grupo[procesoEjecucion->GID] += 20;
-                //procesoEjecucion->GCPU = cpu_grupo[procesoEjecucion->GID];
                 procesoEjecucion->CPU+=20;
                 procesoEjecucion->GCPU+=20;
                 gcpu_acum=procesoEjecucion->GCPU;
-                
-                //NOTA:funcion que actualice el GCPU dependiendo el GID
-
                 
                 char linea_original[100]; //gaurdamos copia de lalinea
                 strcpy(linea_original, linea);
@@ -472,7 +462,7 @@ int main(){
                             
                             continue;
                             
-                        }else if(strcmp(comando, "fork") == 0){//----------------------------------------------------------------------------------------------------------------------
+                        }else if(strcmp(comando, "fork") == 0){
                             if (num_palabras < 2) {
                                 move(y_mensajes, 0); clrtoeol();
                                 mvprintw(y_mensajes, 0, "(D)ERROR: falta pid del proceso");
@@ -513,7 +503,6 @@ int main(){
                                 continue;
                             }                                               //num_PID num_PC son las variables que estan en el comando
                             pid++;
-                            //gid++;
 
                             struct Nodo *nuevo = forkProcesoComando(&lista_ejecucion,&lista_terminados,&lista_listos,num_PID,num_PC,pid,gid);
                             
@@ -538,8 +527,6 @@ int main(){
                 continue;
             }
             procesoEjecucion->PC = contadorLinea;
-            //procesoEjecucion->CPU = CPU;
-            //procesoEjecucion->GCPU = GCPU;
             if(q==quantum && encontroEND == 0 && huboError == 0){ //leyo 3 inst y no termino
                 struct Nodo *p = extraerPrimero(&lista_ejecucion);
                 if(p != NULL){
@@ -550,7 +537,6 @@ int main(){
                 imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
             }
             else if (encontroEND == 0 && huboError == 0 && finArchivo == 1){ //se acbo el archivo sin END
-                //else if (encontroEND == 0 && huboError == 0 && feof(procesoEjecucion->Archivo)){
                 move(y_mensajes, 0); clrtoeol();
                 mvprintw(y_mensajes, 0, "ERROR: Fin de archivo sin END");
                 refresh();
