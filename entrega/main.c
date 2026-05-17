@@ -55,7 +55,6 @@ int main(){
             if (strcmp(comando, "salir") == 0){
                 if (num_palabras > 1){
                     move(y_mensajes, 0); clrtoeol();
-                    refresh();
                     mvprintw(y_mensajes, 0, "ERROR: comando invalido");
                     refresh();
                     num_palabras = 0;
@@ -296,7 +295,7 @@ int main(){
                             move(y_renglon, 0); clrtoeol();
                             mvprintw(y_renglon, 0, "%-10d %-18s %10d %10d %10d %10d", contadorLinea, linea_original, procesoEjecucion->EAX, procesoEjecucion->EBX,procesoEjecucion->ECX,procesoEjecucion->EDX);
                             refresh();
-                            //napms(1000);
+                            napms(1000);
                             
                             struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
                             if(procesoTerminado != NULL){
@@ -332,7 +331,7 @@ int main(){
                 strcpy(procesoEjecucion->IR, linea_original);
                 
                 refresh();
-                //napms(1000); //Tiempo para ver las lineas de impresion para renglon
+                napms(1000); //Tiempo para ver las lineas de impresion para renglon
                     
                     if (kbhit()){
                         imprimirlista(procesoEjecucion, y_procesoEjecucion);
@@ -502,7 +501,7 @@ int main(){
                             }                                                                           
                             pid++;
                                                                                                         //num_PID num_PC son las variables que estan en el comando
-                            struct Nodo *nuevo = forkProcesoComando(&lista_ejecucion,&lista_terminados,&lista_listos,num_PID,num_PC,pid,gid);
+                            struct Nodo *nuevo = forkProcesoComando(&lista_ejecucion,&lista_terminados,&lista_listos,num_PID,num_PC,pid);
                             
                             if (nuevo == NULL) {
                                 pid--;
@@ -548,7 +547,7 @@ int main(){
                 reiniciarVariables(comando,archivo);
                 continue;
             }
-        }   
+        } 
     }
     endwin();
 }

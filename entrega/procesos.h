@@ -44,7 +44,7 @@ void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_termina
 int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p);
 struct Nodo *buscar(struct Nodo *lista,int pid);
 struct Nodo* forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int nuevo_gid);
-struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,struct Nodo **lista_listos,int pid_comando,int pc,int nuevo_pid,int nuevo_gid);
+struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,struct Nodo **lista_listos,int pid_comando,int pc,int nuevo_pid);
 int validarPC(FILE *copiaArchivo,int pc_buscar);
 int CalculoPriodidad(struct Nodo **nodolis, int grupos, int Base);
 struct Nodo* extraerNodo_Prioridad(struct Nodo **lista, int priory);

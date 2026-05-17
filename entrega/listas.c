@@ -225,7 +225,7 @@ struct Nodo* forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int
     return nuevo;
 }
 
-struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,struct Nodo **lista_listos,int pid_comando,int pc,int nuevo_pid,int nuevo_gid) {
+struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,struct Nodo **lista_listos,int pid_comando,int pc,int nuevo_pid) {
     struct Nodo *original = NULL;
     struct Nodo *nuevo = NULL;
 
@@ -251,7 +251,7 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **list
         return NULL;
     }
 
-    nuevo = forkProceso(original, nuevo_pid,pc,nuevo_gid);
+    nuevo = forkProceso(original, nuevo_pid,pc,original->GID);
 
     if (nuevo == NULL) {
         move(y_mensajes, 0); 
