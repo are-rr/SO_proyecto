@@ -172,14 +172,14 @@ struct Nodo *buscar(struct Nodo *lista,int pid){
     }
     return NULL; 
 }
-
-int posicionarArchivoEnPC(FILE *copiaArchivo,int pc_buscar){
+//Solo valida que el PC sea correcto para el Archivo(que no sobrepase el numero de lineas que tiene el archivo)
+int validarPC(FILE *copiaArchivo,int pc_buscar){
     char buffer[200];
 
     for(int i=0;i<pc_buscar;i++){
         if(fgets(buffer,sizeof(buffer), copiaArchivo)==NULL){
             return 0;
-          }  
+        }  
 
     }
     return 1;
@@ -195,10 +195,9 @@ struct Nodo* forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int
     nuevo->GID = nuevo_gid;
     nuevo->PID = nuevo_pid;
     strcpy(nuevo->nombrePro, original->nombrePro);
-    nuevo->Archivo = fopen(original->nombrePro, "r");
+    nuevo->Archivo = fopen(original->nombrePro, "r"); //requiere tener su propio puntero
 
     if (nuevo->Archivo == NULL) {
-        free(nuevo);
         return NULL;
     }
 
@@ -215,8 +214,8 @@ struct Nodo* forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int
         nuevo->PC = original->PC;
     }
 
-    if (posicionarArchivoEnPC(nuevo->Archivo, nuevo->PC) == 0) {
-        printf("Error: PC invalido\n");
+    if (validarPC(nuevo->Archivo, nuevo->PC) == 0) {
+        mvprintw(y_mensajes,0,"Error: PC invalido");
         return NULL;
     }
 
@@ -266,7 +265,7 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **list
 
     move(y_mensajes, 0);
     clrtoeol();
-    mvprintw(y_mensajes, 0, "Proceso duplicado: PID %d desde PC %d", nuevo_pid, pc);
+    mvprintw(y_mensajes, 0, "Proceso duplicado");
     refresh();
 
     return nuevo;
@@ -275,12 +274,13 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **list
 int CalculoPriodidad(struct Nodo **nodolis, int grupos, int Base){
     int P,CPU,GCPU;
     struct Nodo *actual = *nodolis;
-    while (actual != NULL) {
-        CPU=actual->CPU*1/2;
-        GCPU= actual->GCPU*1/2;
+
+    while (actual != NULL) { //recorre toda la lista de listos
+        CPU=actual->CPU*1/2;    //CPU/2
+        GCPU= actual->GCPU*1/2; //GCPU/2
         actual-> CPU = CPU;
         actual -> GCPU = GCPU;
-        P = Base+(CPU*1/2)+((GCPU*grupos)*1/4);
+        P = Base+(CPU*1/2)+((GCPU*grupos)*1/4); //Base + CPU/2 + GCPU/(4*Wk)
         actual ->PRIORY =P;
         actual = actual->sig;
     }
@@ -323,7 +323,7 @@ struct Nodo *Fair_Share(struct Nodo **lista_listos,int grupos,int Base){
     while (actual != NULL){
         prioridad_A = actual->PRIORY;
 
-        if(anterior == NULL){
+        if(anterior == NULL){//significa que es el primer proceso de la lista y no hay con quien comparar todavia
             prioridad = prioridad_A;
 
         }else if(prioridad_A < prioridad){
@@ -336,6 +336,7 @@ struct Nodo *Fair_Share(struct Nodo **lista_listos,int grupos,int Base){
     return extraerNodo_Prioridad(lista_listos,prioridad);
 }
 
+//Para todo proceso de un grupo se le asigna el GCPU en caso de que se actualice
 void GCPU_Global(struct Nodo **lista_listos, int GID, int GCPU){
     struct Nodo *actual = *lista_listos;
 
@@ -347,24 +348,26 @@ void GCPU_Global(struct Nodo **lista_listos, int GID, int GCPU){
     }
 }
 
+//Para saber cuantos grupos tenemos en caso de que usemos "mata" o mandemos un proceso a terminados 
 int Busqueda_GID(struct Nodo **lista_listos,struct Nodo **lista_ejecucion, int GID){
     struct Nodo *actual = *lista_listos;
     int grupos_restantes = 0;
 
     while (actual != NULL) {
-        if (actual->GID == GID) {
+        if (actual->GID == GID) { //Encontro un proceso con el mismo GID
             grupos_restantes++;
         }
         actual = actual->sig;
     }
-    actual = *lista_ejecucion;
+
+    actual = *lista_ejecucion; //se busca por si el unico proceso del grupo esta ejecutandose
     while (actual != NULL) {
         if (actual->GID == GID) {
             grupos_restantes++;
         }
         actual = actual->sig;
     }
-    if(grupos_restantes == 0){
+    if(grupos_restantes == 0){//ya no hay procesos con ese GID
         return 0;
     }
     return 1;
