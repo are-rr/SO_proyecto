@@ -6,7 +6,7 @@
 //estrucutra para las listas
 struct Nodo {
     int PID;       // identificador unico
-    FILE* Archivo;//nombre del archivo, Guardar el puntero al archivo FILE *
+    //FILE* Archivo;//nombre del archivo, Guardar el puntero al archivo FILE *
     char nombrePro[100]; //para el nombre del archivo
     int EAX; //Registros
     int EBX;
@@ -35,7 +35,7 @@ extern int pid;
 
 //prototipos de las funciones
 //listas
-void insertar(struct Nodo **cabeza, int pid,int gid,FILE *archivo,const char *nombre,char status, int pc);
+void insertar(struct Nodo **cabeza, int pid,int gid,const char *nombre,char status, int pc);
 void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso);
 struct Nodo *extraerPrimero(struct Nodo **cabeza);
 struct Nodo *extraerNodo(struct Nodo **lista, int id);
@@ -56,7 +56,7 @@ int Busqueda_GID(struct Nodo **lista_listos,struct Nodo **lista_ejecucion, int G
 int Registro(char *token);
 int Operaciones(char *token, int contadorLinea, const char *linea_original);
 int Digito(char *token);
-int filtroIncDec(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
+int filtroIncDecJnz(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 int Comas_2pam(const char *linea_original, int contadorLinea);
 int Comas_1pam(const char *linea_original, int contadorLinea);
@@ -84,5 +84,10 @@ void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *term
 void reiniciarVariables(char *comando,char *archivo);
 int kbhit(void);
 void salirPrograma();
+
+//memoria
+int Crear_ArchivoBinario(const char *nombre, int size_IR);
+int memoria_RAM(FILE *archivo, int size_IR);
+
 
 #endif 

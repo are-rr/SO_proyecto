@@ -33,7 +33,8 @@ int main(){
     struct Nodo *lista_ejecucion = NULL;
     struct Nodo *lista_terminados = NULL;
     int huboError = 0;
-    
+    int pc = 0;
+
     while (ejecutando){
         huboError = 0; //reiniciamos a cada interacion la bandera de errores
 
@@ -89,7 +90,7 @@ int main(){
                 pid++;
                 gid++;
                 grupos++;
-                insertar(&lista_listos,pid,gid,file,archivo,'L',0); //el proceso se inserta en la lista de listos
+                insertar(&lista_listos,pid,gid,archivo,'L',0); //el proceso se inserta en la lista de listos
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
             } else if (strcmp(comando, "mata") == 0){
@@ -200,7 +201,6 @@ int main(){
         int quantum=3;
         int q=0;
         int gcpu_acum=0; //varible que le pasamos para que al terminar quantum(o termine) para acrualizar el GCPU del grupo
-
         mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s %10s %10s ", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "CPU","GCPU");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
         mvprintw(y_header2, 0, "%-5s %-5s %-8s %-8s %-18s %-18s %-10s %-18s %10s %10s %10s %10s %10s", "PID","GID", "CPU","GCPU", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX","Prioridad");
         refresh();
@@ -209,7 +209,7 @@ int main(){
             int finArchivo = 0;
             while (q < quantum) {
 
-                if (fgets(linea, sizeof(linea), procesoEjecucion->Archivo) == NULL) { //lee la linea del archivo
+                if (fgets(linea, sizeof(linea), archivo) == NULL) { //lee la linea del archivo
                     finArchivo = 1;
                     break;
                 }
@@ -291,7 +291,7 @@ int main(){
                     strcpy(procesoEjecucion->IR, linea_original);
                     
                         
-                        if(feof(procesoEjecucion -> Archivo)){//Encontro END y se acabo el archivo(correcto)
+                        if(feof(archivo)){//Encontro END y se acabo el archivo(correcto)
                             move(y_renglon, 0); clrtoeol();
                             mvprintw(y_renglon, 0, "%-10d %-18s %10d %10d %10d %10d", contadorLinea, linea_original, procesoEjecucion->EAX, procesoEjecucion->EBX,procesoEjecucion->ECX,procesoEjecucion->EDX);
                             refresh();
@@ -300,10 +300,10 @@ int main(){
                             struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
                             if(procesoTerminado != NULL){
                                 procesoTerminado -> Status = 'T';
-                                if(procesoTerminado -> Archivo != NULL){
-                                    fclose(procesoTerminado->Archivo);
-                                    procesoTerminado->Archivo = NULL;
-                                }
+                                //if(procesoTerminado -> Archivo != NULL){
+                                    fclose(archivo);
+                                    //procesoTerminado->Archivo = NULL;
+                                //}
                                 insertarFinal(&lista_terminados,procesoTerminado);
                                 if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
                                     grupos--;
@@ -393,7 +393,7 @@ int main(){
                             pid++;
                             gid++;
                             grupos++;
-                            insertar(&lista_listos,pid,gid,file_interrupcion,archivo,'L',0); 
+                            insertar(&lista_listos,pid,gid,archivo,'L',0); 
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();

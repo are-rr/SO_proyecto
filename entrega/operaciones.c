@@ -62,7 +62,7 @@ int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *l
 }
 
 int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incremento,struct Nodo *proceso){
-    if (!filtroIncDec(arg1, NULL, contadorLinea, linea_original)) return 0;
+    if (!filtroIncDecJnz(arg1, NULL, contadorLinea, linea_original)) return 0;
     if (!Comas_1pam(linea_original, contadorLinea)) return 0;
     if (!Registro(arg1)){
         move(y_mensajes,0); clrtoeol(); refresh();
@@ -70,6 +70,24 @@ int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incre
         return 0;
     }
 
+    int *R = ObtenerRegistro(arg1,proceso);
+    *R += incremento;
+
+    move(y_renglon,0); clrtoeol(); refresh();
+    mvprintw(y_renglon,0,"%-10d %-18s %10d %10d %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX,proceso->CPU,proceso->GCPU);
+    return 1;
+}
+
+int JNZ(char *arg1, int contadorLinea, const char *linea_original, int incremento,struct Nodo *proceso){
+    if (!filtroIncDecJnz(arg1, NULL, contadorLinea, linea_original)) return 0;
+    if (!Comas_1pam(linea_original, contadorLinea)) return 0;
+    if (!Digito(arg1)){
+        move(y_mensajes,0); clrtoeol(); refresh();
+        mvprintw(y_mensajes,0,"ERROR: NO es Digito %s en linea %d:\"%s\"", arg1, contadorLinea, linea_original);
+        return 0;
+    }
+
+    
     int *R = ObtenerRegistro(arg1,proceso);
     *R += incremento;
 

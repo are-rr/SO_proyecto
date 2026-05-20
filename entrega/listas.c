@@ -7,14 +7,14 @@
 
 //Funciones para las listas:
 
-void insertar(struct Nodo **cabeza, int pid,int gid,FILE *archivo,const char *nombre,char status, int pc) {
+void insertar(struct Nodo **cabeza, int pid,int gid,const char *nombre,char status, int pc) {
     struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo)); //reservar memoria para el nuevo nodo
     
     nuevo->PID = pid;
     nuevo ->GID = gid;
     strncpy(nuevo->nombrePro, nombre, sizeof(nuevo->nombrePro) - 1); //strncpy(destino,origen,tamañp)
     nuevo->nombrePro[sizeof(nuevo->nombrePro) - 1] = '\0';//se copia pues nombre es un dato termporal
-    nuevo-> Archivo = archivo;
+    //nuevo-> Archivo = archivo;
     nuevo->Status = status;
     nuevo->PC = pc;
 
