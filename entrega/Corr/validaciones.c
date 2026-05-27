@@ -198,3 +198,11 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
 
     return 1;
 }
+
+int Negativo(char *numero){
+    int i=0;
+    if(numero[0]== '-'){
+        return 1;
+    }
+    return 0;
+}

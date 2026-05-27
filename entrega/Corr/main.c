@@ -20,6 +20,8 @@ int gid =0;
 int Base = 60;
 int grupos=0; //para contar cuantos grupos tenemos
 
+int ms = 1000;
+
 int main(){
     char comando[100];
     char archivo[100];
@@ -93,27 +95,6 @@ int main(){
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
             } else if (strcmp(comando, "mata") == 0){
-                if (num_palabras < 2) {
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: falta el PID del proceso");
-                    refresh();
-                    num_palabras= 0;
-                    continue;
-                }
-                num_PID = atoi(archivo); //convertimos el PID a entero
-                if(!num_PID){
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: PID debe ser un entero");
-                    refresh();
-                    continue;
-                }
-                if (num_palabras > 2){
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
-                    refresh();
-                    num_palabras= 0;
-                    continue;
-                }
                 if(lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL){
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "ERROR: no hay procesos que matar");
@@ -123,46 +104,44 @@ int main(){
                 }
 
             }else if(strcmp(comando, "fork") == 0){
-                if (num_palabras < 2) {
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: falta pid del proceso");
-                    refresh();
-                    num_palabras= 0;
-                    continue;
-                }
-                if (num_palabras < 3) {
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: falta numero de instruccion");
-                    refresh();
-                    num_palabras= 0;
-                    continue;
-                }
-                num_PID = atoi(archivo);
-                num_PC = atoi(extra);
-                if(!num_PID){
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: PID debe ser un entero");
-                    refresh();
-                    continue;
-                }
-                if(!num_PC){
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: GID debe ser un entero");//NO ES GID ES PC --------------------------
-                    refresh();
-                    continue;
-                }
-                if (num_palabras > 3) {
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
-                    refresh();
-                    num_palabras= 0;
-                    continue;
-                }
                 if(lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL){
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "ERROR: no hay procesos para duplicar");
                     refresh();
                     num_palabras= 0;
+                    continue;
+                }
+            } else if (strcmp(comando, "velocidad") == 0){
+                if (num_palabras < 2) {
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: falta los milisegundos");
+                    move(y_linea_comando, 0); clrtoeol();
+                    refresh();
+                    comando[0] = '\0';
+                    num_PID = '\0';
+                    num_palabras = 0;
+                    continue;
+                }
+                if(Negativo(archivo) == 1){
+                    mvprintw(y_mensajes,0, "Error: No se pueden milisegundos negativos");
+                    continue;
+                }
+                ms = atoi(archivo);
+                if(!num_PID){
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: velocidad debe ser un entero positivo");
+                    move(y_linea_comando, 0); clrtoeol();
+                    refresh();
+                    continue;
+                }
+                if (num_palabras > 2){
+                    move(y_mensajes, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
+                    move(y_linea_comando, 0); clrtoeol();
+                    refresh();
+                    comando[0] = '\0';
+                    num_PID = '\0';
+                    num_palabras = 0;
                     continue;
                 }
             }else{
@@ -289,13 +268,11 @@ int main(){
                         
                     procesoEjecucion->PC = contadorLinea; //por que hace break y no se guardaria el END
                     strcpy(procesoEjecucion->IR, linea_original);
-                    
                         
-                      //  if(feof(procesoEjecucion -> Archivo)){//Encontro END y se acabo el archivo(correcto)
                             move(y_renglon, 0); clrtoeol();
                             mvprintw(y_renglon, 0, "%-10d %-18s %10d %10d %10d %10d", contadorLinea, linea_original, procesoEjecucion->EAX, procesoEjecucion->EBX,procesoEjecucion->ECX,procesoEjecucion->EDX);
                             refresh();
-                            napms(1000);
+                            ComandoVel(ms);
                             
                             struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
                             if(procesoTerminado != NULL){
@@ -314,25 +291,12 @@ int main(){
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                             reiniciarVariables(comando,archivo);
                             break;
-                       // }
-                       /* else { //Solo encontro END
-                            mvprintw(y_mensajes, 0, "ERROR: END encontrado sin que el archivo terminara linea %d:\"%s\"", contadorLinea, linea_original);
-                            refresh();
-                            A_terminadosError(&lista_ejecucion,&lista_terminados);
-                            if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
-                                grupos--;
-                            }
-                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
-                            reiniciarVariables(comando,archivo);
-                            huboError = 1;
-                            break;
-                        }*/
                 }
                 procesoEjecucion->PC = contadorLinea; //guardamos la PC y IR ejecutado
                 strcpy(procesoEjecucion->IR, linea_original);
                 
                 refresh();
-                napms(1000); //Tiempo para ver las lineas de impresion para renglon
+                ComandoVel(ms); //Tiempo para ver las lineas de impresion para renglon
                     
                     if (kbhit()){
                         imprimirlista(procesoEjecucion, y_procesoEjecucion);

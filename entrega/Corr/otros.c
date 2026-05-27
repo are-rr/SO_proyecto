@@ -32,3 +32,7 @@ void salirPrograma(){
     endwin();
     exit(0);
 }
+
+void ComandoVel(int ms){
+    napms(ms);
+}

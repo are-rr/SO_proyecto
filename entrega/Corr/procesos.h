@@ -61,6 +61,7 @@ int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original
 int Comas_2pam(const char *linea_original, int contadorLinea);
 int Comas_1pam(const char *linea_original, int contadorLinea);
 int validarEspacios(const char *linea_original, char *instruccion, int contadorLinea);
+int Negativo(char *numero);
 
 //operaciones
 int *ObtenerRegistro(char *nombre, struct Nodo *p);
@@ -84,5 +85,6 @@ void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *term
 void reiniciarVariables(char *comando,char *archivo);
 int kbhit(void);
 void salirPrograma();
+void ComandoVel(int ms);
 
 #endif 
