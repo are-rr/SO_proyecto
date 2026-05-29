@@ -12,7 +12,7 @@ struct Nodo {
     int EBX;
     int ECX;
     int EDX;
-    char Status;     // L = listo, E= ejecucion,  T =terminado, X=Terminado-Error, Z=Terminado-mata
+    int Status;     // L = listo, E= ejecucion,  T =terminado, X=Terminado-Error, Z=Terminado-mata
     int PC;    // contador de programa(contadorLInea)
     char IR[100];//para guardar la ultima instruccion
     int GID; //indentificador del grupo
@@ -35,7 +35,7 @@ extern int pid;
 
 //prototipos de las funciones
 //listas
-void insertar(struct Nodo **cabeza, int pid,int gid,FILE *archivo,const char *nombre,char status, int pc);
+void insertar(struct Nodo **cabeza, int pid,int gid,FILE *archivo,const char *nombre, int pc);
 void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso);
 struct Nodo *extraerPrimero(struct Nodo **cabeza);
 struct Nodo *extraerNodo(struct Nodo **lista, int id);
@@ -76,9 +76,9 @@ int INC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *p
 int DEC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *proceso);
 
 //ncurses
-const char *statusTexto(char status);
-void imprimirProceso(struct Nodo *p,int y_ncurse);
-void imprimirlista(struct Nodo *lista, int y_ncurses);
+//const char *statusTexto(int status);
+void imprimirProceso(struct Nodo *p,int y_ncurse,const char* cadena);
+void imprimirlista(struct Nodo *lista, int y_ncurses,int status);
 void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *terminados);
 
 //otros

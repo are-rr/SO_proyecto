@@ -91,7 +91,7 @@ int main(){
                 pid++;
                 gid++;
                 grupos++;
-                insertar(&lista_listos,pid,gid,file,archivo,'L',0); //el proceso se inserta en la lista de listos
+                insertar(&lista_listos,pid,gid,file,archivo,0); //el proceso se inserta en la lista de listos
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
             } else if (strcmp(comando, "mata") == 0){
@@ -158,7 +158,7 @@ int main(){
         if(lista_ejecucion == NULL && lista_listos != NULL){
             struct Nodo *proceso = Fair_Share(&lista_listos,grupos,Base);
             if(proceso != NULL){
-                proceso -> Status = 'E';
+                //proceso -> Status = 2;
                 insertarFinal(&lista_ejecucion,proceso);
             }
             //mvprintw(y_variable,0,"numero de grupos:%d",grupos);
@@ -276,7 +276,7 @@ int main(){
                             
                             struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
                             if(procesoTerminado != NULL){
-                                procesoTerminado -> Status = 'T';
+                                //procesoTerminado -> Status = 3;
                                 if(procesoTerminado -> Archivo != NULL){
                                     fclose(procesoTerminado->Archivo);
                                     procesoTerminado->Archivo = NULL;
@@ -299,7 +299,8 @@ int main(){
                 ComandoVel(ms); //Tiempo para ver las lineas de impresion para renglon
                     
                     if (kbhit()){
-                        imprimirlista(procesoEjecucion, y_procesoEjecucion);
+                        //imprimirlista(procesoEjecucion, y_procesoEjecucion);
+                        imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
 
                         move(y_linea_comando, 0); clrtoeol();
                         refresh();
@@ -358,7 +359,7 @@ int main(){
                             pid++;
                             gid++;
                             grupos++;
-                            insertar(&lista_listos,pid,gid,file_interrupcion,archivo,'L',0); 
+                            insertar(&lista_listos,pid,gid,file_interrupcion,archivo,0); 
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();
@@ -492,7 +493,7 @@ int main(){
             if(q==quantum && encontroEND == 0 && huboError == 0){ //leyo 3 inst y no termino
                 struct Nodo *p = extraerPrimero(&lista_ejecucion);
                 if(p != NULL){
-                    p -> Status = 'L';
+                    //p -> Status = 1;
                     insertarFinal(&lista_listos,p);
                 }
                 GCPU_Global(&lista_listos,procesoEjecucion->GID,gcpu_acum);
