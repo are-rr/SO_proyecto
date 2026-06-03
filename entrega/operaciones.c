@@ -4,14 +4,14 @@
 #include <ncurses.h>
 
 #include "procesos.h"
-
+//recibe el nombre de un registro y un proceso
 int *ObtenerRegistro(char *nombre, struct Nodo *p){
     if (strcmp(nombre, "EAX") == 0){
         return &p->EAX; //aqui devuelve donde esta guardado el registo
     }
     else if (strcmp(nombre, "EBX") == 0){
-        return &p->EBX;
-    }
+        return &p->EBX; //la direccion de memoria donde esta guardado EBX
+    }       //& (operador para obtener la direccion de memoria de una variable)
     else if (strcmp(nombre, "ECX") == 0){
         return &p->ECX;
     }
@@ -19,12 +19,13 @@ int *ObtenerRegistro(char *nombre, struct Nodo *p){
         return &p->EDX;
     }
     return NULL;
-}
+}//devuleve la direccion del registro correspondiente dentro del proceso
 
 int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *linea_original,char tipoOp, struct Nodo *proceso) { 
     if (!filtro(arg1, arg2, contadorLinea, linea_original)) return 0;
     if (!Comas_2pam(linea_original, contadorLinea)) return 0;
-
+    //*acceder al contenido apuntado
+    //R1 = &proceso->EAX
     int *R1 = ObtenerRegistro(arg1,proceso);
     int valor = 0;
 
@@ -41,6 +42,7 @@ int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *l
     }
     //'M'=MOV, 'A'=ADD, 'S'=SUB, 'U'=MUL, 'D'=DIV
     switch(tipoOp){
+                //proceso->EAX = valor
         case 'M': *R1 = valor; break;
         case 'A': *R1 += valor; break;
         case 'S': *R1 -= valor; break;
@@ -62,7 +64,7 @@ int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *l
 }
 
 int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incremento,struct Nodo *proceso){
-    if (!filtroIncDecJnz(arg1, NULL, contadorLinea, linea_original)) return 0;
+    if (!filtroIncDec(arg1, NULL, contadorLinea, linea_original)) return 0;
     if (!Comas_1pam(linea_original, contadorLinea)) return 0;
     if (!Registro(arg1)){
         move(y_mensajes,0); clrtoeol(); refresh();
@@ -70,24 +72,6 @@ int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incre
         return 0;
     }
 
-    int *R = ObtenerRegistro(arg1,proceso);
-    *R += incremento;
-
-    move(y_renglon,0); clrtoeol(); refresh();
-    mvprintw(y_renglon,0,"%-10d %-18s %10d %10d %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX,proceso->CPU,proceso->GCPU);
-    return 1;
-}
-
-int JNZ(char *arg1, int contadorLinea, const char *linea_original, int incremento,struct Nodo *proceso){
-    if (!filtroIncDecJnz(arg1, NULL, contadorLinea, linea_original)) return 0;
-    if (!Comas_1pam(linea_original, contadorLinea)) return 0;
-    if (!Digito(arg1)){
-        move(y_mensajes,0); clrtoeol(); refresh();
-        mvprintw(y_mensajes,0,"ERROR: NO es Digito %s en linea %d:\"%s\"", arg1, contadorLinea, linea_original);
-        return 0;
-    }
-
-    
     int *R = ObtenerRegistro(arg1,proceso);
     *R += incremento;
 

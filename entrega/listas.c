@@ -7,7 +7,7 @@
 
 //Funciones para las listas:
 
-void insertar(struct Nodo **cabeza, int pid,int gid,const char *nombre,char status, int pc) {
+void insertar(struct Nodo **cabeza, int pid,int gid,const char *nombre, int pc) {
     struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo)); //reservar memoria para el nuevo nodo
     
     nuevo->PID = pid;
@@ -15,9 +15,7 @@ void insertar(struct Nodo **cabeza, int pid,int gid,const char *nombre,char stat
     strncpy(nuevo->nombrePro, nombre, sizeof(nuevo->nombrePro) - 1); //strncpy(destino,origen,tamañp)
     nuevo->nombrePro[sizeof(nuevo->nombrePro) - 1] = '\0';//se copia pues nombre es un dato termporal
     //nuevo-> Archivo = archivo;
-    nuevo->Status = status;
     nuevo->PC = pc;
-
     nuevo -> CPU = 0;
     nuevo -> GCPU = 0;
     nuevo -> PRIORY = 0;
@@ -106,7 +104,7 @@ int contarNodos(struct Nodo *lista){
 void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados){
     struct Nodo *procesoError = extraerPrimero(lista_ejecucion);
     if(procesoError != NULL){
-        procesoError->Status = 'X';
+        //procesoError->Status = 'X';
         if(procesoError->Archivo != NULL){
             fclose(procesoError -> Archivo);
             procesoError -> Archivo = NULL;
@@ -120,7 +118,7 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
 
     proceso_mata = extraerNodo(lista_ejecucion, id_p); //busca en ejecucion
     if(proceso_mata != NULL){
-        proceso_mata -> Status = 'Z';
+        //proceso_mata -> Status = 'Z';
         if(proceso_mata->Archivo != NULL){
             fclose(proceso_mata -> Archivo);
             proceso_mata -> Archivo = NULL;
@@ -132,7 +130,7 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
     if (proceso_mata == NULL) {
         proceso_mata = extraerNodo(lista_listos, id_p); //sino busca en listos
         if(proceso_mata != NULL){
-            proceso_mata -> Status = 'Z';
+            //proceso_mata -> Status = 'Z';
             if(proceso_mata->Archivo != NULL){
                 fclose(proceso_mata -> Archivo);
                 proceso_mata -> Archivo = NULL;
@@ -219,7 +217,6 @@ struct Nodo* forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int
         return NULL;
     }
 
-    nuevo->Status = 'L';
     nuevo->sig = NULL;
 
     return nuevo;
@@ -372,4 +369,3 @@ int Busqueda_GID(struct Nodo **lista_listos,struct Nodo **lista_ejecucion, int G
     }
     return 1;
 }
-

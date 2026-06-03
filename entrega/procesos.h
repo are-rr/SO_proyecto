@@ -6,13 +6,13 @@
 //estrucutra para las listas
 struct Nodo {
     int PID;       // identificador unico
-    //FILE* Archivo;//nombre del archivo, Guardar el puntero al archivo FILE *
+    FILE* Archivo;//nombre del archivo, Guardar el puntero al archivo FILE *
     char nombrePro[100]; //para el nombre del archivo
     int EAX; //Registros
     int EBX;
     int ECX;
     int EDX;
-    char Status;     // L = listo, E= ejecucion,  T =terminado, X=Terminado-Error, Z=Terminado-mata
+    int Status;     // L = listo, E= ejecucion,  T =terminado, X=Terminado-Error, Z=Terminado-mata
     int PC;    // contador de programa(contadorLInea)
     char IR[100];//para guardar la ultima instruccion
     int GID; //indentificador del grupo
@@ -35,7 +35,7 @@ extern int pid;
 
 //prototipos de las funciones
 //listas
-void insertar(struct Nodo **cabeza, int pid,int gid,const char *nombre,char status, int pc);
+void insertar(struct Nodo **cabeza, int pid,int gid,const char *nombre, int pc);
 void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso);
 struct Nodo *extraerPrimero(struct Nodo **cabeza);
 struct Nodo *extraerNodo(struct Nodo **lista, int id);
@@ -56,11 +56,12 @@ int Busqueda_GID(struct Nodo **lista_listos,struct Nodo **lista_ejecucion, int G
 int Registro(char *token);
 int Operaciones(char *token, int contadorLinea, const char *linea_original);
 int Digito(char *token);
-int filtroIncDecJnz(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
+int filtroIncDec(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 int Comas_2pam(const char *linea_original, int contadorLinea);
 int Comas_1pam(const char *linea_original, int contadorLinea);
 int validarEspacios(const char *linea_original, char *instruccion, int contadorLinea);
+int Negativo(char *numero);
 
 //operaciones
 int *ObtenerRegistro(char *nombre, struct Nodo *p);
@@ -75,19 +76,20 @@ int INC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *p
 int DEC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *proceso);
 
 //ncurses
-const char *statusTexto(char status);
-void imprimirProceso(struct Nodo *p,int y_ncurse);
-void imprimirlista(struct Nodo *lista, int y_ncurses);
+//const char *statusTexto(int status);
+void imprimirProceso(struct Nodo *p,int y_ncurse,const char* cadena);
+void imprimirlista(struct Nodo *lista, int y_ncurses,int status);
 void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *terminados);
 
 //otros
 void reiniciarVariables(char *comando,char *archivo);
 int kbhit(void);
 void salirPrograma();
+void ComandoVel(int ms);
 
-//memoria
+//Memoria
 int Crear_ArchivoBinario(const char *nombre, int size_IR);
-int memoria_RAM(FILE *archivo, int size_IR);
+int reescritura(const char *NombrePro, const char *ArchivoBinario);
 
 
 #endif 

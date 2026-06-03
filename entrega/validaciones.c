@@ -19,7 +19,7 @@ int Registro(char *token){
 }
 
 int Operaciones(char *token, int contadorLinea, const char *linea_original){
-    char Instrucciones[9][10] = {"MOV", "ADD", "SUB", "MUL", "DIV", "INC", "DEC", "END", "JNZ"};//NOTA: que es ese [10]?????
+    char Instrucciones[8][10] = {"MOV", "ADD", "SUB", "MUL", "DIV", "INC", "DEC", "END"};
     for (int i = 0; i < 8; i++){
         if (strcmp(token, Instrucciones[i]) == 0){
             return 1;
@@ -32,13 +32,13 @@ int Operaciones(char *token, int contadorLinea, const char *linea_original){
 
 int Digito(char *token){
     int i = 0;
-    if (token[0] == '\0')
+    if (token[0] == '\0')//esta vacia
         return 0;
-    if (token[0] == '-'){
+    if (token[0] == '-'){//empieza con -
         i = 1;
-    }
-    for (; token[i] != '\0' && token[i] != '\n'; i++){
-        if (!isdigit(token[i])){ //si es digito
+    }//ya se inicializo antes, no se inicializa
+    for (; token[i] != '\0' && token[i] != '\n'; i++){ //mientras que no llegue al final del texto
+        if (!isdigit(token[i])){ //si es digito de <ctype.h>.
             return 0;
         }
     }
@@ -59,7 +59,7 @@ int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original
     return 1;
 }
 
-int filtroIncDecJnz(char *arg1, char *arg2, int contadorLinea, const char *linea_original){
+int filtroIncDec(char *arg1, char *arg2, int contadorLinea, const char *linea_original){
     if (arg1 == NULL){
         move(y_mensajes, 0); clrtoeol();refresh();
         mvprintw(y_mensajes, 0, "ERROR: No hay argumento en linea %d:\"%s\"", contadorLinea, linea_original);
@@ -165,8 +165,8 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
     while (linea_original[i] && linea_original[i] != ',' && linea_original[i] != ' '){
         i++;
     }
-    // en caso de INC , DEC y JNZ
-    if (strcmp(instruccion, "INC") == 0 || strcmp(instruccion, "DEC") == 0 || strcmp(instruccion, "JNZ") == 0){
+    // en caso de INC y DEC
+    if (strcmp(instruccion, "INC") == 0 || strcmp(instruccion, "DEC") == 0){
         if (linea_original[i] != '\0'){
             move(y_mensajes, 0); clrtoeol();refresh();
             mvprintw(y_mensajes, 0, "ERROR sintaxis linea %d:\"%s\" %s solo lleva 1 argumento y sin espacios extra", contadorLinea, linea_original, instruccion);
@@ -197,4 +197,11 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
     }
 
     return 1;
+}
+
+int Negativo(char *numero){
+    if(numero[0]== '-'){
+        return 1;
+    }
+    return 0;
 }

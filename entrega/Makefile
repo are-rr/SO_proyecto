@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra
 LIBS = -lncurses
 
-OBJ = main.o operaciones.o listas.o validaciones.o nc.o otros.o
+OBJ = main.o operaciones.o listas.o validaciones.o nc.o otros.o memoria.o
 
 programa: $(OBJ)
 	$(CC) $(OBJ) -o programa $(LIBS)
@@ -24,6 +24,9 @@ nc.o: nc.c procesos.h
 
 otros.o: otros.c procesos.h
 	$(CC) $(CFLAGS) -c otros.c
+
+memoria.o: memoria.c procesos.h
+	$(CC) $(CFLAGS) -c memoria.c
 
 run: programa
 	./programa
