@@ -34,15 +34,6 @@ int Crear_ArchivoBinario(const char *nombre, int size_IR) {
         return 1;
     }
 
-    /*if (_fseeki64(file, size_binario - 1, SEEK_SET) != 0) { //fseek64(puntero al archivo, cantidad a desplazar,punto de referencia para dezplazarse)
-        perror("Error al posicionar el cursor");                                                            //SEEK_SET -> desde el inicio del archivo
-        fclose(file);                                                                                       //SEEK_CUR ->desde la posicion actual del cursor
-        return 1;
-    }*/
-
-    //posicionarnos para cerrar el archivo
-    //fwrite(&file, sizeof(char), 1, file);//NOTA: 
-
     memset(numeros, 0, size_ArchivoBinario);
     fwrite(numeros , 1 , size_ArchivoBinario,  ArchivoBinario);
     fclose(ArchivoBinario);
@@ -50,27 +41,7 @@ int Crear_ArchivoBinario(const char *nombre, int size_IR) {
     return 0;
 }
 
-int reescritura(const char *NombrePro, const char *ArchivoBinario){
-    FILE *archivoP = fopen(NombrePro,"r");
-    if (archivoP == NULL) {
-        //perror("Error al abrir el archivo");
-        return 1;
-    }
-    FILE *archivoB = fopen(ArchivoBinario,"wb");
-    if (archivoB == NULL) {
-       // perror("mError al abrir el archivo");
-        return 1;
-    }
 
-    char buffer[1024];
-    size_t caracteresLeidos;
-    while ((caracteresLeidos = fread(buffer,1,1024,archivoP)) > 0){
-        fwrite(buffer,1,caracteresLeidos,archivoB);
-    }
-    fclose(archivoB);
-    fclose(archivoP);
-    return 0;
-}
 
 int memoria_RAM(FILE *archivo, int size_IR){
     int size_RAM  = 0;
@@ -99,40 +70,48 @@ int memoria_RAM(FILE *archivo, int size_IR){
     return 0;
 }
 */
-void in_TMS(int TMS[][2]){
 
 
+void in_TMS(int TMS[][1]){//tiene formato TMS[][1], sino especificas el numero de columnas, te marco error
     for(int i=0; i < 32768; i++){
-        TMS[i][0] = 0;
-        TMS[i][1] = 0;
+        TMS[i][0] = 0;//inicializamos la tabla con todos los valores en 0
+        
     }
 
 }
 
-int Busqueda_TMS(int TMS[][2]){
-
-    for(int i=0; i < 32768; i++){
+int Busqueda_TMS(int TMS[][1]){
+    for(int i=0; i < 32768; i++){ //buscamos aquel marco libre, como es no contigua, el primero que encuentre, agarra
         if(TMS[i][0] == 0){
             return i;//marco libre jeje
         }
     }
-    return 1;
+    return -1;
 }
 
 
-void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[][2],int max_marcos){
-    char instruccion[100];
-    char relleno[100];
-    int paginaVirtual = 0;
+//mvprintw(y_tabla, 0, "%-5s %-5s %5s %5s %5s","TMP", "Pagi", "Bit", "M_R", "M_S");
 
-    while(1){
-        int marco = BuscarMarcoLibre(TMS, max_marcos);
+//paso los archivos tipo file, por que como lo vamos a utilizar en la función de reescritura, para poder escribir y leer el archivo
+//necesitamos abrir los archivos FILE tal cual
+void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[][1],int TMP[][3]){
+    char instruccion[100];//array que guarda instruccion
+    char relleno[100]; //array que guarda lo que sobra
 
-        if(marco == 0){
+
+    while(1){// primero buscas un marco libre antes de poder escribirlo, pues si primero haces la lectura y no hay espacio, pss que haces xd
+        int marco = Busqueda_TMS(TMS);
+
+        if(marco == -1){
             printf("ERROR: Swap lleno\n");
         }
 
-        int instL = 0;
+        int instL = 0;//la necesitamos para leer la cantidad de lineas leidas, puede que una pagina al final solamente lea 2 instrucciones
+        //además es nuestra condición de termino para el while, sino la tenemos nunca termina, pues sale cuando no lee ninguna linea
+        
+        int pagina = 0;  
+
+        fseek(swap, marco * 400, SEEK_SET);// se mueve al marco de página correspondiente
 
        for(int i = 0; i < 4; i++){
             if(fgets(instruccion,sizeof(instruccion),archivoProceso) == NULL){
@@ -143,28 +122,45 @@ void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[][2],int max_mar
             memset(relleno, '0', sizeof(relleno));
             fwrite(instruccion,sizeof(char),usados,swap);
             fwrite(relleno,sizeof(char),100 - usados,swap);
+            
             instL++;
+            //rewind(swap);
         }
+
+        
         if(instL == 0){
             break;
         }
-
-        /* Registrar dueño del marco */
-
+        
         TMS[marco][0] = PID;
-        TMS[marco][1] = paginaVirtual;
-
-        paginaVirtual++;
-
-        if(instL < 4){
-            break;
-        }
+        TMP[pagina][2] = marco; //Gurdar en la TMP el marco del SWAP
+        pagina++;
     }
 }
 
-void inicializat_TMP(int TMP_presencia[], int TMP_marco_RAM[], int TMP_marco_swap[],int num_paginas);
+int reescritura(const char *NombrePro, const char *ArchivoBinario,int pid, int TMS[][1], int TMP[][3]){
+    FILE *archivoP = fopen(NombrePro,"r");
+    if (archivoP == NULL) {
+        //perror("Error al abrir el archivo");
+        return 1;
+    }
+    FILE *archivoB = fopen(ArchivoBinario,"r+b");//NOTA: investigar por que no funciona wb
+    if (archivoB == NULL) {
+       // perror("mError al abrir el archivo");
+        return 1;
+    }
 
-void main(){//-------------------------------------------------------------------Intento de simulacion para TMP
+   Paginacion(archivoP,archivoB,pid,TMS,TMP);
+
+
+   //fclose(archivoB);
+   return 0;
+}
+
+
+//void inicializar_TMP(int TMP_presencia[], int TMP_marco_RAM[], int TMP_marco_swap[],int num_paginas);
+
+/*void main(){//-------------------------------------------------------------------Intento de simulacion para TMP
     int max_paginas = 32768; //variable global
     int tam_pag = 4;
 
@@ -184,20 +180,14 @@ void main(){//------------------------------------------------------------------
     TMP(1,3,5);//------------------------------------------
 }
 
+*/
+void inicializar_TMP(int TMP[][3]){
 
-void inicializar_TMP(int TMP_presencia[], int TMP_marco_RAM[], int TMP_marco_swap[],int num_paginas){
-    int i = 0;
-    for(i;i<num_paginas;i++){
-        TMP_presencia[i] = 0;
-        TMP_marco_RAM[i] = -1;
-        TMP_marco_swap[i] = i;
+    for(int i = 0; i < 32768; i++){
+        TMP[i][0] = 0;   // bit presencia: 0 = swap
+        TMP[i][1] = 0;  // marco RAM
+        TMP[i][2] = -1;  // marco swap
     }
-
-    //printf("Pagina  |   Marco swap  |   Marco RAM   |   Presencia   ");
-    
-    //for(int j=0;j<max_paginas;j++){
-        //printf("%d  %d  %d",marco_swap[j],marco_RAM[j],bit_P[i]);
-    //}
 }
 
 

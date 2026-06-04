@@ -12,7 +12,7 @@ struct Nodo {
     int EBX;
     int ECX;
     int EDX;
-    int Status;     // L = listo, E= ejecucion,  T =terminado, X=Terminado-Error, Z=Terminado-mata
+    int Status;     //3=terminado, 4=Terminado-Error, 5=Terminado-mata
     int PC;    // contador de programa(contadorLInea)
     char IR[100];//para guardar la ultima instruccion
     int GID; //indentificador del grupo
@@ -76,7 +76,6 @@ int INC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *p
 int DEC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *proceso);
 
 //ncurses
-//const char *statusTexto(int status);
 void imprimirProceso(struct Nodo *p,int y_ncurse,const char* cadena);
 void imprimirlista(struct Nodo *lista, int y_ncurses,int status);
 void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *terminados);
@@ -89,7 +88,11 @@ void ComandoVel(int ms);
 
 //Memoria
 int Crear_ArchivoBinario(const char *nombre, int size_IR);
-int reescritura(const char *NombrePro, const char *ArchivoBinario);
-
+int memoria_RAM(FILE *archivo, int size_IR);
+void in_TMS(int TMS[][1]);
+int Busqueda_TMS(int TMS[][1]);
+void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[][1],int TMP[][3]);
+int reescritura(const char *NombrePro, const char *ArchivoBinario,int pid, int TMS[][1], int TMP[][3]);
+void inicializar_TMP(int TMP[][3]);
 
 #endif 

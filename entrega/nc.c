@@ -2,17 +2,6 @@
 #include <string.h>
 #include "procesos.h"
 
-/*const char *statusTexto(int status){
-    switch(status){
-        case '1' : return "Listos";
-        case '2' : return "Ejecucion";
-        case '3' : return "Terminados";
-        case '4' : return "Terminados-Error";
-        case '5' : return "Terminados-Mata";
-        default: return "Desconocido"; //EN caso de que no sean los anteriores
-    }
-}*/
-
 void imprimirProceso(struct Nodo *p,int y_ncurse,const char* cadena){
     //mvprintw(y_header2, 0, "%-5s %-5s %-18s %-18s %-10s %-18s %10s %10s %10s %10s %-8s %-8s", "PID","GID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX", "CPU","GCPU");
     
@@ -44,4 +33,17 @@ void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *term
     imprimirlista(terminados, y_procesos,3);
     y_procesos += contarNodos(terminados);
     refresh();
+}
+
+//imprimir la TMP
+void imprimir_TMP(int TMP[][3], int max_paginas, int y_tablaR){
+    int y = y_tablaR;
+
+    for(int i = 0; i < max_paginas; i++){
+        if(TMP[i][2] != -1){
+            mvprintw(y, 0, "%-5s %-5d %5d %5d %5d",
+                     "TMP", i, TMP[i][0], TMP[i][1], TMP[i][2]);
+            y++;
+        }
+    }
 }

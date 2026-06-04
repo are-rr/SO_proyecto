@@ -9,9 +9,10 @@ int y_header = 0;
 int y_renglon = 1;
 int y_mensajes = 3;
 int y_linea_comando = 5;
-int y_variable = 6;
-int y_header2 = 7;
-int y_procesoEjecucion = 8;
+int y_tabla = 6;
+int y_tablaR = 7;
+int y_header2 = 8;
+int y_procesoEjecucion = 9;
 
 int ejecutando = 1;
 int pid =0;
@@ -35,17 +36,22 @@ int main(){
     struct Nodo *lista_ejecucion = NULL;
     struct Nodo *lista_terminados = NULL;
     int huboError = 0;
-    char *ArchivoBinario = "archivoBinario.bin";
+    int TMS[32768][1];
+    in_TMS(TMS);
 
-    while (ejecutando){
-        huboError = 0; //reiniciamos a cada interacion la bandera de errores
-        FILE *file;
-        
-        
-        if( Crear_ArchivoBinario(ArchivoBinario, 100) == 0){
+    int TMP[32768][3];
+    inicializar_TMP(TMP);
+
+    char *ArchivoBinario = "archivoBinario.bin";
+    if( Crear_ArchivoBinario(ArchivoBinario, 100) == 0){
             mvprintw(y_mensajes, 0, "Se creo correctamente el Archivo Binario");
             refresh();
         }//no estoy seguro si ese 100 puede ir asi, pero es el tamaño de char que tenemos para el IR
+
+
+    while (ejecutando){
+        huboError = 0; //reiniciamos a cada interacion la bandera de errores
+        //FILE *file;
 
         if ((lista_ejecucion == NULL && lista_listos == NULL)){
             char entrada[200];
@@ -88,20 +94,22 @@ int main(){
                 }
 
                 
-                file = fopen(archivo, "r");
+               // file = fopen(archivo, "r");
                
 
-                if (file == NULL){
+              /*  if (file == NULL){
                     move(y_mensajes, 0); clrtoeol();
                     mvprintw(y_mensajes, 0, "No se pudo abrir el archivo %s", archivo);
                     refresh();
                     continue;
-                }
+                }*/
 
+               // FILE *swap = fopen(ArchivoBinario, "rb");
                 pid++;
                 gid++;
                 grupos++;
                 insertar(&lista_listos,pid,gid,archivo,0); //el proceso se inserta en la lista de listos
+                reescritura(archivo,ArchivoBinario,pid,TMS,TMP);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
             } else if (strcmp(comando, "mata") == 0){
@@ -190,6 +198,7 @@ int main(){
         int gcpu_acum=0; //varible que le pasamos para que al terminar quantum(o termine) para acrualizar el GCPU del grupo
 
         mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s %10s %10s ", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "CPU","GCPU");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
+        mvprintw(y_tabla, 0, "%-5s %-5s %5s %5s %5s","TMP", "Pagi", "Bit", "M_R", "M_S");
         mvprintw(y_header2, 0, "%-5s %-5s %-8s %-8s %-18s %-18s %-10s %-18s %10s %10s %10s %10s %10s", "PID","GID", "CPU","GCPU", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX","Prioridad");
         refresh();
         
@@ -332,7 +341,7 @@ int main(){
                     
                     if (kbhit()){
                         //imprimirlista(procesoEjecucion, y_procesoEjecucion);
-
+                        
                         move(y_linea_comando, 0); clrtoeol();
                         refresh();
                         mvprintw(y_linea_comando, 0, "(D)> "); //Linea de comando que interrumpe(Dentro del kbhit)
@@ -375,7 +384,7 @@ int main(){
                                 continue;
                             }
 
-                            FILE *file_interrupcion = fopen(archivo, "r");
+                            /*FILE *file_interrupcion = fopen(archivo, "r");
                             if (file_interrupcion == NULL){
                                 move(y_mensajes, 0); clrtoeol();
                                 mvprintw(y_mensajes, 0, "(D)No se pudo abrir el archivo %s", archivo);
@@ -385,8 +394,8 @@ int main(){
                                 archivo[0] = '\0';
                                 num_palabras = 0;
                                 continue;
-                            }
-                            
+                            }*/
+                            reescritura(archivo,ArchivoBinario,pid,TMS,TMP);
                             pid++;
                             gid++;
                             grupos++;
@@ -556,7 +565,7 @@ int main(){
                         }
                     }
             }
-            fclose(file);
+
             if (lista_ejecucion == NULL) {
                 reiniciarVariables(comando, archivo);
                 continue;
