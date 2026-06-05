@@ -98,7 +98,7 @@ void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[][1],int TMP[][3
     char instruccion[100];//array que guarda instruccion
     char relleno[100]; //array que guarda lo que sobra
 
-
+    int pagina = 0;  
     while(1){// primero buscas un marco libre antes de poder escribirlo, pues si primero haces la lectura y no hay espacio, pss que haces xd
         int marco = Busqueda_TMS(TMS);
 
@@ -109,7 +109,7 @@ void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[][1],int TMP[][3
         int instL = 0;//la necesitamos para leer la cantidad de lineas leidas, puede que una pagina al final solamente lea 2 instrucciones
         //además es nuestra condición de termino para el while, sino la tenemos nunca termina, pues sale cuando no lee ninguna linea
         
-        int pagina = 0;  
+        
 
         fseek(swap, marco * 400, SEEK_SET);// se mueve al marco de página correspondiente
 
@@ -133,6 +133,7 @@ void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[][1],int TMP[][3
         }
         
         TMS[marco][0] = PID;
+        TMP[pagina][1] = -1;  
         TMP[pagina][2] = marco; //Gurdar en la TMP el marco del SWAP
         pagina++;
     }
@@ -185,7 +186,7 @@ void inicializar_TMP(int TMP[][3]){
 
     for(int i = 0; i < 32768; i++){
         TMP[i][0] = 0;   // bit presencia: 0 = swap
-        TMP[i][1] = 0;  // marco RAM
+        TMP[i][1] = -1;  // marco RAM
         TMP[i][2] = -1;  // marco swap
     }
 }

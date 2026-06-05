@@ -396,11 +396,12 @@ int main(){
                                 num_palabras = 0;
                                 continue;
                             }*/
-                            reescritura(archivo,ArchivoBinario,pid,TMS,TMP);
-                            imprimir_TMP(TMP,32768,y_tablaR);
+                            
                             pid++;
                             gid++;
                             grupos++;
+                            reescritura(archivo,ArchivoBinario,pid,TMS,TMP);
+                            imprimir_TMP(TMP,32768,y_tablaR);
                             insertar(&lista_listos,pid,gid,archivo,0); 
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
