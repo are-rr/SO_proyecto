@@ -9,10 +9,10 @@ int y_header = 0;
 int y_renglon = 1;
 int y_mensajes = 3;
 int y_linea_comando = 5;
-int y_tabla = 6;
-int y_tablaR = 7;
-int y_header2 = 8;
-int y_procesoEjecucion = 9;
+int y_tabla = 13;
+int y_tablaR = 14;
+int y_header2 = 7;
+int y_procesoEjecucion = 8;
 
 int ejecutando = 1;
 int pid =0;
@@ -110,6 +110,7 @@ int main(){
                 grupos++;
                 insertar(&lista_listos,pid,gid,archivo,0); //el proceso se inserta en la lista de listos
                 reescritura(archivo,ArchivoBinario,pid,TMS,TMP);
+                imprimir_TMP(TMP,32768,y_tablaR);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
             } else if (strcmp(comando, "mata") == 0){
@@ -396,6 +397,7 @@ int main(){
                                 continue;
                             }*/
                             reescritura(archivo,ArchivoBinario,pid,TMS,TMP);
+                            imprimir_TMP(TMP,32768,y_tablaR);
                             pid++;
                             gid++;
                             grupos++;

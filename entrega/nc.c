@@ -39,11 +39,11 @@ void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *term
 void imprimir_TMP(int TMP[][3], int max_paginas, int y_tablaR){
     int y = y_tablaR;
 
-    for(int i = 0; i < max_paginas; i++){
-        if(TMP[i][2] != -1){
-            mvprintw(y, 0, "%-5s %-5d %5d %5d %5d",
-                     "TMP", i, TMP[i][0], TMP[i][1], TMP[i][2]);
+    for(int i = 0; i < 10; i++){
+        //if(TMP[i][2] != -1){
+            mvprintw(y, 0, "%-5s %-5d %5d %5d %5d","TMP", i, TMP[i][0], TMP[i][1], TMP[i][2]);
+            refresh();
             y++;
-        }
+        //}
     }
 }

@@ -79,6 +79,7 @@ int DEC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *p
 void imprimirProceso(struct Nodo *p,int y_ncurse,const char* cadena);
 void imprimirlista(struct Nodo *lista, int y_ncurses,int status);
 void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *terminados);
+void imprimir_TMP(int TMP[][3], int max_paginas, int y_tablaR);
 
 //otros
 void reiniciarVariables(char *comando,char *archivo);
