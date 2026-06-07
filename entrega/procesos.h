@@ -79,7 +79,7 @@ int DEC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *p
 void imprimirProceso(struct Nodo *p,int y_ncurse,const char* cadena);
 void imprimirlista(struct Nodo *lista, int y_ncurses,int status);
 void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *terminados);
-void imprimir_TMP(int TMP[][3], int max_paginas, int y_tablaR);
+void imprimir_TMP(int TMP[][3], int y_tablaR, int pid);
 
 //otros
 void reiniciarVariables(char *comando,char *archivo);
@@ -89,11 +89,18 @@ void ComandoVel(int ms);
 
 //Memoria
 int Crear_ArchivoBinario(const char *nombre, int size_IR);
-int memoria_RAM(FILE *archivo, int size_IR);
-void in_TMS(int TMS[][1]);
-int Busqueda_TMS(int TMS[][1]);
-void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[][1],int TMP[][3]);
-int reescritura(const char *NombrePro, const char *ArchivoBinario,int pid, int TMS[][1], int TMP[][3]);
-void inicializar_TMP(int TMP[][3]);
-
+//int memoria_RAM(FILE *archivo, int size_IR);
+void in_TMS(int TMS[]);
+int Busqueda_TMS(int TMS[]);
+void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[],int TMP[][3]);
+int reescritura(const char *NombrePro, FILE *ArchivoBinario,int pid, int TMS[], int TMP[][3]);
+void in_TMP(int TMP[][3]);
+void in_TMM(int TMM[]);
+int Busqueda_TMM(int TMM[]);
+int BitPresencia_TMP(int TMP[][3],int pagina);
+int ObtenerMarcoSwap(int TMP[][3], int pagina);
+int ObtenerMarcoRAM(int TMP[][3], int pagina);
+void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[], int PID);
+void in_RAM(char RAM[][400]);
+int RAMLlena(int TMM[]);
 #endif 

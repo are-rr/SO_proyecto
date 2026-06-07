@@ -104,7 +104,7 @@ int contarNodos(struct Nodo *lista){
 void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados){
     struct Nodo *procesoError = extraerPrimero(lista_ejecucion);
     if(procesoError != NULL){
-        procesoError->Status = 4;
+        //procesoError->Status = 'X';
         if(procesoError->Archivo != NULL){
             fclose(procesoError -> Archivo);
             procesoError -> Archivo = NULL;

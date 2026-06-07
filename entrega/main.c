@@ -36,19 +36,22 @@ int main(){
     struct Nodo *lista_ejecucion = NULL;
     struct Nodo *lista_terminados = NULL;
     int huboError = 0;
-    int TMS[32768][1];
+    int TMS[32768];
     in_TMS(TMS);
-
+    int TMM[16];
+    in_TMM(TMM);
     int TMP[32768][3];
-    inicializar_TMP(TMP);
+    in_TMP(TMP);
+    char RAM[16][400];
+    //in_RAM(RAM);
 
     char *ArchivoBinario = "archivoBinario.bin";
     if( Crear_ArchivoBinario(ArchivoBinario, 100) == 0){
             mvprintw(y_mensajes, 0, "Se creo correctamente el Archivo Binario");
             refresh();
-        }//no estoy seguro si ese 100 puede ir asi, pero es el tamaño de char que tenemos para el IR
+    }//no estoy seguro si ese 100 puede ir asi, pero es el tamaño de char que tenemos para el IR
 
-
+    FILE *swap = fopen(ArchivoBinario,"r+b");
     while (ejecutando){
         huboError = 0; //reiniciamos a cada interacion la bandera de errores
         //FILE *file;
@@ -109,8 +112,8 @@ int main(){
                 gid++;
                 grupos++;
                 insertar(&lista_listos,pid,gid,archivo,0); //el proceso se inserta en la lista de listos
-                reescritura(archivo,ArchivoBinario,pid,TMS,TMP);
-                imprimir_TMP(TMP,32768,y_tablaR);
+                reescritura(archivo,swap,pid,TMS,TMP);
+                //imprimir_TMP(TMP,y_tablaR,pid);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
             } else if (strcmp(comando, "mata") == 0){
@@ -197,43 +200,52 @@ int main(){
         int quantum=3;
         int q=0;
         int gcpu_acum=0; //varible que le pasamos para que al terminar quantum(o termine) para acrualizar el GCPU del grupo
-
+        int pagina = 0;
         mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s %10s %10s ", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "CPU","GCPU");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
-        mvprintw(y_tabla, 0, "%-5s %-5s %5s %5s %5s","TMP", "Pagi", "Bit", "M_R", "M_S");
+        mvprintw(y_tabla, 0, "%-7s %-5s %5s %5s %5s","TMP-PID", "Pagi", "Bit", "M_R", "M_S");
         mvprintw(y_header2, 0, "%-5s %-5s %-8s %-8s %-18s %-18s %-10s %-18s %10s %10s %10s %10s %10s", "PID","GID", "CPU","GCPU", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX","Prioridad");
         refresh();
-        
-       
+        int desplazamiento =0;
+
         if(procesoEjecucion != NULL){
             int finArchivo = 0;
 
-            FILE *file = fopen(procesoEjecucion->nombrePro, "r");
-
-            if (file == NULL) {
-                move(y_mensajes, 0); 
-                clrtoeol();
-                mvprintw(y_mensajes, 0, "No se pudo abrir el archivo %s", procesoEjecucion->nombrePro);
-                refresh();
-
-                A_terminadosError(&lista_ejecucion, &lista_terminados);
-                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
-                continue;
-            }
-
-            // Avanza hasta la línea donde se quedó el proceso
-            for (int i = 0; i < procesoEjecucion->PC; i++) {
-                if (fgets(linea, sizeof(linea), file) == NULL) {
-                    finArchivo = 1;
-                    break;
-                }
-            }
-
             while (q < quantum) {
 
-                if (fgets(linea, sizeof(linea), file) == NULL) { //lee la linea del archivo
-                    finArchivo = 1;
-                    break;
+                int direccion_virtual = procesoEjecucion->PC;
+                pagina = direccion_virtual / 4;
+                desplazamiento = direccion_virtual % 4;
+
+                if(BitPresencia_TMP(TMP,pagina)==0){
+                    if(swap == NULL){
+                        mvprintw(y_mensajes,0,"Error abriendo swap");
+                        refresh();
+                        break;
+                    }
+                    if(RAMLlena(TMM) == 0){
+                        EscrituraRam(swap,RAM,pagina,TMP,TMM,procesoEjecucion->PID);
+                    }else{
+                        mvprintw(y_mensajes,0,"ERROR: Esta llena la RAM");
+                        refresh();
+                        continue;
+                        //NOTA: fallo de pagina
+                        // mandar a estados suspendidos
+
+                        //algoritmo de reloj
+                    }
+
+                    imprimir_TMP(TMP,y_tablaR,procesoEjecucion->PID);
                 }
+
+                int MarcoRAM = TMP[pagina][1];
+                mvprintw(4,0,"LINEA antes del mem");
+                refresh();
+                memcpy(linea,&RAM[MarcoRAM][desplazamiento * 100],100);
+                mvprintw(6,0,"%s",linea);
+                refresh();
+                mvprintw(4,0,"LINEA despues del mem");
+                refresh();
+                
                 q++;  
                 contadorLinea++;
                 procesoEjecucion->CPU+=20;
@@ -258,7 +270,11 @@ int main(){
                     huboError = 1;
                     comando[0] = '\0';
                     archivo[0] = '\0';
+                    mvprintw(4,0,"LINEA 271");
+                    refresh();
                     break;
+                    mvprintw(4,0,"LINEA 274");
+                    refresh();
                 }
 
                 token = strtok(linea, " \n\t ,");
@@ -317,19 +333,17 @@ int main(){
                             ComandoVel(ms);
                             
                             struct Nodo *procesoTerminado = extraerPrimero(&lista_ejecucion); 
-                            if(procesoTerminado != NULL){
-                                //procesoTerminado -> Status = 3;
-                                if(procesoTerminado -> Archivo != NULL){
-                                    fclose(procesoTerminado->Archivo);
-                                    procesoTerminado->Archivo = NULL;
-                                }
-                                insertarFinal(&lista_terminados,procesoTerminado);
-                                if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
+
+                            if (procesoTerminado != NULL) {
+                                int gid_terminado = procesoTerminado->GID;
+
+                                insertarFinal(&lista_terminados, procesoTerminado);
+
+                                if (Busqueda_GID(&lista_listos, &lista_ejecucion, gid_terminado) == 0) {
                                     grupos--;
                                 }
-                                //mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                             }
-                            
+
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                             reiniciarVariables(comando,archivo);
                             break;
@@ -384,24 +398,12 @@ int main(){
                                 num_palabras = 0;
                                 continue;
                             }
-
-                            /*FILE *file_interrupcion = fopen(archivo, "r");
-                            if (file_interrupcion == NULL){
-                                move(y_mensajes, 0); clrtoeol();
-                                mvprintw(y_mensajes, 0, "(D)No se pudo abrir el archivo %s", archivo);
-                                move(y_linea_comando, 0); clrtoeol();
-                                refresh();
-                                comando[0] = '\0';
-                                archivo[0] = '\0';
-                                num_palabras = 0;
-                                continue;
-                            }*/
                             
                             pid++;
                             gid++;
                             grupos++;
-                            reescritura(archivo,ArchivoBinario,pid,TMS,TMP);
-                            imprimir_TMP(TMP,32768,y_tablaR);
+                            reescritura(archivo,swap,pid,TMS,TMP);
+                            //imprimir_TMP(TMP,y_tablaR,procesoEjecucion->PID);
                             insertar(&lista_listos,pid,gid,archivo,0); 
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
@@ -577,7 +579,6 @@ int main(){
             if(q==quantum && encontroEND == 0 && huboError == 0){ //leyo 3 inst y no termino
                 struct Nodo *p = extraerPrimero(&lista_ejecucion);
                 if(p != NULL){
-                    //p -> Status = 'L';
                     insertarFinal(&lista_listos,p);
                 }
                 GCPU_Global(&lista_listos,procesoEjecucion->GID,gcpu_acum);
@@ -592,7 +593,6 @@ int main(){
                 if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
                     grupos--;
                 }
-                //mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
                 reiniciarVariables(comando,archivo);
                 continue;
