@@ -29,6 +29,7 @@ int kbhit(void){
 }
 
 void salirPrograma(){
+    //NOTA: Cerrar el archivo binario
     endwin();
     exit(0);
 }

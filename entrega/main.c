@@ -54,7 +54,6 @@ int main(){
     }//no estoy seguro si ese 100 puede ir asi, pero es el tamaño de char que tenemos para el IR
 
     FILE *swap = fopen(ArchivoBinario,"r+b");
-    int ContadorL =  ContadorLineas(swap);
     while (ejecutando){
         huboError = 0; //reiniciamos a cada interacion la bandera de errores
         //FILE *file;
@@ -115,31 +114,36 @@ int main(){
                 gid++;
                 grupos++;
                 //primero pasar a nuevos
-                insertar(&lista_nuevos, pid, gid, archivo, 0);
-                struct Nodo *nuevo = buscar(lista_nuevos, pid);
-                if (nuevo == NULL) {
-                    mvprintw(y_mensajes, 0, "ERROR: No se pudo crear el proceso");
-                    refresh();
-                    continue;
-                }
-                //ver si se peude cargar a swap
-                if (reescritura(archivo, swap, pid, TMS, nuevo->TMP) == 0) {
-                    struct Nodo *p = extraerNodo(&lista_nuevos, pid); //pasamos a listos si todo bien
-                    if (p != NULL) {
-                        insertarFinal(&lista_listos, p);
+
+                int ContadorL =  ContadorLineas(archivo);
+                if(ContadorL < 131072){
+                    insertar(&lista_nuevos, pid, gid, archivo, 0);
+                    struct Nodo *nuevo = buscar(lista_nuevos, pid);
+                    if (nuevo == NULL) {
+                        mvprintw(y_mensajes, 0, "ERROR: No se pudo crear el proceso");
+                        refresh();
+                        continue;
                     }
-                } else {//no cupo
-                    mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
-                    refresh();
+                    //ver si se peude cargar a swap
+                    if (reescritura(archivo, swap, pid, TMS, nuevo->TMP) == 0) {
+                        struct Nodo *p = extraerNodo(&lista_nuevos, pid); //pasamos a listos si todo bien
+                        if (p != NULL) {
+                            insertarFinal(&lista_listos, p);
+                        }
+                    } else {//no cupo
+                        mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
+                        refresh();
+                    }
+
+                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                    refresh();    
+                }else{
+                mvprintw(y_mensajes,0,"ERROR: El proceso es mas grande que el swap.");
+                refresh();
+                continue;
                 }
-                /*if(reescritura(archivo,swap,pid,TMS,nuevo->TMP,ContadorL,lista_nuevos,archivo) == 1){
-                    reiniciarVariables(comando,archivo);
-                    continue;
-                }*/
-                //insertar(&lista_listos,pid,gid,archivo,0); //el proceso se inserta en la lista de listos
-                //imprimir_TMP(TMP,y_tablaR,pid);
-                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
-                refresh();    
+                
+                
 
             } else if (strcmp(comando, "mata") == 0){
                 if(lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL){
@@ -253,6 +257,12 @@ int main(){
                     }else{
                         mvprintw(y_mensajes,0,"ERROR: Esta llena la RAM");
                         refresh();
+                        struct Nodo *procesoSuspendido=extraerNodo(&lista_ejecucion,pid);
+                        if(procesoSuspendido != NULL){
+                            insertarFinal(&lista_suspendidos,procesoSuspendido);
+                            //Tiempo de 2 a 10 
+                            
+                        } 
                         continue;
                         //NOTA: fallo de pagina
                         // mandar a estados suspendidos
@@ -281,10 +291,13 @@ int main(){
                 char linea_original[100]; //gaurdamos copia de lalinea
                 strcpy(linea_original, linea);
                 linea_original[strcspn(linea_original, "\r\n")] = '\0';//(lineaaescanear, loquevaaencontrar)
-
+                mvprintw(4,0,"LINEA despues del mem284");
+                refresh();
                 if(linea_original[0] == '\0'){ //linea vacia
                     move(y_mensajes,0); clrtoeol();
                     mvprintw(y_mensajes,0,"ERROR: linea vacia en linea %d", contadorLinea);
+                    refresh();
+                    mvprintw(4,0,"LINEA despues del mem290");
                     refresh();
                     strcpy(procesoEjecucion->IR, linea_original); //guardamos el IR
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
@@ -312,6 +325,8 @@ int main(){
 
                 arg1 = strtok(NULL, " \n\t ,");
                 arg2 = strtok(NULL, " \n\t ,");
+                mvprintw(4,0,"LINEA despues del mem316");
+                refresh();
 
                 // Sintaxis para los espacios y Verifica si la instruccion es valida
                 if (!validarEspacios(linea_original, instruccion, contadorLinea)
@@ -327,7 +342,8 @@ int main(){
                     reiniciarVariables(comando,archivo);
                     break;
                 }
-
+                mvprintw(4,0,"LINEA despues del mem331");
+                refresh();
                 if ((strcmp(instruccion, "MOV") == 0 && !MOV(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                     (strcmp(instruccion, "ADD") == 0 && !ADD(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                     (strcmp(instruccion, "SUB") == 0 && !SUB(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
@@ -430,17 +446,17 @@ int main(){
                             grupos++;
                             //primero pasar a nuevos
                             insertar(&lista_nuevos, pid, gid, archivo, 0);
-                            struct Nodo *nuevo = buscar(lista_nuevos, pid);
-                            if (nuevo == NULL) {
+                            struct Nodo *nuevoP = buscar(lista_nuevos, pid);
+                            if (nuevoP == NULL) {
                                 mvprintw(y_mensajes, 0, "(D)ERROR: No se pudo crear el proceso");
                                 refresh();
                                 continue;
                             }
                             //ver si se peude cargar a swap
-                            if (reescritura(archivo, swap, pid, TMS, nuevo->TMP) == 0) {
-                                struct Nodo *p = extraerNodo(&lista_nuevos, pid); //pasamos a listos si todo bien
-                                if (p != NULL) {
-                                    insertarFinal(&lista_listos, p);
+                            if (reescritura(archivo, swap, pid, TMS, nuevoP->TMP) == 0) {
+                                struct Nodo *pn = extraerNodo(&lista_nuevos, pid); //pasamos a listos si todo bien
+                                if (pn != NULL) {
+                                    insertarFinal(&lista_listos, pn);
                                 }
                             } else {//no cupo
                                 mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);

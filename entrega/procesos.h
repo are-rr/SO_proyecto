@@ -20,6 +20,7 @@ struct Nodo {
     int GCPU;
     int PRIORY; //prioridad
     int TMP[32768][3]; //NOTA: No consume mucha memoria esto cada vez que un proceso trae la tabla?
+    int TIEMPO_SUSP;
     struct Nodo *sig;  // puntero al siguiente nodo
 };
 
@@ -104,6 +105,6 @@ int ObtenerMarcoRAM(int TMP[][3], int pagina);
 void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[], int PID);
 void in_RAM(char RAM[][400]);
 int RAMLlena(int TMM[]);
-int ContadorLineas(FILE *ArchivoBinario);
+int ContadorLineas(const char *archivo);
 
 #endif 

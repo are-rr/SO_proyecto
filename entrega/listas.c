@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ncurses.h>
 #include <math.h>
+#include <time.h>
 #include "procesos.h"
 
 //Funciones para las listas:
@@ -368,4 +369,12 @@ int Busqueda_GID(struct Nodo **lista_listos,struct Nodo **lista_ejecucion, int G
         return 0;
     }
     return 1;
+}
+
+void TiempoEnSuspendidos(struct Nodo *proceso,struct Nodo **lista_suspendidos){
+    srand(time(NULL));
+    int tiempo = rand() % 3 + 8; //entre 2 a 10 segundos
+    struct Nodo *proceso = NULL;
+
+    proceso-> TIEMPO_SUSP=tiempo; 
 }

@@ -15,9 +15,11 @@ int Crear_ArchivoBinario(const char *nombre, int size_IR) {
     /*if (numeros == NULL) {
         return 1;
     }*/
-    FILE *ArchivoBinario = fopen(nombre, "r+b");
+    //FILE *ArchivoBinario = fopen(nombre, "r+b");
+    //NOTA: Aqui no usar r+b_______________________Peligroso
+    //NOTA: no es necesrio poner la 'b' porque en unix todo se abre en binario
 
-    //FILE *ArchivoBinario = fopen(nombre, "wb");
+    FILE *ArchivoBinario = fopen(nombre, "wb");
     if (ArchivoBinario == NULL) {
         //perror("Error al abrir el archivo");
         return 1;
@@ -71,7 +73,7 @@ int Paginacion(FILE *archivoProceso, FILE *swap, int PID, int TMS[], int TMP[][3
                 break;
             }
             int usados = strlen(instruccion);
-            memset(relleno, '0', sizeof(relleno));
+            memset(relleno, '\0', sizeof(relleno));
             fwrite(instruccion, sizeof(char), usados, swap);
             fwrite(relleno, sizeof(char), 100 - usados, swap);
             instL++;
@@ -181,14 +183,21 @@ int RAMLlena(int TMM[]){
     return 1; // RAM llena
 }
 
-int ContadorLineas(FILE *ArchivoBinario){
+int ContadorLineas(const char *archivo){
     int contador = 0;
     char buffer[100];
 
-    while (fgets(buffer, sizeof(buffer), ArchivoBinario) != NULL) {
+    FILE *archivoP = fopen(archivo, "r");
+
+    if (archivoP == NULL) {
+        //perror("Error al abrir el archivo");
+        return 1
+        ;
+    }
+    while (fgets(buffer, sizeof(buffer), archivoP) != NULL) {
         contador++;
     }
 
-    fclose(ArchivoBinario);
+    fclose(archivoP);
     return contador;
 }
