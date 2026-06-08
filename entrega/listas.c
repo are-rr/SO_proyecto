@@ -24,7 +24,7 @@ void insertar(struct Nodo **cabeza, int pid,int gid,const char *nombre, int pc) 
     nuevo->ECX = 0;
     nuevo->EDX = 0;
     nuevo->IR[0] = '\0';
-
+    in_TMP(nuevo->TMP);
     nuevo->sig = NULL;
 
     if (*cabeza == NULL) {

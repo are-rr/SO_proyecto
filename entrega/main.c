@@ -35,13 +35,15 @@ int main(){
     struct Nodo *lista_listos = NULL;
     struct Nodo *lista_ejecucion = NULL;
     struct Nodo *lista_terminados = NULL;
+    struct Nodo *lista_nuevos = NULL;
+    struct Nodo *lista_suspendidos = NULL;
     int huboError = 0;
     int TMS[32768];
     in_TMS(TMS);
     int TMM[16];
     in_TMM(TMM);
-    int TMP[32768][3];
-    in_TMP(TMP);
+    //int TMP[32768][3];
+    //in_TMP(TMP);
     char RAM[16][400];
     //in_RAM(RAM);
 
@@ -52,6 +54,7 @@ int main(){
     }//no estoy seguro si ese 100 puede ir asi, pero es el tamaño de char que tenemos para el IR
 
     FILE *swap = fopen(ArchivoBinario,"r+b");
+    int ContadorL =  ContadorLineas(swap);
     while (ejecutando){
         huboError = 0; //reiniciamos a cada interacion la bandera de errores
         //FILE *file;
@@ -111,8 +114,14 @@ int main(){
                 pid++;
                 gid++;
                 grupos++;
+                //primero pasar a nuevos
+                insertar(&lista_nuevos, pid, gid, archivo, 0);
+                struct Nodo *nuevo = buscar(lista_listos,pid);   
+                if(reescritura(archivo,swap,pid,TMS,nuevo->TMP,ContadorL,lista_nuevos,archivo) == 1){
+                    reiniciarVariables(comando,archivo);
+                    continue;
+                }
                 insertar(&lista_listos,pid,gid,archivo,0); //el proceso se inserta en la lista de listos
-                reescritura(archivo,swap,pid,TMS,TMP);
                 //imprimir_TMP(TMP,y_tablaR,pid);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                 refresh();            
@@ -184,6 +193,7 @@ int main(){
             }
             //mvprintw(y_variable,0,"numero de grupos:%d",grupos);
             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+            imprimir_TMP(proceso->TMP, y_tablaR, proceso->PID);
             refresh(); 
         }
         if(lista_ejecucion == NULL){//si no hay nada en ejecucion vuelve a empexar
@@ -202,7 +212,7 @@ int main(){
         int gcpu_acum=0; //varible que le pasamos para que al terminar quantum(o termine) para acrualizar el GCPU del grupo
         int pagina = 0;
         mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s %10s %10s ", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "CPU","GCPU");//(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
-        mvprintw(y_tabla, 0, "%-7s %-5s %5s %5s %5s","TMP-PID", "Pagi", "Bit", "M_R", "M_S");
+        mvprintw(y_tabla, 0, "%-5s %5s %5s %5s", "Pagi", "Bit", "M_R", "M_S");
         mvprintw(y_header2, 0, "%-5s %-5s %-8s %-8s %-18s %-18s %-10s %-18s %10s %10s %10s %10s %10s", "PID","GID", "CPU","GCPU", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX","Prioridad");
         refresh();
         int desplazamiento =0;
@@ -216,14 +226,14 @@ int main(){
                 pagina = direccion_virtual / 4;
                 desplazamiento = direccion_virtual % 4;
 
-                if(BitPresencia_TMP(TMP,pagina)==0){
+                if(BitPresencia_TMP(procesoEjecucion->TMP,pagina)==0){
                     if(swap == NULL){
                         mvprintw(y_mensajes,0,"Error abriendo swap");
                         refresh();
                         break;
                     }
                     if(RAMLlena(TMM) == 0){
-                        EscrituraRam(swap,RAM,pagina,TMP,TMM,procesoEjecucion->PID);
+                        EscrituraRam(swap,RAM,pagina,procesoEjecucion->TMP,TMM,procesoEjecucion->PID);
                     }else{
                         mvprintw(y_mensajes,0,"ERROR: Esta llena la RAM");
                         refresh();
@@ -234,10 +244,10 @@ int main(){
                         //algoritmo de reloj
                     }
 
-                    imprimir_TMP(TMP,y_tablaR,procesoEjecucion->PID);
+                    //imprimir_TMP(TMP,y_tablaR,procesoEjecucion->PID);
                 }
 
-                int MarcoRAM = TMP[pagina][1];
+                int MarcoRAM = procesoEjecucion->TMP[pagina][1];
                 mvprintw(4,0,"LINEA antes del mem");
                 refresh();
                 memcpy(linea,&RAM[MarcoRAM][desplazamiento * 100],100);
@@ -402,9 +412,16 @@ int main(){
                             pid++;
                             gid++;
                             grupos++;
-                            reescritura(archivo,swap,pid,TMS,TMP);
+                            
                             //imprimir_TMP(TMP,y_tablaR,procesoEjecucion->PID);
                             insertar(&lista_listos,pid,gid,archivo,0); 
+                            struct Nodo *nuevoProceso = buscar(lista_listos, pid);
+                            if(nuevoProceso != NULL){
+                                if(reescritura(archivo,swap,pid,TMS,nuevoProceso->TMP,ContadorL,lista_nuevos,archivo) == 1){
+                                    reiniciarVariables(comando,archivo);
+                                    continue;
+                                }
+                            }
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();

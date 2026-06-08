@@ -19,6 +19,7 @@ struct Nodo {
     int CPU;
     int GCPU;
     int PRIORY; //prioridad
+    int TMP[32768][3]; //NOTA: No consume mucha memoria esto cada vez que un proceso trae la tabla?
     struct Nodo *sig;  // puntero al siguiente nodo
 };
 
@@ -92,8 +93,8 @@ int Crear_ArchivoBinario(const char *nombre, int size_IR);
 //int memoria_RAM(FILE *archivo, int size_IR);
 void in_TMS(int TMS[]);
 int Busqueda_TMS(int TMS[]);
-void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[],int TMP[][3]);
-int reescritura(const char *NombrePro, FILE *ArchivoBinario,int pid, int TMS[], int TMP[][3]);
+void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[],int TMP[][3],struct Nodo **lista_nuevos,const char *nombre);
+int reescritura(const char *NombrePro, FILE *ArchivoBinario,int pid, int TMS[], int TMP[][3], int ContadorL,struct Nodo **lista_nuevos,const char *nombre);
 void in_TMP(int TMP[][3]);
 void in_TMM(int TMM[]);
 int Busqueda_TMM(int TMM[]);
@@ -103,4 +104,6 @@ int ObtenerMarcoRAM(int TMP[][3], int pagina);
 void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[], int PID);
 void in_RAM(char RAM[][400]);
 int RAMLlena(int TMM[]);
+int ContadorLineas(FILE *ArchivoBinario);
+
 #endif 

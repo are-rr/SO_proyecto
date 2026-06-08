@@ -38,12 +38,17 @@ void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *term
 //imprimir la TMP
 void imprimir_TMP(int TMP[][3], int y_tablaR, int pid){
     int y = y_tablaR;
+    move(12, 0);
+    clrtoeol();
+    mvprintw(12,0,"Proceso: %d",pid);
 
     for(int i = 0; i < 10; i++){
         //if(TMP[i][2] != -1){
-            mvprintw(y, 0, "%-7d %-5d %5d %5d %5d",pid, i, TMP[i][0], TMP[i][1], TMP[i][2]);
+            move(y, 0);
+            clrtoeol();
+            mvprintw(y, 0, "%-5d %5d %5d %5d", i, TMP[i][0], TMP[i][1], TMP[i][2]);
             y++;
-            refresh();
         //}
     }
+    refresh();
 }

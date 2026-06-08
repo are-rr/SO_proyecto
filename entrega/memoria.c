@@ -51,7 +51,7 @@ int Busqueda_TMS(int TMS[]){
 
 //paso los archivos tipo file, por que como lo vamos a utilizar en la función de reescritura, para poder escribir y leer el archivo
 //necesitamos abrir los archivos FILE tal cual
-void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[],int TMP[][3]){
+void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[],int TMP[][3],struct Nodo **lista_nuevos,const char *nombre){
     char instruccion[100];//array que guarda instruccion
     char relleno[100]; //array que guarda lo que sobra
 
@@ -60,7 +60,10 @@ void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[],int TMP[][3]){
         int marco = Busqueda_TMS(TMS);
 
         if(marco == -1){
-            printf("ERROR: Swap lleno\n");
+            printf("Swap lleno\n");
+            //void insertar(struct Nodo **cabeza, int pid,int gid,const char *nombre, int pc) {
+            insertar(lista_nuevos,0,0,nombre,0);
+
         }
 
         int instL = 0;//la necesitamos para leer la cantidad de lineas leidas, puede que una pagina al final solamente lea 2 instrucciones
@@ -76,7 +79,7 @@ void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[],int TMP[][3]){
             }
 
             int usados = strlen(instruccion);
-            memset(relleno, '\0', sizeof(relleno));
+            memset(relleno, '0', sizeof(relleno));
             fwrite(instruccion,sizeof(char),usados,swap);
             fwrite(relleno,sizeof(char),100 - usados,swap);
             
@@ -96,7 +99,7 @@ void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[],int TMP[][3]){
     }
 }
 
-int reescritura(const char *NombrePro, FILE *ArchivoBinario,int pid, int TMS[], int TMP[][3]){
+int reescritura(const char *NombrePro, FILE *ArchivoBinario,int pid, int TMS[], int TMP[][3], int ContadorL,struct Nodo **lista_nuevos,const char *nombre){
     FILE *archivoP = fopen(NombrePro,"r");
     if (archivoP == NULL) {
         //perror("Error al abrir el archivo");
@@ -108,7 +111,13 @@ int reescritura(const char *NombrePro, FILE *ArchivoBinario,int pid, int TMS[], 
         return 1;
     }*/
 
-   Paginacion(archivoP,ArchivoBinario,pid,TMS,TMP);
+    if(ContadorL < 131072){
+        Paginacion(archivoP,ArchivoBinario,pid,TMS,TMP,lista_nuevos,nombre);
+    }else{
+        mvprintw(y_mensajes,0,"ERROR: El proceso es mas grande que el swap.");
+        refresh();
+        return 1;
+    }
 
 
    //fclose(archivoB);
@@ -188,4 +197,16 @@ int RAMLlena(int TMM[]){
         }
     }
     return 1; // RAM llena
+}
+
+int ContadorLineas(FILE *ArchivoBinario){
+    int contador = 0;
+    char buffer[100];
+
+    while (fgets(buffer, sizeof(buffer), ArchivoBinario) != NULL) {
+        contador++;
+    }
+
+    fclose(ArchivoBinario);
+    return contador;
 }
