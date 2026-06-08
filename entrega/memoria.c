@@ -51,78 +51,60 @@ int Busqueda_TMS(int TMS[]){
 
 //paso los archivos tipo file, por que como lo vamos a utilizar en la función de reescritura, para poder escribir y leer el archivo
 //necesitamos abrir los archivos FILE tal cual
-void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[],int TMP[][3],struct Nodo **lista_nuevos,const char *nombre){
+int Paginacion(FILE *archivoProceso, FILE *swap, int PID, int TMS[], int TMP[][3]){
     char instruccion[100];//array que guarda instruccion
     char relleno[100]; //array que guarda lo que sobra
+    int pagina = 0;
 
-    int pagina = 0;  
     while(1){// primero buscas un marco libre antes de poder escribirlo, pues si primero haces la lectura y no hay espacio, pss que haces xd
         int marco = Busqueda_TMS(TMS);
-
         if(marco == -1){
-            printf("Swap lleno\n");
-            //void insertar(struct Nodo **cabeza, int pid,int gid,const char *nombre, int pc) {
-            insertar(lista_nuevos,0,0,nombre,0);
-
+            return 1; // swap lleno
         }
 
         int instL = 0;//la necesitamos para leer la cantidad de lineas leidas, puede que una pagina al final solamente lea 2 instrucciones
         //además es nuestra condición de termino para el while, sino la tenemos nunca termina, pues sale cuando no lee ninguna linea
-        
-        
-
         fseek(swap, marco * 400, SEEK_SET);// se mueve al marco de página correspondiente
 
-       for(int i = 0; i < 4; i++){
-            if(fgets(instruccion,sizeof(instruccion),archivoProceso) == NULL){
+        for(int i = 0; i < 4; i++){
+            if(fgets(instruccion, sizeof(instruccion), archivoProceso) == NULL){
                 break;
             }
-
             int usados = strlen(instruccion);
             memset(relleno, '0', sizeof(relleno));
-            fwrite(instruccion,sizeof(char),usados,swap);
-            fwrite(relleno,sizeof(char),100 - usados,swap);
-            
+            fwrite(instruccion, sizeof(char), usados, swap);
+            fwrite(relleno, sizeof(char), 100 - usados, swap);
             instL++;
-            //rewind(swap);
         }
 
-        
         if(instL == 0){
             break;
         }
-        
         TMS[marco] = PID;
-        TMP[pagina][2] = marco; //Gurdar en la TMP el marco del SWAP
+        TMP[pagina][2] = marco;//Gurdar en la TMP el marco del SWAP
         pagina++;
-
     }
+    return 0;
 }
+int reescritura(const char *NombrePro, FILE *ArchivoBinario, int pid, int TMS[], int TMP[][3]){
+    FILE *archivoP = fopen(NombrePro, "r");
 
-int reescritura(const char *NombrePro, FILE *ArchivoBinario,int pid, int TMS[], int TMP[][3], int ContadorL,struct Nodo **lista_nuevos,const char *nombre){
-    FILE *archivoP = fopen(NombrePro,"r");
     if (archivoP == NULL) {
         //perror("Error al abrir el archivo");
         return 1;
     }
-    /*FILE *archivoB = fopen(ArchivoBinario,"r+b");
-    if (archivoB == NULL) {
-       // perror("mError al abrir el archivo");
-        return 1;
-    }*/
-
-    if(ContadorL < 131072){
+    /* if(ContadorL < 131072){
         Paginacion(archivoP,ArchivoBinario,pid,TMS,TMP,lista_nuevos,nombre);
     }else{
         mvprintw(y_mensajes,0,"ERROR: El proceso es mas grande que el swap.");
         refresh();
         return 1;
-    }
+    }*/
 
+    int resultado = Paginacion(archivoP, ArchivoBinario, pid, TMS, TMP);
 
-   //fclose(archivoB);
-   fclose(archivoP);
-   return 0;
+    fclose(archivoP);
+    return resultado;
 }
 
 void in_TMP(int TMP[][3]){

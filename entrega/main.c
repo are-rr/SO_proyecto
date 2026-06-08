@@ -116,15 +116,31 @@ int main(){
                 grupos++;
                 //primero pasar a nuevos
                 insertar(&lista_nuevos, pid, gid, archivo, 0);
-                struct Nodo *nuevo = buscar(lista_listos,pid);   
-                if(reescritura(archivo,swap,pid,TMS,nuevo->TMP,ContadorL,lista_nuevos,archivo) == 1){
-                    reiniciarVariables(comando,archivo);
+                struct Nodo *nuevo = buscar(lista_nuevos, pid);
+                if (nuevo == NULL) {
+                    mvprintw(y_mensajes, 0, "ERROR: No se pudo crear el proceso");
+                    refresh();
                     continue;
                 }
-                insertar(&lista_listos,pid,gid,archivo,0); //el proceso se inserta en la lista de listos
+                //ver si se peude cargar a swap
+                if (reescritura(archivo, swap, pid, TMS, nuevo->TMP) == 0) {
+                    struct Nodo *p = extraerNodo(&lista_nuevos, pid); //pasamos a listos si todo bien
+                    if (p != NULL) {
+                        insertarFinal(&lista_listos, p);
+                    }
+                } else {//no cupo
+                    mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
+                    refresh();
+                }
+                /*if(reescritura(archivo,swap,pid,TMS,nuevo->TMP,ContadorL,lista_nuevos,archivo) == 1){
+                    reiniciarVariables(comando,archivo);
+                    continue;
+                }*/
+                //insertar(&lista_listos,pid,gid,archivo,0); //el proceso se inserta en la lista de listos
                 //imprimir_TMP(TMP,y_tablaR,pid);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
-                refresh();            
+                refresh();    
+
             } else if (strcmp(comando, "mata") == 0){
                 if(lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL){
                     move(y_mensajes, 0); clrtoeol();
@@ -412,15 +428,23 @@ int main(){
                             pid++;
                             gid++;
                             grupos++;
-                            
-                            //imprimir_TMP(TMP,y_tablaR,procesoEjecucion->PID);
-                            insertar(&lista_listos,pid,gid,archivo,0); 
-                            struct Nodo *nuevoProceso = buscar(lista_listos, pid);
-                            if(nuevoProceso != NULL){
-                                if(reescritura(archivo,swap,pid,TMS,nuevoProceso->TMP,ContadorL,lista_nuevos,archivo) == 1){
-                                    reiniciarVariables(comando,archivo);
-                                    continue;
+                            //primero pasar a nuevos
+                            insertar(&lista_nuevos, pid, gid, archivo, 0);
+                            struct Nodo *nuevo = buscar(lista_nuevos, pid);
+                            if (nuevo == NULL) {
+                                mvprintw(y_mensajes, 0, "(D)ERROR: No se pudo crear el proceso");
+                                refresh();
+                                continue;
+                            }
+                            //ver si se peude cargar a swap
+                            if (reescritura(archivo, swap, pid, TMS, nuevo->TMP) == 0) {
+                                struct Nodo *p = extraerNodo(&lista_nuevos, pid); //pasamos a listos si todo bien
+                                if (p != NULL) {
+                                    insertarFinal(&lista_listos, p);
                                 }
+                            } else {//no cupo
+                                mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
+                                refresh();
                             }
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
                             move(y_linea_comando, 0); clrtoeol();
