@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include "procesos.h"
+#include <time.h>
 
 // cordenadas de fila
 int y_header = 0;
@@ -40,7 +41,7 @@ int main(){
     int huboError = 0;
     int TMS[32768];
     in_TMS(TMS);
-    int TMM[16];
+    int TMM[16][2];
     in_TMM(TMM);
     //int TMP[32768][3];
     //in_TMP(TMP);
@@ -55,6 +56,8 @@ int main(){
 
     FILE *swap = fopen(ArchivoBinario,"r+b");
     while (ejecutando){
+        RevisarSuspendidos(&lista_suspendidos,&lista_listos);
+
         huboError = 0; //reiniciamos a cada interacion la bandera de errores
         //FILE *file;
 
@@ -135,7 +138,7 @@ int main(){
                         refresh();
                     }
 
-                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
                     refresh();    
                 }else{
                 mvprintw(y_mensajes,0,"ERROR: El proceso es mas grande que el swap.");
@@ -204,6 +207,8 @@ int main(){
                 continue;
             }
         }
+
+        
         //Si no se tiene nada en ejecucion, pero si hay algo en listos
         if(lista_ejecucion == NULL && lista_listos != NULL){
             struct Nodo *proceso = Fair_Share(&lista_listos,grupos,Base);
@@ -212,7 +217,7 @@ int main(){
                 insertarFinal(&lista_ejecucion,proceso);
             }
             //mvprintw(y_variable,0,"numero de grupos:%d",grupos);
-            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
             imprimir_TMP(proceso->TMP, y_tablaR, proceso->PID);
             refresh(); 
         }
@@ -257,9 +262,14 @@ int main(){
                     }else{
                         mvprintw(y_mensajes,0,"ERROR: Esta llena la RAM");
                         refresh();
-                        struct Nodo *procesoSuspendido=extraerNodo(&lista_ejecucion,pid);
+                        struct Nodo *procesoSuspendido=extraerNodo(&lista_ejecucion,procesoEjecucion->PID);
                         if(procesoSuspendido != NULL){
+                            TiempoEnSuspendidos(procesoSuspendido);
+                            procesoSuspendido->PC = contadorLinea;
+                            strcpy(procesoSuspendido->IR, linea);
                             insertarFinal(&lista_suspendidos,procesoSuspendido);
+                            imprimirEstado(lista_listos,lista_ejecucion,lista_terminados,lista_suspendidos);
+
                             //Tiempo de 2 a 10 
                             
                         } 
@@ -301,7 +311,7 @@ int main(){
                     refresh();
                     strcpy(procesoEjecucion->IR, linea_original); //guardamos el IR
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
-                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
                     if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){//revisar si todavia hay procesos con ese GID
                         grupos--;
                     }
@@ -327,7 +337,7 @@ int main(){
                 arg2 = strtok(NULL, " \n\t ,");
                 mvprintw(4,0,"LINEA despues del mem316");
                 refresh();
-
+                imprimirEstado(lista_listos,lista_ejecucion,lista_terminados,lista_suspendidos);
                 // Sintaxis para los espacios y Verifica si la instruccion es valida
                 if (!validarEspacios(linea_original, instruccion, contadorLinea)
                     || !Operaciones(instruccion, contadorLinea, linea_original)){
@@ -337,7 +347,7 @@ int main(){
                         grupos--;
                     }
                     //mvprintw(y_variable,0,"numero de grupos:%d",grupos);
-                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
                     huboError = 1;
                     reiniciarVariables(comando,archivo);
                     break;
@@ -357,7 +367,7 @@ int main(){
                         grupos--;
                     }
                     //mvprintw(y_variable,0,"numero de grupos:%d",grupos);
-                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
                     huboError = 1;
                     reiniciarVariables(comando,archivo);
                     break;
@@ -386,7 +396,7 @@ int main(){
                                 }
                             }
 
-                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
+                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);                             
                             reiniciarVariables(comando,archivo);
                             break;
                 }
@@ -462,7 +472,7 @@ int main(){
                                 mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
                                 refresh();
                             }
-                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();
                             num_palabras = 0;                
@@ -517,7 +527,7 @@ int main(){
                                 }
                             }
                             //mvprintw(y_variable,0,"numero de grupos:%d",grupos);
-                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();
                             num_palabras = 0;
@@ -580,7 +590,7 @@ int main(){
                                 pid--;
                             }
 
-                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);
+                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();
                         }else if (strcmp(comando, "velocidad") == 0){
@@ -639,7 +649,7 @@ int main(){
                     insertarFinal(&lista_listos,p);
                 }
                 GCPU_Global(&lista_listos,procesoEjecucion->GID,gcpu_acum);
-                imprimirEstado(lista_listos,lista_ejecucion,lista_terminados);
+                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
             }
             else if (encontroEND == 0 && huboError == 0 && finArchivo == 1){ //se acbo el archivo sin END
                 move(y_mensajes, 0); clrtoeol();
@@ -650,7 +660,7 @@ int main(){
                 if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
                     grupos--;
                 }
-                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados);                               
+                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);                               
                 reiniciarVariables(comando,archivo);
                 continue;
             }

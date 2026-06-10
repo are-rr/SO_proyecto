@@ -106,10 +106,6 @@ void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_termina
     struct Nodo *procesoError = extraerPrimero(lista_ejecucion);
     if(procesoError != NULL){
         //procesoError->Status = 'X';
-        if(procesoError->Archivo != NULL){
-            fclose(procesoError -> Archivo);
-            procesoError -> Archivo = NULL;
-        }
         insertarFinal(lista_terminados, procesoError);
     }
 }
@@ -120,10 +116,10 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
     proceso_mata = extraerNodo(lista_ejecucion, id_p); //busca en ejecucion
     if(proceso_mata != NULL){
         //proceso_mata -> Status = 'Z';
-        if(proceso_mata->Archivo != NULL){
+        /*if(proceso_mata->Archivo != NULL){
             fclose(proceso_mata -> Archivo);
             proceso_mata -> Archivo = NULL;
-        }
+        }*/
         insertarFinal(lista_terminados, proceso_mata);
         return 1;
     }
@@ -132,10 +128,10 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
         proceso_mata = extraerNodo(lista_listos, id_p); //sino busca en listos
         if(proceso_mata != NULL){
             //proceso_mata -> Status = 'Z';
-            if(proceso_mata->Archivo != NULL){
+           /* if(proceso_mata->Archivo != NULL){
                 fclose(proceso_mata -> Archivo);
                 proceso_mata -> Archivo = NULL;
-            }
+            }*/
             insertarFinal(lista_terminados, proceso_mata);
             return 2;
         }
@@ -371,10 +367,31 @@ int Busqueda_GID(struct Nodo **lista_listos,struct Nodo **lista_ejecucion, int G
     return 1;
 }
 
-void TiempoEnSuspendidos(struct Nodo *proceso,struct Nodo **lista_suspendidos){
+void TiempoEnSuspendidos(struct Nodo *proceso){
     srand(time(NULL));
-    int tiempo = rand() % 3 + 8; //entre 2 a 10 segundos
-    struct Nodo *proceso = NULL;
+    int tiempo = rand() % 9 + 2; //entre 2 a 10 segundos
+    proceso-> TIEMPO_SUSP=time(NULL)+tiempo; 
+}
 
-    proceso-> TIEMPO_SUSP=tiempo; 
+void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_listos){
+    struct Nodo *actual = *lista_suspendidos;
+    struct Nodo *sig = NULL;
+    time_t ahora = time(NULL);
+
+
+    while(actual != NULL){
+        sig = actual->sig;
+
+        if(ahora >= actual->TIEMPO_SUSP){
+            struct Nodo *p = extraerNodo(lista_suspendidos, actual->PID);
+
+            if(p != NULL){
+                p->Status = 'L';
+                p->TIEMPO_SUSP = 0;
+                insertarFinal(lista_listos, p);
+            }
+        }
+
+        actual = sig;
+    }
 }

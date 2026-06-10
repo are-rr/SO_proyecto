@@ -19,7 +19,7 @@ struct Nodo {
     int CPU;
     int GCPU;
     int PRIORY; //prioridad
-    int TMP[32768][3]; //NOTA: No consume mucha memoria esto cada vez que un proceso trae la tabla?
+    int TMP[32768][3]; //NOTA: Cambiar dinamica
     int TIEMPO_SUSP;
     struct Nodo *sig;  // puntero al siguiente nodo
 };
@@ -53,6 +53,8 @@ struct Nodo* extraerNodo_Prioridad(struct Nodo **lista, int priory);
 struct Nodo *Fair_Share(struct Nodo **lista_listos,int grupos,int Base);
 void GCPU_Global(struct Nodo **lista_listos, int GID, int GCPU);
 int Busqueda_GID(struct Nodo **lista_listos,struct Nodo **lista_ejecucion, int GID);
+void TiempoEnSuspendidos(struct Nodo *proceso);
+void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_listos);
 
 //validaciones
 int Registro(char *token);
@@ -80,7 +82,7 @@ int DEC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *p
 //ncurses
 void imprimirProceso(struct Nodo *p,int y_ncurse,const char* cadena);
 void imprimirlista(struct Nodo *lista, int y_ncurses,int status);
-void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *terminados);
+void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *terminados, struct Nodo *suspendidos);
 void imprimir_TMP(int TMP[][3], int y_tablaR, int pid);
 
 //otros
@@ -97,14 +99,14 @@ int Busqueda_TMS(int TMS[]);
 int Paginacion(FILE *archivoProceso, FILE *swap, int PID, int TMS[], int TMP[][3]);
 int reescritura(const char *NombrePro, FILE *ArchivoBinario, int pid, int TMS[], int TMP[][3]);
 void in_TMP(int TMP[][3]);
-void in_TMM(int TMM[]);
-int Busqueda_TMM(int TMM[]);
+void in_TMM(int TMM[][2]);
+int Busqueda_TMM(int TMM[][2]);
 int BitPresencia_TMP(int TMP[][3],int pagina);
 int ObtenerMarcoSwap(int TMP[][3], int pagina);
 int ObtenerMarcoRAM(int TMP[][3], int pagina);
-void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[], int PID);
+void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[][2], int PID);
 void in_RAM(char RAM[][400]);
-int RAMLlena(int TMM[]);
+int RAMLlena(int TMM[][2]);
 int ContadorLineas(const char *archivo);
 
 #endif 

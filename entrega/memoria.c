@@ -118,15 +118,16 @@ void in_TMP(int TMP[][3]){
     }
 }
 
-void in_TMM(int TMM[]){
+void in_TMM(int TMM[][2]){
     for(int i=0; i < 16; i++){
-        TMM[i] = 0;
+        TMM[i][0] = 0;
+        TMM[i][1] = 1;
     }
 }
 
-int Busqueda_TMM(int TMM[]){
+int Busqueda_TMM(int TMM[][2]){
     for(int i=0; i < 16; i++){
-        if(TMM[i]==0){
+        if(TMM[i][0]==0){
             return i;
         }
     }
@@ -146,7 +147,7 @@ int ObtenerMarcoRAM(int TMP[][3], int pagina){
     return TMP[pagina][1];
 }
 
-void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[], int PID){
+void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[][2], int PID){
    
     int marcoSwap = TMP[pagina][2];
     int marcoRAM = Busqueda_TMM(TMM);
@@ -163,7 +164,7 @@ void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[], 
     TMP[pagina][0] = 1;
     TMP[pagina][1] = marcoRAM;
 
-    TMM[marcoRAM] = PID;
+    TMM[marcoRAM][0] = PID;
 }
 
 void in_RAM(char RAM[][400]){
@@ -174,9 +175,9 @@ void in_RAM(char RAM[][400]){
     }
 }
 
-int RAMLlena(int TMM[]){
+int RAMLlena(int TMM[][2]){
     for(int i = 0; i < 16; i++){
-        if(TMM[i] == 0){
+        if(TMM[i][0] == 0){
             return 0; // todavía hay espacio
         }
     }
@@ -200,4 +201,8 @@ int ContadorLineas(const char *archivo){
 
     fclose(archivoP);
     return contador;
+}
+
+void AlgoritmoReloj(char RAM[][400]){
+
 }
