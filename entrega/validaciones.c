@@ -9,7 +9,7 @@
 #include "procesos.h"
 
 int Registro(char *token){
-    char Registros[4][10] = {"EAX", "EBX", "ECX", "EDX"};
+    char Registros[4][10] = {"EAX", "EBX", "ECX", "EDX"}; //NOTA: checar el 10
     for (int i = 0; i < 4; i++){
         if (strcmp(token, Registros[i]) == 0){
             return 1;// si encontro el registro en el arreglo
@@ -19,8 +19,8 @@ int Registro(char *token){
 }
 
 int Operaciones(char *token, int contadorLinea, const char *linea_original){
-    char Instrucciones[8][10] = {"MOV", "ADD", "SUB", "MUL", "DIV", "INC", "DEC", "END"};
-    for (int i = 0; i < 8; i++){
+    char Instrucciones[9][10] = {"MOV", "ADD", "SUB", "MUL", "DIV", "INC", "DEC", "END", "JNZ"};
+    for (int i = 0; i < 9; i++){
         if (strcmp(token, Instrucciones[i]) == 0){
             return 1;
         }
@@ -59,7 +59,7 @@ int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original
     return 1;
 }
 
-int filtroIncDec(char *arg1, char *arg2, int contadorLinea, const char *linea_original){
+int filtroIncDecJnz(char *arg1, char *arg2, int contadorLinea, const char *linea_original){
     if (arg1 == NULL){
         move(y_mensajes, 0); clrtoeol();refresh();
         mvprintw(y_mensajes, 0, "ERROR: No hay argumento en linea %d:\"%s\"", contadorLinea, linea_original);

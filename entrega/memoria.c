@@ -121,7 +121,7 @@ void in_TMP(int TMP[][3]){
 void in_TMM(int TMM[][2]){
     for(int i=0; i < 16; i++){
         TMM[i][0] = 0;
-        TMM[i][1] = 1; //BIT_REF para algoritmo de reloj
+        TMM[i][1] = 0; //BIT_REF para algoritmo de reloj
     }
 }
 
@@ -153,7 +153,8 @@ void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[][2
     int marcoRAM = Busqueda_TMM(TMM);
 
     if(marcoRAM == -1){
-        printf("RAM llena\n");
+        mvprintw(y_mensajes,0,"ERROR: Esta llena la RAM");
+        refresh();
         return;
     }
 
@@ -165,11 +166,12 @@ void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[][2
     TMP[pagina][1] = marcoRAM;
 
     TMM[marcoRAM][0] = PID;
+    TMM[marcoRAM][1] = 1; //BIT_REF 
 }
 
 void in_RAM(char RAM[][400]){
     for(int i=0; i < 16; i++){
-        for(int j=0; j < 400; i++){
+        for(int j=0; j < 400; j++){
             RAM[i][j] = '\0';
         }
     }
@@ -203,19 +205,29 @@ int ContadorLineas(const char *archivo){
     return contador;
 }
 
-void AlgoritmoReloj(int TMM[][2]){
-    //NOTA: hacer que marco [15] -> [0]
-    for(int i=0;i<16;i++) {
-        if(TMM[i][1] == 1){
-            TMM[i][1] = 0;
-        }else{
-            //logica para remplazar marco
+int punteroReloj=0; //variable para ver en donde se quedo la manesilla
+void AlgoritmoReloj(int TMM[][2], char RAM[][400]){
+    while(1){
+        if(TMM[punteroReloj][1] == 0){//expulsar marco
+            int MarcoALiberar = punteroReloj;
 
+            LiberarRAM(RAM, MarcoALiberar);
+
+            TMM[punteroReloj][0] = -1; // marco libre
+            TMM[punteroReloj][1] = 0;  // bit de uso limpio
+
+            punteroReloj = (punteroReloj +1) %16 ; // avanza al siguiente marco 
+            return;
+            //return MarcoALiberar;
+        }else{ //le da una segunda oportunidad
+            TMM[punteroReloj][1] = 0;
+             
+            punteroReloj = (punteroReloj +1) %16; //para que avance en circulo //si llega al 15, reinicia a 0
         }
     }
 }
 
-void LiberarRAM(int RAM[][400]){
+void LiberarRAM(char RAM[][400], int marco){
     //un memtset para llenar de 0 ese marco
-
+    memset(RAM[marco], 0, sizeof(int) * 400);
 }

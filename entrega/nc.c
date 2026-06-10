@@ -15,6 +15,7 @@ void imprimirlista(struct Nodo *lista, int y_ncurses, int status) {
         case 2 : strcpy(cadena,"Listos"); break;
         case 1 : strcpy(cadena,"Ejecucion"); break;
         case 3 : strcpy(cadena,"Terminados"); break;
+        case 4 : strcpy(cadena,"Suspendidos"); break;
         //NOTA: Agregar los if para los otros casos de terminados (mata y error)
     }
     while (lista != NULL) {  
@@ -24,7 +25,7 @@ void imprimirlista(struct Nodo *lista, int y_ncurses, int status) {
     }
 }
 
-void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *terminados) {
+void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *terminados, struct Nodo *suspendidos) {
     int y_procesos = y_procesoEjecucion;
     imprimirlista(ejecucion, y_procesoEjecucion,1);
     y_procesos += contarNodos(ejecucion);
@@ -32,6 +33,8 @@ void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *term
     y_procesos += contarNodos(listos);
     imprimirlista(terminados, y_procesos,3);
     y_procesos += contarNodos(terminados);
+    imprimirlista(suspendidos, y_procesos,4);
+    y_procesos += contarNodos(suspendidos);
     refresh();
 }
 

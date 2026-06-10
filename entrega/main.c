@@ -259,38 +259,37 @@ int main(){
                     }
                     if(RAMLlena(TMM) == 0){
                         EscrituraRam(swap,RAM,pagina,procesoEjecucion->TMP,TMM,procesoEjecucion->PID);
-                    }else{
-                        mvprintw(y_mensajes,0,"ERROR: Esta llena la RAM");
-                        refresh();
+                    }else{//RAM llena
+                        //mvprintw(y_mensajes,0,"ERROR: Esta llena la RAM");
+                        //refresh();
+
                         struct Nodo *procesoSuspendido=extraerNodo(&lista_ejecucion,procesoEjecucion->PID);
                         if(procesoSuspendido != NULL){
                             TiempoEnSuspendidos(procesoSuspendido);
                             procesoSuspendido->PC = contadorLinea;
                             strcpy(procesoSuspendido->IR, linea);
                             insertarFinal(&lista_suspendidos,procesoSuspendido);
-                            imprimirEstado(lista_listos,lista_ejecucion,lista_terminados,lista_suspendidos);
-
-                            //Tiempo de 2 a 10 
-                            
+                            AlgoritmoReloj(TMM,RAM);
+                            EscrituraRam(swap,RAM,pagina,procesoSuspendido->TMP,TMM,procesoSuspendido->PID);
                         } 
-                        continue;
+                        
+                        imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
+                        //continue;
                         //NOTA: fallo de pagina
-                        // mandar a estados suspendidos
-
-                        //algoritmo de reloj
+                        break;
                     }
 
                     //imprimir_TMP(TMP,y_tablaR,procesoEjecucion->PID);
                 }
 
                 int MarcoRAM = procesoEjecucion->TMP[pagina][1];
-                mvprintw(4,0,"LINEA antes del mem");
-                refresh();
+                //mvprintw(4,0,"LINEA antes del mem");
+                //refresh();
                 memcpy(linea,&RAM[MarcoRAM][desplazamiento * 100],100);
-                mvprintw(6,0,"%s",linea);
+                //mvprintw(6,0,"%s",linea);
                 refresh();
-                mvprintw(4,0,"LINEA despues del mem");
-                refresh();
+                //mvprintw(4,0,"LINEA despues del mem");
+                //refresh();
                 
                 q++;  
                 contadorLinea++;
@@ -301,14 +300,14 @@ int main(){
                 char linea_original[100]; //gaurdamos copia de lalinea
                 strcpy(linea_original, linea);
                 linea_original[strcspn(linea_original, "\r\n")] = '\0';//(lineaaescanear, loquevaaencontrar)
-                mvprintw(4,0,"LINEA despues del mem284");
-                refresh();
+                //mvprintw(4,0,"LINEA despues del mem284");
+                //refresh();
                 if(linea_original[0] == '\0'){ //linea vacia
                     move(y_mensajes,0); clrtoeol();
                     mvprintw(y_mensajes,0,"ERROR: linea vacia en linea %d", contadorLinea);
                     refresh();
-                    mvprintw(4,0,"LINEA despues del mem290");
-                    refresh();
+                    //mvprintw(4,0,"LINEA despues del mem290");
+                    //refresh();
                     strcpy(procesoEjecucion->IR, linea_original); //guardamos el IR
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
@@ -319,11 +318,11 @@ int main(){
                     huboError = 1;
                     comando[0] = '\0';
                     archivo[0] = '\0';
-                    mvprintw(4,0,"LINEA 271");
-                    refresh();
+                    //mvprintw(4,0,"LINEA 271");
+                    //refresh();
                     break;
-                    mvprintw(4,0,"LINEA 274");
-                    refresh();
+                    //mvprintw(4,0,"LINEA 274");
+                    //refresh();
                 }
 
                 token = strtok(linea, " \n\t ,");
@@ -335,8 +334,8 @@ int main(){
 
                 arg1 = strtok(NULL, " \n\t ,");
                 arg2 = strtok(NULL, " \n\t ,");
-                mvprintw(4,0,"LINEA despues del mem316");
-                refresh();
+                //mvprintw(4,0,"LINEA despues del mem316");
+                //refresh();
                 imprimirEstado(lista_listos,lista_ejecucion,lista_terminados,lista_suspendidos);
                 // Sintaxis para los espacios y Verifica si la instruccion es valida
                 if (!validarEspacios(linea_original, instruccion, contadorLinea)
@@ -352,15 +351,16 @@ int main(){
                     reiniciarVariables(comando,archivo);
                     break;
                 }
-                mvprintw(4,0,"LINEA despues del mem331");
-                refresh();
+                //mvprintw(4,0,"LINEA despues del mem331");
+                //refresh();
                 if ((strcmp(instruccion, "MOV") == 0 && !MOV(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                     (strcmp(instruccion, "ADD") == 0 && !ADD(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                     (strcmp(instruccion, "SUB") == 0 && !SUB(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                     (strcmp(instruccion, "MUL") == 0 && !MUL(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                     (strcmp(instruccion, "DIV") == 0 && !DIV(arg1,arg2,contadorLinea,linea_original,procesoEjecucion)) ||
                     (strcmp(instruccion, "INC") == 0 && !INC(arg1,contadorLinea,linea_original,procesoEjecucion)) ||
-                    (strcmp(instruccion, "DEC") == 0 && !DEC(arg1,contadorLinea,linea_original,procesoEjecucion))) {
+                    (strcmp(instruccion, "DEC") == 0 && !DEC(arg1,contadorLinea,linea_original,procesoEjecucion)) ||
+                    (strcmp(instruccion, "JNZ") == 0 && !JNZ(arg1,contadorLinea,linea_original,procesoEjecucion))) {
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion,&lista_terminados);
                     if(Busqueda_GID(&lista_listos,&lista_ejecucion,procesoEjecucion->GID)==0){
@@ -371,7 +371,10 @@ int main(){
                     huboError = 1;
                     reiniciarVariables(comando,archivo);
                     break;
+                }else if (strcmp(instruccion, "JNZ") == 0) {
+                    contadorLinea = procesoEjecucion->PC;
                 }
+      
                     
                  else if ((strcmp(instruccion, "END") == 0)){
                     encontroEND = 1;

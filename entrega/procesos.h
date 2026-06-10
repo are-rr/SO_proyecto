@@ -60,7 +60,7 @@ void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_lis
 int Registro(char *token);
 int Operaciones(char *token, int contadorLinea, const char *linea_original);
 int Digito(char *token);
-int filtroIncDec(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
+int filtroIncDecJnz(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 int Comas_2pam(const char *linea_original, int contadorLinea);
 int Comas_1pam(const char *linea_original, int contadorLinea);
@@ -78,6 +78,8 @@ int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original,st
 int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
 int INC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *proceso);
 int DEC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *proceso);
+int JNZ(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso);
+
 
 //ncurses
 void imprimirProceso(struct Nodo *p,int y_ncurse,const char* cadena);
@@ -107,7 +109,8 @@ void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[][2
 void in_RAM(char RAM[][400]);
 int RAMLlena(int TMM[][2]);
 int ContadorLineas(const char *archivo);
-void AlgoritmoReloj(int TMM[][2]);
+void AlgoritmoReloj(int TMM[][2], char RAM[][400]);
+void LiberarRAM(char RAM[][400], int marco);
 
 
 #endif 
