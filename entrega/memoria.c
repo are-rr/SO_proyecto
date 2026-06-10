@@ -121,7 +121,7 @@ void in_TMP(int TMP[][3]){
 void in_TMM(int TMM[][2]){
     for(int i=0; i < 16; i++){
         TMM[i][0] = 0;
-        TMM[i][1] = 1;
+        TMM[i][1] = 1; //BIT_REF para algoritmo de reloj
     }
 }
 
@@ -203,6 +203,19 @@ int ContadorLineas(const char *archivo){
     return contador;
 }
 
-void AlgoritmoReloj(char RAM[][400]){
+void AlgoritmoReloj(int TMM[][2]){
+    //NOTA: hacer que marco [15] -> [0]
+    for(int i=0;i<16;i++) {
+        if(TMM[i][1] == 1){
+            TMM[i][1] = 0;
+        }else{
+            //logica para remplazar marco
+
+        }
+    }
+}
+
+void LiberarRAM(int RAM[][400]){
+    //un memtset para llenar de 0 ese marco
 
 }

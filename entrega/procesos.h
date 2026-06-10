@@ -93,7 +93,6 @@ void ComandoVel(int ms);
 
 //Memoria
 int Crear_ArchivoBinario(const char *nombre, int size_IR);
-//int memoria_RAM(FILE *archivo, int size_IR);
 void in_TMS(int TMS[]);
 int Busqueda_TMS(int TMS[]);
 int Paginacion(FILE *archivoProceso, FILE *swap, int PID, int TMS[], int TMP[][3]);
@@ -108,5 +107,7 @@ void EscrituraRam(FILE *swap,char RAM[][400],int pagina,int TMP[][3],int TMM[][2
 void in_RAM(char RAM[][400]);
 int RAMLlena(int TMM[][2]);
 int ContadorLineas(const char *archivo);
+void AlgoritmoReloj(int TMM[][2]);
+
 
 #endif 
