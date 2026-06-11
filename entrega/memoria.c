@@ -229,5 +229,5 @@ void AlgoritmoReloj(int TMM[][2], char RAM[][400]){
 
 void LiberarRAM(char RAM[][400], int marco){
     //un memtset para llenar de 0 ese marco
-    memset(RAM[marco], 0, sizeof(int) * 400);
+    memset(RAM[marco], '\0', sizeof(int) * 400);
 }

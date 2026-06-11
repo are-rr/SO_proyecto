@@ -31,6 +31,7 @@ int main(){
     int num_PC;
     int num_palabras;
     initscr();
+
     comando[0] = '\0';
     archivo[0] = '\0';
     struct Nodo *lista_listos = NULL;
@@ -57,14 +58,15 @@ int main(){
     FILE *swap = fopen(ArchivoBinario,"r+b");
     while (ejecutando){
         RevisarSuspendidos(&lista_suspendidos,&lista_listos);
-
+        imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
+        refresh();    
         huboError = 0; //reiniciamos a cada interacion la bandera de errores
         //FILE *file;
 
         if ((lista_ejecucion == NULL && lista_listos == NULL)){
-            char entrada[200];
-            char extra[100];
-            char extra2[100];
+            char entrada[200] = "";
+            char extra[100]="";
+            char extra2[100]="";
             comando[0] = '\0';
             archivo[0] = '\0';
 
@@ -72,148 +74,155 @@ int main(){
             mvprintw(y_linea_comando, 0, "> ");
             refresh();
 
-            getnstr(entrada, 199); //lee la entrada
-            num_palabras = sscanf(entrada, "%99s %99s %99s %99s", comando, archivo, extra, extra2); //sscanf(cadena, formato, &variable1, etc.);
-            move(y_linea_comando, 0); clrtoeol();
-            refresh();
-            if (strcmp(comando, "salir") == 0){
-                if (num_palabras > 1){
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: comando invalido");
-                    refresh();
-                    num_palabras = 0;
+            if(kbhit()){
+                //continue;
+            //}
+
+                getnstr(entrada, 199); //lee la entrada
+                num_palabras = sscanf(entrada, "%99s %99s %99s %99s", comando, archivo, extra, extra2); //sscanf(cadena, formato, &variable1, etc.);
+                if(num_palabras <= 0){
                     continue;
                 }
-                salirPrograma();
-            }
-            else if (strcmp(comando, "ejecuta") == 0){
-                if (num_palabras < 2) {
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: falta el nombre del archivo");
-                    refresh();
-                    continue;
+                move(y_linea_comando, 0); clrtoeol();
+                refresh();
+                if (strcmp(comando, "salir") == 0){
+                    if (num_palabras > 1){
+                        move(y_mensajes, 0); clrtoeol();
+                        mvprintw(y_mensajes, 0, "ERROR: comando invalido");
+                        refresh();
+                        num_palabras = 0;
+                        continue;
+                    }
+                    salirPrograma();
                 }
-                else if (num_palabras > 2){
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
-                    refresh();
-                    num_palabras = 0;
-                    continue;
-                }
-
-                
-               // file = fopen(archivo, "r");
-               
-
-              /*  if (file == NULL){
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "No se pudo abrir el archivo %s", archivo);
-                    refresh();
-                    continue;
-                }*/
-
-               // FILE *swap = fopen(ArchivoBinario, "rb");
-                pid++;
-                gid++;
-                grupos++;
-                //primero pasar a nuevos
-
-                int ContadorL =  ContadorLineas(archivo);
-                if(ContadorL < 131072){
-                    insertar(&lista_nuevos, pid, gid, archivo, 0);
-                    struct Nodo *nuevo = buscar(lista_nuevos, pid);
-                    if (nuevo == NULL) {
-                        mvprintw(y_mensajes, 0, "ERROR: No se pudo crear el proceso");
+                else if (strcmp(comando, "ejecuta") == 0){
+                    if (num_palabras < 2) {
+                        move(y_mensajes, 0); clrtoeol();
+                        mvprintw(y_mensajes, 0, "ERROR: falta el nombre del archivo");
                         refresh();
                         continue;
                     }
-                    //ver si se peude cargar a swap
-                    if (reescritura(archivo, swap, pid, TMS, nuevo->TMP) == 0) {
-                        struct Nodo *p = extraerNodo(&lista_nuevos, pid); //pasamos a listos si todo bien
-                        if (p != NULL) {
-                            insertarFinal(&lista_listos, p);
-                        }
-                    } else {//no cupo
-                        mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
+                    else if (num_palabras > 2){
+                        move(y_mensajes, 0); clrtoeol();
+                        mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
                         refresh();
+                        num_palabras = 0;
+                        continue;
                     }
 
-                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
-                    refresh();    
-                }else{
-                mvprintw(y_mensajes,0,"ERROR: El proceso es mas grande que el swap.");
-                refresh();
-                continue;
-                }
-                
+                    
+                // file = fopen(archivo, "r");
                 
 
-            } else if (strcmp(comando, "mata") == 0){
-                if(lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL){
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: no hay procesos que matar");
+                /*  if (file == NULL){
+                        move(y_mensajes, 0); clrtoeol();
+                        mvprintw(y_mensajes, 0, "No se pudo abrir el archivo %s", archivo);
+                        refresh();
+                        continue;
+                    }*/
+
+                // FILE *swap = fopen(ArchivoBinario, "rb");
+                    pid++;
+                    gid++;
+                    grupos++;
+                    //primero pasar a nuevos
+
+                    int ContadorL =  ContadorLineas(archivo);
+                    if(ContadorL < 131072){
+                        insertar(&lista_nuevos, pid, gid, archivo, 0);
+                        struct Nodo *nuevo = buscar(lista_nuevos, pid);
+                        if (nuevo == NULL) {
+                            mvprintw(y_mensajes, 0, "ERROR: No se pudo crear el proceso");
+                            refresh();
+                            continue;
+                        }
+                        //ver si se peude cargar a swap
+                        if (reescritura(archivo, swap, pid, TMS, nuevo->TMP) == 0) {
+                            struct Nodo *p = extraerNodo(&lista_nuevos, pid); //pasamos a listos si todo bien
+                            if (p != NULL) {
+                                insertarFinal(&lista_listos, p);
+                            }
+                        } else {//no cupo
+                            mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
+                            refresh();
+                        }
+
+                        imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
+                        refresh();    
+                    }else{
+                    mvprintw(y_mensajes,0,"ERROR: El proceso es mas grande que el swap.");
                     refresh();
-                    num_palabras= 0;
                     continue;
-                }
-            }else if(strcmp(comando, "fork") == 0){
-                if(lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL){
+                    }
+                    
+                    
+
+                } else if (strcmp(comando, "mata") == 0){
+                    if(lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL){
+                        move(y_mensajes, 0); clrtoeol();
+                        mvprintw(y_mensajes, 0, "ERROR: no hay procesos que matar");
+                        refresh();
+                        num_palabras= 0;
+                        continue;
+                    }
+                }else if(strcmp(comando, "fork") == 0){
+                    if(lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL){
+                        move(y_mensajes, 0); clrtoeol();
+                        mvprintw(y_mensajes, 0, "ERROR: no hay procesos para duplicar");
+                        refresh();
+                        num_palabras= 0;
+                        continue;
+                    }
+                }else if (strcmp(comando, "velocidad") == 0){
+                    if (num_palabras < 2) {
+                        move(y_mensajes, 0); clrtoeol();
+                        mvprintw(y_mensajes, 0, "ERROR: falta los milisegundos");
+                        move(y_linea_comando, 0); clrtoeol();
+                        refresh();
+                        comando[0] = '\0';
+                        num_PID = '\0';
+                        num_palabras = 0;
+                        continue;
+                    }
+                    if(Negativo(archivo) == 1){
+                        mvprintw(y_mensajes,0, "Error: No se pueden milisegundos negativos");
+                        continue;
+                    }
+                    ms = atoi(archivo);
+                    if(!num_PID){
+                        move(y_mensajes, 0); clrtoeol();
+                        mvprintw(y_mensajes, 0, "ERROR: velocidad debe ser un entero positivo");
+                        move(y_linea_comando, 0); clrtoeol();
+                        refresh();
+                        continue;
+                    }
+                    if (num_palabras > 2){
+                        move(y_mensajes, 0); clrtoeol();
+                        mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
+                        move(y_linea_comando, 0); clrtoeol();
+                        refresh();
+                        comando[0] = '\0';
+                        num_PID = '\0';
+                        num_palabras = 0;
+                        continue;
+                    }
+                }else{
                     move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: no hay procesos para duplicar");
-                    refresh();
-                    num_palabras= 0;
-                    continue;
-                }
-            }else if (strcmp(comando, "velocidad") == 0){
-                if (num_palabras < 2) {
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: falta los milisegundos");
-                    move(y_linea_comando, 0); clrtoeol();
+                    mvprintw(y_mensajes, 0, "Comando no valido");
                     refresh();
                     comando[0] = '\0';
-                    num_PID = '\0';
+                    archivo[0] = '\0';
                     num_palabras = 0;
                     continue;
                 }
-                if(Negativo(archivo) == 1){
-                    mvprintw(y_mensajes,0, "Error: No se pueden milisegundos negativos");
-                    continue;
-                }
-                ms = atoi(archivo);
-                if(!num_PID){
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: velocidad debe ser un entero positivo");
-                    move(y_linea_comando, 0); clrtoeol();
-                    refresh();
-                    continue;
-                }
-                if (num_palabras > 2){
-                    move(y_mensajes, 0); clrtoeol();
-                    mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
-                    move(y_linea_comando, 0); clrtoeol();
-                    refresh();
-                    comando[0] = '\0';
-                    num_PID = '\0';
-                    num_palabras = 0;
-                    continue;
-                }
-            }else{
-                move(y_mensajes, 0); clrtoeol();
-                mvprintw(y_mensajes, 0, "Comando no valido");
-                refresh();
-                comando[0] = '\0';
-                archivo[0] = '\0';
-                num_palabras = 0;
-                continue;
             }
         }
-
         
         //Si no se tiene nada en ejecucion, pero si hay algo en listos
         if(lista_ejecucion == NULL && lista_listos != NULL){
             struct Nodo *proceso = Fair_Share(&lista_listos,grupos,Base);
             if(proceso != NULL){
-                proceso -> Status = 'E';
+                //proceso -> Status = 'E';
                 insertarFinal(&lista_ejecucion,proceso);
             }
             //mvprintw(y_variable,0,"numero de grupos:%d",grupos);
@@ -418,7 +427,7 @@ int main(){
                         char entrada[200];
                         char extra[100];
                         getnstr(entrada, 199);
-                        num_palabras = sscanf(entrada, "%99s %99s %99s", comando, archivo, extra);
+                        num_palabras = sscanf(entrada, "%99s %99s %99s", comando, archivo, extra);//NOTA: No hay extra2 para el fork
 
                         if (strcmp(comando, "salir") == 0){
                             if (num_palabras > 1){
@@ -636,6 +645,7 @@ int main(){
                             mvprintw(y_mensajes, 0, "(D)Comando no valido");
                             move(y_linea_comando, 0); clrtoeol();
                             refresh();
+                            reiniciarVariables(comando,archivo);
                             continue;
                         }
                     }

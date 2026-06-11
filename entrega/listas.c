@@ -112,7 +112,7 @@ void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_termina
 
 int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p) {
     struct Nodo *proceso_mata = NULL;
-
+    //NOTA: Por que no le agregamos & en este caso porque extraer nodo es **
     proceso_mata = extraerNodo(lista_ejecucion, id_p); //busca en ejecucion
     if(proceso_mata != NULL){
         //proceso_mata -> Status = 'Z';
@@ -378,17 +378,20 @@ void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_lis
     struct Nodo *sig = NULL;
     time_t ahora = time(NULL);
 
+    mvprintw(4, 0, "Revisando suspendidos...");
+    refresh();
 
     while(actual != NULL){
         sig = actual->sig;
 
         if(ahora >= actual->TIEMPO_SUSP){
-            struct Nodo *p = extraerNodo(lista_suspendidos, actual->PID);
+            struct Nodo *p = extraerNodo(lista_suspendidos, actual->PID); //NOTA: Por que no usamos & aqui si es doble puntero??
 
             if(p != NULL){
-                p->Status = 'L';
                 p->TIEMPO_SUSP = 0;
                 insertarFinal(lista_listos, p);
+                mvprintw(6, 0, "PID %d sale de suspendidos", p->PID);
+refresh();
             }
         }
 
