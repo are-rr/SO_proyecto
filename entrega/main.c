@@ -273,7 +273,7 @@ int main(){
         // Si no se tiene nada en ejecucion, pero si hay algo en listos
         if (lista_ejecucion == NULL && lista_listos != NULL)
         {
-            struct Nodo *proceso = Fair_Share(&lista_listos, grupos, Base);
+            struct Nodo *proceso = Fair_Share(&lista_listos, &lista_suspendidos, grupos, Base);
             if (proceso != NULL)
             {
                 insertarFinal(&lista_ejecucion, proceso);
@@ -379,15 +379,12 @@ int main(){
                     limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: linea vacia en linea %d", contadorLinea);
                     refresh();
-                    // mvprintw(4,0,"LINEA despues del mem290");
-                    // refresh();
                     strcpy(procesoEjecucion->IR, linea_original); // guardamos el IR
                     A_terminadosError(&lista_ejecucion, &lista_terminados);
-                    liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
-                    //imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
+                    
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
-                    if (Busqueda_GID(&lista_listos, &lista_ejecucion, procesoEjecucion->GID) == 0)
-                    { // revisar si todavia hay procesos con ese GID
+                    if (Busqueda_GID(&lista_listos, &lista_ejecucion, &lista_suspendidos, procesoEjecucion->GID) == 0){ // revisar si todavia hay procesos con ese GID
+                        liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
                         grupos--;
                     }
                     // mvprintw(y_variable,0,"numero de grupos:%d",grupos);
@@ -419,8 +416,8 @@ int main(){
                 {
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion, &lista_terminados);
-                    liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
-                    if (Busqueda_GID(&lista_listos, &lista_ejecucion, procesoEjecucion->GID) == 0){
+                    if (Busqueda_GID(&lista_listos, &lista_ejecucion, &lista_suspendidos, procesoEjecucion->GID) == 0){ 
+                        liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
                         grupos--;
                     }
                     // mvprintw(y_variable,0,"numero de grupos:%d",grupos);
@@ -442,9 +439,10 @@ int main(){
                 {
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion, &lista_terminados);
-                    liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
-                    if (Busqueda_GID(&lista_listos, &lista_ejecucion, procesoEjecucion->GID) == 0)
+
+                    if (Busqueda_GID(&lista_listos, &lista_ejecucion, &lista_suspendidos, procesoEjecucion->GID) == 0)
                     {
+                        liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
                         grupos--;
                     }
                     // mvprintw(y_variable,0,"numero de grupos:%d",grupos);
@@ -453,13 +451,11 @@ int main(){
                     reiniciarVariables(comando, archivo);
                     break;
                 }
-                else if (strcmp(instruccion, "JNZ") == 0)
-                {
+                else if (strcmp(instruccion, "JNZ") == 0){
                     contadorLinea = procesoEjecucion->PC;
                 }
 
-                else if ((strcmp(instruccion, "END") == 0))
-                {
+                else if ((strcmp(instruccion, "END") == 0)){
                     encontroEND = 1;
 
                     procesoEjecucion->PC = contadorLinea; // por que hace break y no se guardaria el END
@@ -474,12 +470,10 @@ int main(){
 
                     if (procesoTerminado != NULL)
                     {
-                        int gid_terminado = procesoTerminado->GID;
 
                         insertarFinal(&lista_terminados, procesoTerminado);
-                        liberarSWAP(swap, procesoTerminado->TMP, procesoTerminado->num_paginas,TMS);
-                        if (Busqueda_GID(&lista_listos, &lista_ejecucion, gid_terminado) == 0)
-                        {
+                        if (Busqueda_GID(&lista_listos, &lista_ejecucion, &lista_suspendidos, procesoEjecucion->GID) == 0){
+                            liberarSWAP(swap, procesoTerminado->TMP, procesoTerminado->num_paginas, TMS);
                             grupos--;
                         }
                     }
@@ -494,8 +488,7 @@ int main(){
                 refresh();
                 ComandoVel(ms); // Tiempo para ver las lineas de impresion para renglon
 
-                if (kbhit())
-                {
+                if (kbhit()){
                     // imprimirlista(procesoEjecucion, y_procesoEjecucion);
 
                     limpiarZona(y_linea_comando, 0, ancho_procesos);
@@ -521,10 +514,8 @@ int main(){
                         salirPrograma();
                     }
 
-                    else if (strcmp(comando, "ejecuta") == 0)
-                    {
-                        if (num_palabras < 2)
-                        {
+                    else if (strcmp(comando, "ejecuta") == 0){
+                        if (num_palabras < 2){
                             limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: falta el nombre del archivo");
                             limpiarZona(y_linea_comando, 0, ancho_procesos);
@@ -533,8 +524,7 @@ int main(){
                             num_palabras = 0;
                             continue;
                         }
-                        else if (num_palabras > 2)
-                        {
+                        else if (num_palabras > 2){
                             limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: demasiados argumentos");
                             limpiarZona(y_linea_comando, 0, ancho_procesos);
@@ -660,7 +650,7 @@ int main(){
 
                         if (gid_matado != -1)
                         {
-                            if (Busqueda_GID(&lista_listos, &lista_ejecucion, gid_matado) == 0)
+                            if (Busqueda_GID(&lista_listos, &lista_ejecucion, &lista_suspendidos, procesoEjecucion->GID) == 0)
                             {
                                 grupos--;
                             }
@@ -738,7 +728,7 @@ int main(){
                         }
                         pid++;
                         // num_PID num_PC son las variables que estan en el comando
-                        struct Nodo *nuevo = forkProcesoComando(&lista_ejecucion, &lista_terminados, &lista_listos, num_PID, num_PC, pid);
+                        struct Nodo *nuevo = forkProcesoComando(&lista_ejecucion, &lista_terminados, &lista_listos, &lista_suspendidos, num_PID, num_PC, pid);
 
                         if (nuevo == NULL)
                         {
@@ -814,7 +804,7 @@ int main(){
                 {
                     insertarFinal(&lista_listos, p);
                 }
-                GCPU_Global(&lista_listos, procesoEjecucion->GID, gcpu_acum);
+                GCPU_Global(&lista_listos, &lista_suspendidos, procesoEjecucion->GID, gcpu_acum);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
             }
             else if (encontroEND == 0 && huboError == 0 && finArchivo == 1)
@@ -824,9 +814,10 @@ int main(){
                 refresh();
 
                 A_terminadosError(&lista_ejecucion, &lista_terminados);
-                liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
-                if (Busqueda_GID(&lista_listos, &lista_ejecucion, procesoEjecucion->GID) == 0)
+                if (Busqueda_GID(&lista_listos, &lista_ejecucion, &lista_suspendidos, procesoEjecucion->GID) == 0)
                 {
+                    liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
+
                     grupos--;
                 }
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);

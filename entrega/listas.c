@@ -132,13 +132,7 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
     struct Nodo *proceso_mata = NULL;
     // NOTA: Por que no le agregamos & en este caso porque extraer nodo es **
     proceso_mata = extraerNodo(lista_ejecucion, id_p); // busca en ejecucion
-    if (proceso_mata != NULL)
-    {
-        // proceso_mata -> Status = 'Z';
-        /*if(proceso_mata->Archivo != NULL){
-            fclose(proceso_mata -> Archivo);
-            proceso_mata -> Archivo = NULL;
-        }*/
+    if (proceso_mata != NULL){
         insertarFinal(lista_terminados, proceso_mata);
         liberarSWAP(swap, proceso_mata->TMP, proceso_mata->num_paginas, TMS);
         return 1;
@@ -147,13 +141,7 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
     if (proceso_mata == NULL)
     {
         proceso_mata = extraerNodo(lista_listos, id_p); // sino busca en listos
-        if (proceso_mata != NULL)
-        {
-            // proceso_mata -> Status = 'Z';
-            /* if(proceso_mata->Archivo != NULL){
-                 fclose(proceso_mata -> Archivo);
-                 proceso_mata -> Archivo = NULL;
-             }*/
+        if (proceso_mata != NULL){
             insertarFinal(lista_terminados, proceso_mata);
             liberarSWAP(swap, proceso_mata->TMP, proceso_mata->num_paginas, TMS);
             return 2;
@@ -235,20 +223,20 @@ struct Nodo *forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int
     nuevo->EBX = 0;
     nuevo->ECX = 0;
     nuevo->EDX = 0;
+    nuevo->CPU = 0;
+    nuevo->GCPU = 0;
+    nuevo->PRIORY = 0;
 
     strcpy(nuevo->IR, "");
 
-    if (nuevo_pc >= 0)
-    {
+    if (nuevo_pc >= 0){
         nuevo->PC = nuevo_pc;
     }
-    else
-    {
+    else{
         nuevo->PC = original->PC;
     }
 
-    if (validarPC(nuevo->Archivo, nuevo->PC) == 0)
-    {
+    if (validarPC(nuevo->Archivo, nuevo->PC) == 0){
         mvprintw(y_mensajes, 0, "Error: PC invalido");
         return NULL;
     }
@@ -258,8 +246,7 @@ struct Nodo *forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int
     return nuevo;
 }
 
-struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int pid_comando, int pc, int nuevo_pid)
-{
+struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int pid_comando, int pc, int nuevo_pid){
     struct Nodo *original = NULL;
     struct Nodo *nuevo = NULL;
 
@@ -269,9 +256,11 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lis
     {
         original = buscar(*lista_listos, pid_comando);
     }
+    if (original == NULL){
+        original = buscar(*lista_suspendidos, pid_comando);
+    }
 
-    if (original == NULL)
-    {
+    if (original == NULL){
         if (buscar(*lista_terminados, pid_comando) != NULL)
         {
             limpiarZona(y_mensajes, 0, ancho_procesos);
@@ -317,11 +306,10 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lis
 
 int CalculoPriodidad(struct Nodo **nodolis, int grupos, int Base)
 {
-    int P=0, CPU=0, GCPU=0;
+    int P, CPU, GCPU;
     struct Nodo *actual = *nodolis;
 
-    while (actual != NULL)
-    {                                // recorre toda la lista de listos
+    while (actual != NULL){                                // recorre toda la lista de listos
         CPU = actual->CPU * 1 / 2;   // CPU/2
         GCPU = actual->GCPU * 1 / 2; // GCPU/2
         actual->CPU = CPU;
@@ -363,12 +351,13 @@ struct Nodo *extraerNodo_Prioridad(struct Nodo **lista, int priory)
     return NULL; // No encontrado
 }
 
-struct Nodo *Fair_Share(struct Nodo **lista_listos, int grupos, int Base)
+struct Nodo *Fair_Share(struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int grupos, int Base)
 {
     struct Nodo *actual = *lista_listos;
     struct Nodo *anterior = NULL;
 
     CalculoPriodidad(lista_listos, grupos, Base);
+    CalculoPriodidad(lista_suspendidos, grupos, Base);
 
     // iniciar en la cabeza de la lista
     int prioridad;
@@ -393,9 +382,20 @@ struct Nodo *Fair_Share(struct Nodo **lista_listos, int grupos, int Base)
 }
 
 // Para todo proceso de un grupo se le asigna el GCPU en caso de que se actualice
-void GCPU_Global(struct Nodo **lista_listos, int GID, int GCPU)
+void GCPU_Global(struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int GID, int GCPU)
 {
     struct Nodo *actual = *lista_listos;
+
+    while (actual != NULL)
+    {
+        if (actual->GID == GID)
+        {
+            actual->GCPU = GCPU;
+        }
+        actual = actual->sig;
+    }
+
+    actual = *lista_suspendidos;
 
     while (actual != NULL)
     {
@@ -408,7 +408,7 @@ void GCPU_Global(struct Nodo **lista_listos, int GID, int GCPU)
 }
 
 // Para saber cuantos grupos tenemos en caso de que usemos "mata" o mandemos un proceso a terminados
-int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, int GID)//NOTA: para que compartan en lista_suspendidosgit
+int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, struct Nodo **lista_suspendidos, int GID) // NOTA: para que compartan en lista_suspendidosgit
 {
     struct Nodo *actual = *lista_listos;
     int grupos_restantes = 0;
@@ -423,6 +423,16 @@ int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, int 
     }
 
     actual = *lista_ejecucion; // se busca por si el unico proceso del grupo esta ejecutandose
+    while (actual != NULL)
+    {
+        if (actual->GID == GID)
+        {
+            grupos_restantes++;
+        }
+        actual = actual->sig;
+    }
+
+    actual = *lista_suspendidos; // se busca por si el unico proceso del grupo esta ejecutandose
     while (actual != NULL)
     {
         if (actual->GID == GID)

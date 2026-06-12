@@ -21,7 +21,6 @@ struct Nodo{
     int PRIORY;        // prioridad
     int(*TMP)[3];
     int num_paginas;
-    //int TMP[32768][3]; // NOTA: Cambiar dinamica
     int TIEMPO_SUSP;
     struct Nodo *sig; // puntero al siguiente nodo
 };
@@ -51,13 +50,13 @@ void A_terminadosError(struct Nodo **lista_ejecucion, struct Nodo **lista_termin
 int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p, FILE *swap, int TMS[]);
 struct Nodo *buscar(struct Nodo *lista, int pid);
 struct Nodo *forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int nuevo_gid);
-struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int pid_comando, int pc, int nuevo_pid);
+struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int pid_comando, int pc, int nuevo_pid);
 int validarPC(FILE *copiaArchivo, int pc_buscar);
 int CalculoPriodidad(struct Nodo **nodolis, int grupos, int Base);
 struct Nodo *extraerNodo_Prioridad(struct Nodo **lista, int priory);
-struct Nodo *Fair_Share(struct Nodo **lista_listos, int grupos, int Base);
-void GCPU_Global(struct Nodo **lista_listos, int GID, int GCPU);
-int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, int GID);
+struct Nodo *Fair_Share(struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int grupos, int Base);
+void GCPU_Global(struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int GID, int GCPU);
+int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, struct Nodo **lista_suspendidos, int GID);
 void TiempoEnSuspendidos(struct Nodo *proceso);
 void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_listos);
 

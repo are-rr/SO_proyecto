@@ -279,3 +279,7 @@ void liberarSWAP(FILE *swap,int TMP[][3],int num_paginas, int TMS[]){
         TMS[ms] = 0;
     } // NOTA:tambien deberiamos actualizar la TMS no? para marcar libres estos marcos
 }
+
+void Calculo_RAM(){
+
+}

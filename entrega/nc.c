@@ -82,6 +82,7 @@ void imprimir_TMM(int TMM[][2], int y_renglon_TMM, int x_TMM){
     refresh();
 }
 
+//void imprimir_RAM_SWAP
 void limpiarZona(int y, int x, int ancho){
     move(y, x);
     for (int i = 0; i < ancho; i++){
