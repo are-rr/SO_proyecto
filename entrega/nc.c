@@ -5,8 +5,7 @@
 void imprimirProceso(struct Nodo *p, int y_ncurse, const char *cadena)
 {
     // mvprintw(y_header2, 0, "%-5s %-5s %-18s %-18s %-10s %-18s %10s %10s %10s %10s %-8s %-8s", "PID","GID", "Nombre", "Status","PC", "IR","EAX", "EBX", "ECX", "EDX", "CPU","GCPU");
-    move(y_ncurse, 0);
-    clrtoeol();
+    limpiarZona(y_ncurse, 0, ancho_procesos);
     mvprintw(y_ncurse, 0, "%-5d %-5d %-8d %-8d %-18s %-18s %-10d %-18s %10d %10d %10d %10d %8d",
              p->PID, p->GID, p->CPU, p->GCPU, p->nombrePro, cadena, p->PC, p->IR, p->EAX, p->EBX, p->ECX, p->EDX, p->PRIORY);
 }
@@ -53,21 +52,45 @@ void imprimirEstado(struct Nodo *listos, struct Nodo *ejecucion, struct Nodo *te
 }
 
 // imprimir la TMP
-void imprimir_TMP(int TMP[][3], int y_tablaR, int pid)//si la TMP es mas pequeña que los renglones que se imprimen genera basura
-{
-    int y = y_tablaR;
-    move(12, 0);
-    clrtoeol();
-    mvprintw(12, 0, "Proceso: %d", pid);
-
-    for (int i = 0; i < 10; i++)
-    {
-        // if(TMP[i][2] != -1){
-        move(y, 0);
-        clrtoeol();
-        mvprintw(y, 0, "%-5d %5d %5d %5d", i, TMP[i][0], TMP[i][1], TMP[i][2]);
+void imprimir_TMP(int TMP[][3], int y_renglon_TMP, int x_TMP,int paginas,int pid){
+    int y = y_renglon_TMP;
+    int renglones = 30;
+    limpiarZona(0, x_TMP, ancho_TMM);
+    mvprintw(0, x_TMP, "TMP de proceso: %d", pid);
+    if(paginas < renglones){
+        renglones = paginas;
+    }
+    for (int i = 0; i < renglones; i++){
+        limpiarZona(y, x_TMP, ancho_TMM);
+        mvprintw(y, x_TMP, "%-5d %5d %5d %5d", i, TMP[i][0], TMP[i][1], TMP[i][2]);
         y++;
-        //}
     }
     refresh();
+}
+
+void imprimir_TMM(int TMM[][2], int y_renglon_TMM, int x_TMM){
+    int y = y_renglon_TMM;
+    int renglones = 30;
+    limpiarZona(0, x_TMM, ancho_TMM);
+    mvprintw(0, x_TMM, "TMM");
+
+    for (int i = 0; i < renglones; i++){
+        limpiarZona(y, x_TMM, ancho_TMM);
+        mvprintw(y, x_TMM, "%-5d %5d %5d", i, TMM[i][0], TMM[i][1]);
+        y++;
+    }
+    refresh();
+}
+
+void limpiarZona(int y, int x, int ancho){
+    move(y, x);
+    for (int i = 0; i < ancho; i++){
+        addch(' '); //imprime caracter en la posicion del cursor
+    }
+}
+
+void limpiarZonaTabla(int renglon, int x,int ancho){
+    for (int i = 0; i < 30; i++){
+        limpiarZona(renglon + i, x, ancho);
+    }
 }

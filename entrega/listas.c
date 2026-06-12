@@ -167,16 +167,14 @@ int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct 
         { // pero solo busca, no lo mata, pues ya esta terminado
             if (aux->PID == id_p)
             {
-                move(y_mensajes, 0);
-                clrtoeol();
+                limpiarZona(y_mensajes, 0, ancho_procesos);
                 mvprintw(y_mensajes, 0, "El proceso con PID %d ya esta en terminados.", id_p);
                 refresh();
                 return 3;
             }
             aux = aux->sig;
         }
-        move(y_mensajes, 0);
-        clrtoeol();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "No se encontro el proceso con PID %d.", id_p);
         refresh();
         return 0;
@@ -276,15 +274,13 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lis
     {
         if (buscar(*lista_terminados, pid_comando) != NULL)
         {
-            move(y_mensajes, 0);
-            clrtoeol();
+            limpiarZona(y_mensajes, 0, ancho_procesos);
             mvprintw(y_mensajes, 0, "ERROR: no se puede duplicar un proceso terminado");
             refresh();
             return NULL;
         }
 
-        move(y_mensajes, 0);
-        clrtoeol();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR: no existe el PID %d", pid_comando);
         refresh();
         return NULL;
@@ -294,8 +290,7 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lis
 
     if (nuevo == NULL)
     {
-        move(y_mensajes, 0);
-        clrtoeol();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR: PC invalido o no se pudo abrir el archivo");
         refresh();
         return NULL;
@@ -313,8 +308,7 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lis
 
     insertarFinal(lista_listos, nuevo);
 
-    move(y_mensajes, 0);
-    clrtoeol();
+    limpiarZona(y_mensajes, 0, ancho_procesos);
     mvprintw(y_mensajes, 0, "Proceso duplicado");
     refresh();
 
@@ -323,7 +317,7 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lis
 
 int CalculoPriodidad(struct Nodo **nodolis, int grupos, int Base)
 {
-    int P, CPU, GCPU;
+    int P=0, CPU=0, GCPU=0;
     struct Nodo *actual = *nodolis;
 
     while (actual != NULL)

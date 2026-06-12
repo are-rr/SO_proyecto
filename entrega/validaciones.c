@@ -31,10 +31,9 @@ int Operaciones(char *token, int contadorLinea, const char *linea_original)
             return 1;
         }
     }
-    move(y_mensajes, 0);
-    clrtoeol();
-    refresh();
+    limpiarZona(y_mensajes, 0, ancho_procesos);
     mvprintw(y_mensajes, 0, "ERROR: Instruccion no reconocida en linea %d:\"%s\"", contadorLinea, linea_original);
+    refresh();
     return 0;
 }
 
@@ -56,17 +55,15 @@ int Digito(char *token)
 
 int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original){
     if (arg1 == NULL || arg2 == NULL){
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR: Faltan argumentos en linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
         return 0;
     }
     if (!Registro(arg1)){
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR: El primer argumento debe ser un registro valido en linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
         return 0;
     }
     return 1;
@@ -76,18 +73,16 @@ int filtroIncDecJnz(char *arg1, char *arg2, int contadorLinea, const char *linea
 {
     if (arg1 == NULL)
     {
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR: No hay argumento en linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
         return 0;
     }
     else if (arg2 != NULL)
     {
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR INC/DEC solo debe tener un argumento en linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
         return 0;
     }
     return 1;
@@ -106,34 +101,30 @@ int Comas_2pam(const char *linea_original, int contadorLinea)
 
     if (contadorComa > 1)
     {
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR mas de una coma en linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
         return 0;
     }
     else if (contadorComa == 0)
     {
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR falta la coma en linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
         return 0;
     }
     else if (*(coma - 1) == ' ')
     {
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR espacio antes de coma linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
         return 0;
     }
     else if (*(coma + 1) == ' ')
     {
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR espacio despues de coma linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
         return 0;
     }
     return 1;
@@ -151,10 +142,9 @@ int Comas_1pam(const char *linea_original, int contadorLinea)
 
     if (contadorComa >= 1)
     {
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR: No debe tener coma en linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
         return 0;
     }
     return 1;
@@ -171,10 +161,9 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
     // Aqui es para mostrar error si encuentra espacios y tabulaciones al inicio de la instruccion
     if (linea_original[0] == ' ' || linea_original[0] == '\t')
     {
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR sintaxis linea %d:\"%s\", no debe iniciar con espacios/tabs", contadorLinea, linea_original);
+        refresh();
         return 0;
     }
     i += 3; // por que las instrucciones tienen 3 letras
@@ -183,10 +172,9 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
     {
         if (linea_original[i] != '\0')
         {
-            move(y_mensajes, 0);
-            clrtoeol();
-            refresh();
+            limpiarZona(y_mensajes, 0, ancho_procesos);
             mvprintw(y_mensajes, 0, "ERROR sintaxis linea %d: %s, no se permiten espacios al final", contadorLinea, instruccion);
+            refresh();
             return 0;
         }
         return 1;
@@ -194,18 +182,16 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
 
     if (linea_original[i] != ' ')
     {
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR sintaxis linea %d: \"%s\" debe haber 1 espacio despues de %s", contadorLinea, linea_original, instruccion);
+        refresh();
         return 0;
     }
     if (linea_original[i + 1] == ' ')
     {
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR sintaxis linea %d:\"%s\" hay mas de 1 espacio despues de %s", contadorLinea, linea_original, instruccion);
+        refresh();
         return 0;
     }
     i++; // validar espacio
@@ -219,10 +205,9 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
     {
         if (linea_original[i] != '\0')
         {
-            move(y_mensajes, 0);
-            clrtoeol();
-            refresh();
+            limpiarZona(y_mensajes, 0, ancho_procesos);
             mvprintw(y_mensajes, 0, "ERROR sintaxis linea %d:\"%s\" %s solo lleva 1 argumento y sin espacios extra", contadorLinea, linea_original, instruccion);
+            refresh();
             return 0;
         }
         return 1;
@@ -238,10 +223,9 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
     }
     if (contadorEspacio > 1)
     {
-        move(y_mensajes, 0);
-        clrtoeol();
-        refresh();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR sintaxis linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
         return 0;
     }
 
@@ -249,10 +233,9 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
     {
         if (linea_original[j] == ' ' && linea_original[j + 1] == '\0')
         {
-            move(y_mensajes, 0);
-            clrtoeol();
-            refresh();
+            limpiarZona(y_mensajes, 0, ancho_procesos);
             mvprintw(y_mensajes, 0, "ERROR sintaxis linea %d:\"%s\", no se permiten espacios al final", contadorLinea, linea_original);
+            refresh();
             return 0;
         }
     }

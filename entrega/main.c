@@ -6,14 +6,23 @@
 #include <time.h>
 
 // cordenadas de fila
+int ancho_procesos = 155;
 int y_header = 0;
 int y_renglon = 1;
 int y_mensajes = 3;
 int y_linea_comando = 5;
-int y_tabla = 13;
-int y_tablaR = 14;
 int y_header2 = 7;
 int y_procesoEjecucion = 8;
+
+int ancho_TMP = 35;
+int y_header_TMP = 1;
+int y_renglon_TMP = 2;
+int x_TMP = 160;
+
+int ancho_TMM = 35;
+int y_header_TMM = 1;
+int y_renglon_TMM = 2;
+int x_TMM = 195;
 
 int ejecutando = 1;
 int pid = 0;
@@ -21,7 +30,8 @@ int gid = 0;
 
 int Base = 60;
 int grupos = 0; // para contar cuantos grupos tenemos
-
+int num_lineas = 0;
+int paginas;
 int ms = 1000;
 
 int main(){
@@ -54,33 +64,18 @@ int main(){
 
     FILE *swap = fopen(ArchivoBinario, "r+b");
     while (ejecutando){ /////////////////////////////////////////////////
-        /*if(lista_ejecucion == NULL){
-            if(lista_suspendidos != NULL){
-                RevisarSuspendidos(&lista_suspendidos,&lista_listos);
-
-                imprimirEstado(lista_listos,lista_ejecucion,lista_terminados,lista_suspendidos);
-                refresh();
-            }
-        }*/
-
         huboError = 0; // reiniciamos a cada interacion la bandera de errores
-        // FILE *file;
-
+       
         if ((lista_ejecucion == NULL && lista_listos == NULL)){
             char entrada[200];
             char extra[100];
             char extra2[100];
             comando[0] = '\0';
             archivo[0] = '\0';
-
-            move(y_linea_comando, 0);
-            clrtoeol();
+            limpiarZona(y_linea_comando, 0, ancho_procesos);
             mvprintw(y_linea_comando, 0, "> ");
             refresh();
-            // NOTA: el IR en suspendidosno es correcto arreglaro Anibal
-            // if(kbhit()){
-            // continue;
-            //}
+            
             if (lista_suspendidos != NULL){
                 RevisarSuspendidos(&lista_suspendidos, &lista_listos);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
@@ -97,14 +92,14 @@ int main(){
 
                 continue;
             }
-            move(y_linea_comando, 0);
-            clrtoeol();
+            
+            limpiarZona(y_linea_comando, 0, ancho_procesos);
             refresh();
             if (strcmp(comando, "salir") == 0){
                 if (num_palabras > 1){
-                    move(y_mensajes, 0);
-                    clrtoeol();
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: comando invalido");
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
                     refresh();
                     num_palabras = 0;
                     continue;
@@ -115,17 +110,17 @@ int main(){
             {
                 if (num_palabras < 2)
                 {
-                    move(y_mensajes, 0);
-                    clrtoeol();
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: falta el nombre del archivo");
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
                     refresh();
                     continue;
                 }
                 else if (num_palabras > 2)
                 {
-                    move(y_mensajes, 0);
-                    clrtoeol();
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
                     refresh();
                     num_palabras = 0;
                     continue;
@@ -137,8 +132,7 @@ int main(){
                 // primero pasar a nuevos
                 // NOTA: tenemos que arreglar que cuando escribes bien un proceso pero el archivo no existe, lo mete a nuevos(CREO QUE YA ESTA, LIBERE CON FREE EL NODO)
                 if(validarArchivo(archivo)==1){
-                    move(y_mensajes, 0);
-                    clrtoeol();
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "No se pudo abrir el archivo %s", archivo);
                     refresh();
                     pid--;
@@ -147,8 +141,8 @@ int main(){
                     num_palabras = 0;
                     continue;
                 }
-                int ContadorL = ContadorLineas(archivo);
-                int paginas = (ContadorL + 3) / 4;
+                num_lineas = ContadorLineas(archivo);
+                paginas = (num_lineas + 3) / 4; // despues de aqui se puede obtener las paginas para la TMP
 
                 insertar(&lista_nuevos, pid, gid, archivo, 0);
 
@@ -159,6 +153,7 @@ int main(){
 
                 if (nuevo->TMP == NULL)
                 {
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: no se pudo crear TMP");
                     refresh();
                     continue;
@@ -166,7 +161,7 @@ int main(){
 
                 in_TMP(nuevo->TMP, nuevo->num_paginas);
 
-                if (ContadorL < 131072)
+                if (num_lineas < 131072)
                 {
                     // ver si se peude cargar a swap
                     int result_reescritura = reescritura(archivo, swap, pid, TMS, nuevo->TMP);
@@ -186,9 +181,11 @@ int main(){
                         }
                     }
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
+                    
                 }
                 else
                 {
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: El proceso es mas grande que el swap.");
                     reiniciarVariables(comando, archivo);
                     refresh();
@@ -199,9 +196,9 @@ int main(){
             {
                 if (lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL)
                 {
-                    move(y_mensajes, 0);
-                    clrtoeol();
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: no hay procesos que matar");
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
                     refresh();
                     num_palabras = 0;
                     continue;
@@ -211,9 +208,9 @@ int main(){
             {
                 if (lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL)
                 {
-                    move(y_mensajes, 0);
-                    clrtoeol();
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: no hay procesos para duplicar");
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
                     refresh();
                     num_palabras = 0;
                     continue;
@@ -223,41 +220,36 @@ int main(){
             {
                 if (num_palabras < 2)
                 {
-                    move(y_mensajes, 0);
-                    clrtoeol();
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: falta los milisegundos");
-                    move(y_linea_comando, 0);
-                    clrtoeol();
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
                     refresh();
                     comando[0] = '\0';
                     num_PID = '\0';
                     num_palabras = 0;
                     continue;
                 }
-                if (Negativo(archivo) == 1)
-                {
+                if (Negativo(archivo) == 1){
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "Error: No se pueden milisegundos negativos");
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
                     continue;
                 }
                 ms = atoi(archivo);
                 if (!Digito(archivo))
                 {
-                    move(y_mensajes, 0);
-                    clrtoeol();
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: velocidad debe ser un entero positivo");
-                    move(y_linea_comando, 0);
-                    clrtoeol();
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
                     refresh();
                     ms = '\0';
                     continue;
                 }
                 if (num_palabras > 2)
                 {
-                    move(y_mensajes, 0);
-                    clrtoeol();
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
-                    move(y_linea_comando, 0);
-                    clrtoeol();
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
                     refresh();
                     comando[0] = '\0';
                     num_PID = '\0';
@@ -267,8 +259,7 @@ int main(){
             }
             else
             {
-                move(y_mensajes, 0);
-                clrtoeol();
+                limpiarZona(y_mensajes, 0, ancho_procesos);
                 mvprintw(y_mensajes, 0, "Comando no valido");
                 refresh();
                 comando[0] = '\0';
@@ -289,18 +280,16 @@ int main(){
             }
             // mvprintw(y_variable,0,"numero de grupos:%d",grupos);
             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
-            imprimir_TMP(proceso->TMP, y_tablaR, proceso->PID);
-
+            limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
+            imprimir_TMP(proceso->TMP, y_renglon_TMP, x_TMP, proceso->num_paginas, proceso->PID);
             refresh();
         }
-        if (lista_ejecucion == NULL)
-        { // si no hay nada en ejecucion vuelve a empezar
+        if (lista_ejecucion == NULL){ // si no hay nada en ejecucion vuelve a empezar
             continue;
         }
 
         struct Nodo *procesoEjecucion = lista_ejecucion;
-        move(y_mensajes, 0);
-        clrtoeol();
+        limpiarZona(y_mensajes, 0, ancho_procesos);
 
         char linea[100];
         int contadorLinea = procesoEjecucion->PC;
@@ -311,26 +300,24 @@ int main(){
         int gcpu_acum = 0; // varible que le pasamos para que al terminar quantum(o termine) para acrualizar el GCPU del grupo
         int pagina = 0;
         mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s %10s %10s ", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "CPU", "GCPU"); //(y,x,"fotmato",variables) -(alinear a la izquierda)10(espacios para esa variable)formato de variable
-        mvprintw(y_tabla, 0, "%-5s %5s %5s %5s", "Pagi", "Bit", "M_R", "M_S");
+        mvprintw(y_header_TMP, x_TMP, "%-5s %5s %5s %5s", "Pagi", "Bit", "M_R", "M_S");
+        mvprintw(y_header_TMM, x_TMM, "%-5s %5s %5s", "Marco", "Dueño", "Reloj");
         mvprintw(y_header2, 0, "%-5s %-5s %-8s %-8s %-18s %-18s %-10s %-18s %10s %10s %10s %10s %10s", "PID", "GID", "CPU", "GCPU", "Nombre", "Status", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "Prioridad");
         refresh();
         int desplazamiento = 0;
 
-        if (procesoEjecucion != NULL)
-        {
+        if (procesoEjecucion != NULL){
             int finArchivo = 0;
 
-            while (q < quantum)
-            {
+            while (q < quantum){
 
                 int direccion_virtual = procesoEjecucion->PC;
                 pagina = direccion_virtual / 4;
                 desplazamiento = direccion_virtual % 4;
 
-                if (BitPresencia_TMP(procesoEjecucion->TMP, pagina) == 0)
-                { // RAM --------------------------------
-                    if (swap == NULL)
-                    {
+                if (BitPresencia_TMP(procesoEjecucion->TMP, pagina) == 0){ // RAM --------------------------------
+                    if (swap == NULL){
+                        limpiarZona(y_mensajes, 0, ancho_procesos);
                         mvprintw(y_mensajes, 0, "Error abriendo swap");
                         refresh();
                         break;
@@ -338,18 +325,24 @@ int main(){
                     if (RAMLlena(TMM) == 0)
                     {
                         EscrituraRam(swap, RAM, pagina, procesoEjecucion->TMP, TMM, procesoEjecucion->PID);
+                        imprimir_TMP(procesoEjecucion->TMP, y_renglon_TMP, x_TMP, procesoEjecucion->num_paginas, procesoEjecucion->PID);
+                        limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+                        imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
+                        refresh();
                     }
                     else{ // RAM llena
-                        // mvprintw(y_mensajes,0,"ERROR: Esta llena la RAM");
-                        // refresh();
-
                         struct Nodo *procesoSuspendido = extraerNodo(&lista_ejecucion, procesoEjecucion->PID);
                         if (procesoSuspendido != NULL){
                             TiempoEnSuspendidos(procesoSuspendido);
                             procesoSuspendido->PC = contadorLinea;
                             insertarFinal(&lista_suspendidos, procesoSuspendido);
                             AlgoritmoReloj(TMM, RAM);
+                            limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+                            imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                             EscrituraRam(swap, RAM, pagina, procesoSuspendido->TMP, TMM, procesoSuspendido->PID);
+                            imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
+                            limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
+                            imprimir_TMP(procesoSuspendido->TMP, y_renglon_TMP, x_TMP, procesoSuspendido->num_paginas, procesoSuspendido->PID);
                         }
 
                         imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
@@ -383,8 +376,7 @@ int main(){
                 // refresh();
                 if (linea_original[0] == '\0')
                 { // linea vacia
-                    move(y_mensajes, 0);
-                    clrtoeol();
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: linea vacia en linea %d", contadorLinea);
                     refresh();
                     // mvprintw(4,0,"LINEA despues del mem290");
@@ -392,6 +384,7 @@ int main(){
                     strcpy(procesoEjecucion->IR, linea_original); // guardamos el IR
                     A_terminadosError(&lista_ejecucion, &lista_terminados);
                     liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
+                    //imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
                     if (Busqueda_GID(&lista_listos, &lista_ejecucion, procesoEjecucion->GID) == 0)
                     { // revisar si todavia hay procesos con ese GID
@@ -472,8 +465,7 @@ int main(){
                     procesoEjecucion->PC = contadorLinea; // por que hace break y no se guardaria el END
                     strcpy(procesoEjecucion->IR, linea_original);
 
-                    move(y_renglon, 0);
-                    clrtoeol();
+                    limpiarZona(y_renglon, 0, ancho_procesos);
                     mvprintw(y_renglon, 0, "%-10d %-18s %10d %10d %10d %10d", contadorLinea, linea_original, procesoEjecucion->EAX, procesoEjecucion->EBX, procesoEjecucion->ECX, procesoEjecucion->EDX);
                     refresh();
                     ComandoVel(ms);
@@ -486,7 +478,6 @@ int main(){
 
                         insertarFinal(&lista_terminados, procesoTerminado);
                         liberarSWAP(swap, procesoTerminado->TMP, procesoTerminado->num_paginas,TMS);
-
                         if (Busqueda_GID(&lista_listos, &lista_ejecucion, gid_terminado) == 0)
                         {
                             grupos--;
@@ -507,8 +498,7 @@ int main(){
                 {
                     // imprimirlista(procesoEjecucion, y_procesoEjecucion);
 
-                    move(y_linea_comando, 0);
-                    clrtoeol();
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
                     refresh();
                     mvprintw(y_linea_comando, 0, "(D)> "); // Linea de comando que interrumpe(Dentro del kbhit)
                     char entrada[200];
@@ -521,11 +511,9 @@ int main(){
                     {
                         if (num_palabras > 1)
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: comando invalido");
-                            move(y_linea_comando, 0);
-                            clrtoeol();
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             num_palabras = 0;
                             continue;
@@ -537,11 +525,9 @@ int main(){
                     {
                         if (num_palabras < 2)
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: falta el nombre del archivo");
-                            move(y_linea_comando, 0);
-                            clrtoeol();
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             reiniciarVariables(comando, archivo);
                             num_palabras = 0;
@@ -549,11 +535,9 @@ int main(){
                         }
                         else if (num_palabras > 2)
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: demasiados argumentos");
-                            move(y_linea_comando, 0);
-                            clrtoeol();
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             reiniciarVariables(comando, archivo);
                             num_palabras = 0;
@@ -565,8 +549,7 @@ int main(){
                         grupos++;
                         // primero pasar a nuevos
                         if (validarArchivo(archivo) == 1){
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "No se pudo abrir el archivo %s", archivo);
                             refresh();
                             pid--;
@@ -587,6 +570,7 @@ int main(){
 
                         if (nuevoP->TMP == NULL)
                         {
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "ERROR: no se pudo crear TMP");
                             refresh();
                             continue;
@@ -613,14 +597,14 @@ int main(){
                                 }
                             }
                             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
-                            move(y_linea_comando, 0);
-                            clrtoeol();
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             num_palabras = 0;
                             continue;
                         }
                         else
                         {
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "ERROR: El proceso es mas grande que el swap.");
                             reiniciarVariables(comando, archivo);
                             refresh();
@@ -631,11 +615,9 @@ int main(){
                     {
                         if (num_palabras < 2)
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: falta el PID del proceso");
-                            move(y_linea_comando, 0);
-                            clrtoeol();
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             comando[0] = '\0';
                             num_PID = '\0';
@@ -645,21 +627,17 @@ int main(){
                         num_PID = atoi(archivo);
                         if (!num_PID)
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: PID debe ser un entero");
-                            move(y_linea_comando, 0);
-                            clrtoeol();
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             continue;
                         }
                         if (num_palabras > 2)
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: demasiados argumentos");
-                            move(y_linea_comando, 0);
-                            clrtoeol();
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             comando[0] = '\0';
                             num_PID = '\0';
@@ -671,12 +649,10 @@ int main(){
                         int gid_matado = -1;
                         struct Nodo *p_matar = buscar(lista_ejecucion, num_PID);
 
-                        if (p_matar == NULL)
-                        {
+                        if (p_matar == NULL){
                             p_matar = buscar(lista_listos, num_PID);
                         }
-                        if (p_matar != NULL)
-                        {
+                        if (p_matar != NULL){
                             gid_matado = p_matar->GID;
                         }
 
@@ -691,12 +667,10 @@ int main(){
                         }
                         // mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                         imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
-                        move(y_linea_comando, 0);
-                        clrtoeol();
+                        limpiarZona(y_linea_comando, 0, ancho_procesos);
                         refresh();
                         num_palabras = 0;
-                        if (lista == 1)
-                        { // 1 -> esta en lista ejecucion, 2-> listos, 3 -> terminados, 0->no esta el PID
+                        if (lista == 1){ // 1 -> esta en lista ejecucion, 2-> listos, 3 -> terminados, 0->no esta el PID
                             break;
                         }
 
@@ -706,8 +680,7 @@ int main(){
                     {
                         if (num_palabras < 2)
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: falta pid del proceso");
                             refresh();
                             num_palabras = 0;
@@ -715,16 +688,17 @@ int main(){
                         }
                         if (num_palabras < 3)
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: falta numero de instruccion");
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             num_palabras = 0;
                             continue;
                         }
-                        if (Negativo(extra) == 1)
-                        {
+                        if (Negativo(extra) == 1){
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "Error: PC no puede ser negativo");
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             continue;
                         }
@@ -732,9 +706,9 @@ int main(){
                         num_PC = atoi(extra);
                         if (!Digito(archivo))
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: PID debe ser un entero");
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             num_PID = '\0';
                             num_palabras = 0;
@@ -742,9 +716,9 @@ int main(){
                             continue;
                         }
                         if (!Digito(extra)){ // NOTA: atoi no filta bien el termino ya que acepta fork 1 2gakigski
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: PC debe ser un entero");
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             num_palabras = 0;
                             num_PID = '\0';
@@ -753,9 +727,9 @@ int main(){
                         }
                         if (num_palabras > 3)
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "(D)ERROR: demasiados argumentos");
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             num_palabras = 0;
                             num_PID = '\0';
@@ -772,19 +746,16 @@ int main(){
                         }
 
                         imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos);
-                        move(y_linea_comando, 0);
-                        clrtoeol();
+                        limpiarZona(y_linea_comando, 0, ancho_procesos);
                         refresh();
                     }
                     else if (strcmp(comando, "velocidad") == 0)
                     {
                         if (num_palabras < 2)
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "ERROR: falta los milisegundos");
-                            move(y_linea_comando, 0);
-                            clrtoeol();
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             comando[0] = '\0';
                             num_PID = '\0';
@@ -799,22 +770,18 @@ int main(){
                         }
                         ms = atoi(archivo);
                         if (!Digito(archivo)){//NOTA: VELOVIDAD ACEPTA velocidad 38ksgdk
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "ERROR: velocidad debe ser un entero positivo");
-                            move(y_linea_comando, 0);
-                            clrtoeol();
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             ms = '\0';
                             refresh();
                             continue;
                         }
                         if (num_palabras > 2)
                         {
-                            move(y_mensajes, 0);
-                            clrtoeol();
+                            limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
-                            move(y_linea_comando, 0);
-                            clrtoeol();
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             comando[0] = '\0';
                             num_PID = '\0';
@@ -823,11 +790,9 @@ int main(){
                         }
                     }
                     else{ // La interrupcion con un comando que no es Salir o Ejecuta o mata
-                        move(y_mensajes, 0);
-                        clrtoeol();
+                        limpiarZona(y_mensajes, 0, ancho_procesos);
                         mvprintw(y_mensajes, 0, "(D)Comando no valido");
-                        move(y_linea_comando, 0);
-                        clrtoeol();
+                        limpiarZona(y_linea_comando, 0, ancho_procesos);
                         refresh();
                         reiniciarVariables(comando, archivo);
                         continue;
@@ -837,6 +802,7 @@ int main(){
 
             if (lista_ejecucion == NULL)
             {
+                limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
                 reiniciarVariables(comando, archivo);
                 continue;
             }
@@ -853,8 +819,7 @@ int main(){
             }
             else if (encontroEND == 0 && huboError == 0 && finArchivo == 1)
             { // se acbo el archivo sin END
-                move(y_mensajes, 0);
-                clrtoeol();
+                limpiarZona(y_mensajes, 0, ancho_procesos);
                 mvprintw(y_mensajes, 0, "ERROR: Fin de archivo sin END");
                 refresh();
 

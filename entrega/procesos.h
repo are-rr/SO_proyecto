@@ -27,6 +27,9 @@ struct Nodo{
 };
 
 // variables globales de ncurses
+extern int ancho_procesos ;
+extern int ancho_TMP ;
+extern int ancho_TMM ;
 extern int y_header; // extern quiere decir que esta variable existe en otro archivo
 extern int y_renglon;
 extern int y_mensajes;
@@ -86,7 +89,10 @@ int JNZ(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *
 void imprimirProceso(struct Nodo *p, int y_ncurse, const char *cadena);
 void imprimirlista(struct Nodo *lista, int y_ncurses, int status);
 void imprimirEstado(struct Nodo *listos, struct Nodo *ejecucion, struct Nodo *terminados, struct Nodo *suspendidos);
-void imprimir_TMP(int TMP[][3], int y_tablaR, int pid);
+void imprimir_TMP(int TMP[][3], int y_renglon_TMP, int x_TMP, int ContadorL, int pid);
+void limpiarZona(int y, int x, int ancho);
+void limpiarZonaTabla(int renglon, int x, int ancho);
+void imprimir_TMM(int TMM[][2], int y_renglon_TMM, int x_TMM);
 
 // otros
 void reiniciarVariables(char *comando, char *archivo);
