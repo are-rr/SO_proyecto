@@ -68,6 +68,7 @@ int Paginacion(FILE *archivoProceso, FILE *swap, int PID, int TMS[], int TMP[][3
         if (marco == -1)
         {
             return 1; // swap lleno
+            break;
         }
 
         int instL = 0; // la necesitamos para leer la cantidad de lineas leidas, puede que una pagina al final solamente lea 2 instrucciones
@@ -221,19 +222,24 @@ int ContadorLineas(const char *archivo)
 }
 
 int punteroReloj = 0; // variable para ver en donde se quedo la manesilla
-void AlgoritmoReloj(int TMM[][2], char RAM[][400])
+void AlgoritmoReloj(int TMM[][2], char RAM[][400], struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos)
 {
+    //NOTA:actualizar la TMP del proceso donde se libero la RAM
     while (1)
     {
         if (TMM[punteroReloj][1] == 0)
         { // expulsar marco
             int MarcoALiberar = punteroReloj;
+            int pidDueno = TMM[punteroReloj][0];
+
+            //actualizamos la TMP del dueño del marco
+            actualizarTMPdeMarcoL(lista_listos, lista_ejecucion, lista_suspendidos, pidDueno, MarcoALiberar);
 
             LiberarRAM(RAM, MarcoALiberar);
 
             TMM[punteroReloj][0] = 0; // marco libre////////////////////////////////////////////////////////////////////////////////////////
             TMM[punteroReloj][1] = 0; // bit de uso limpio
-
+            
             punteroReloj = (punteroReloj + 1) % 16; // avanza al siguiente marco
             return;
             // return MarcoALiberar;
@@ -247,10 +253,31 @@ void AlgoritmoReloj(int TMM[][2], char RAM[][400])
     }
 }
 
+void actualizarTMPdeMarcoL(struct Nodo *lista_listos,struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos, int pidDueno,int marcoLiberado){
+    struct Nodo *p = buscar(lista_ejecucion, pidDueno);
+    if(p== NULL){
+        p = buscar(lista_listos, pidDueno);
+    }
+    if(p == NULL){
+        p = buscar(lista_suspendidos, pidDueno);
+    }
+
+    for (int i = 0; i < p->num_paginas;i++){
+        if(p->TMP[i][1]==marcoLiberado){
+            p->TMP[i][0] = 0;
+            p->TMP[i][1] = -1;
+            return;
+        }
+    }
+}
+
 void LiberarRAM(char RAM[][400], int marco)
 {
     // un memtset para llenar de 0 ese marco
-    memset(RAM[marco], '\0', sizeof(int) * 400);
+
+    memset(RAM[marco], '\0', sizeof(RAM[marco]));
+    
+    //memset(RAM[marco], '\0', sizeof(int) * 400);
 }
 int validarArchivo(const char *NombrePro){
     FILE *archivoP = fopen(NombrePro, "r");
@@ -264,22 +291,75 @@ int validarArchivo(const char *NombrePro){
 }
 
 void liberarSWAP(FILE *swap,int TMP[][3],int num_paginas, int TMS[]){
-    int ms;
-    int relleno[100];
-    for (int i = 0; i < num_paginas; i++)
-    {
-        ms = TMP[i][2];
-        fseek(swap, ms * 400, SEEK_SET);
-        for (int i = 0; i < 4; i++)
-        {
-            memset(relleno, 0, sizeof(relleno));
-            fwrite(relleno, sizeof(char), sizeof(relleno), swap);
-            
+    char relleno[400];
+    memset(relleno, 0, sizeof(relleno));
+
+    for (int i = 0; i < num_paginas; i++){
+        int ms = TMP[i][2];
+
+        if(ms<0){
+            continue; //-1
         }
+        fseek(swap, ms * 400, SEEK_SET);
+        
+            //memset(relleno, 0, sizeof(relleno));
+        fwrite(relleno, sizeof(char), 400, swap);
+        // fflush(swap);
+
         TMS[ms] = 0;
-    } // NOTA:tambien deberiamos actualizar la TMS no? para marcar libres estos marcos
+        //NOTA:Tambien debimos actualizar la TMP
+        TMP[i][0] = 0;
+        TMP[i][1] = -1;
+        TMP[i][2] = -1;
+    }
 }
 
-void Calculo_RAM(){
+void liberarRAMproceso(char RAM[][400], int TMM[][2], int pid)
+{
+    for (int i = 0; i < 16; i++)
+    {
+        if (TMM[i][0] == pid)
+        {
+            memset(RAM[i], '\0', 400);
 
+            TMM[i][0] = 0; // marco libre
+            TMM[i][1] = 0; // bit reloj limpio
+        }
+    }
+}
+
+int marcosLS(int TMS[]){
+    int marcos = 0;
+    for (int i = 0; i < 32768;i++){
+        if(TMS[i] == 0){
+            marcos++;
+        }
+    }
+    return marcos;
+}
+
+int marcosLR(int TMM[][2]){
+    int marcos = 0;
+    for (int i = 0; i < 16; i++)
+    {
+        if (TMM[i][0] == 0)
+        {
+            marcos++;
+        }
+    }
+    return marcos;
+}
+void porcentajes(int TMS[], int TMM[][2], int *porS, int *porR){
+    int marcosR = marcosLR(TMM);
+    int marcosS = marcosLS(TMS);
+    mvprintw(35, 195, "marcosS: %d", marcosS);
+
+    *porS = ((32768 - marcosS) * 100) / 32768; 
+    *porR = ((16 - marcosR) * 100) / 16;
+
+    limpiarZona(33, 195, 30);
+    limpiarZona(34, 195, 30);
+    mvprintw(34, 195, "RAM en uso: %d%%", *porR);
+    mvprintw(33, 195, "SWAP en uso: %d%%", *porS);
+    refresh();
 }

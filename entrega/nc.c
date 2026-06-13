@@ -27,6 +27,9 @@ void imprimirlista(struct Nodo *lista, int y_ncurses, int status)
     case 4:
         strcpy(cadena, "Suspendidos");
         break;
+    case 5:
+        strcpy(cadena,"Nuevos");
+        break;
         // NOTA: Agregar los if para los otros casos de terminados (mata y error)
     }
     while (lista != NULL)
@@ -37,7 +40,7 @@ void imprimirlista(struct Nodo *lista, int y_ncurses, int status)
     }
 }
 
-void imprimirEstado(struct Nodo *listos, struct Nodo *ejecucion, struct Nodo *terminados, struct Nodo *suspendidos)
+void imprimirEstado(struct Nodo *listos, struct Nodo *ejecucion, struct Nodo *terminados, struct Nodo *suspendidos, struct Nodo *nuevos)
 {
     int y_procesos = y_procesoEjecucion;
     imprimirlista(ejecucion, y_procesoEjecucion, 1);
@@ -48,6 +51,8 @@ void imprimirEstado(struct Nodo *listos, struct Nodo *ejecucion, struct Nodo *te
     y_procesos += contarNodos(terminados);
     imprimirlista(suspendidos, y_procesos, 4);
     y_procesos += contarNodos(suspendidos);
+    imprimirlista(nuevos, y_procesos, 5);
+    y_procesos += contarNodos(nuevos);
     refresh();
 }
 
@@ -68,9 +73,22 @@ void imprimir_TMP(int TMP[][3], int y_renglon_TMP, int x_TMP,int paginas,int pid
     refresh();
 }
 
+void imprimir_TMS(int TMS[], int y_renglon_TMS, int x_TMS){
+    int y = y_renglon_TMS;
+    int renglones = 28;
+    limpiarZona(32, x_TMS, ancho_TMS);
+    mvprintw(32, x_TMS, "TMS");
+    
+    for (int i = 0; i < renglones; i++){
+        limpiarZona(y, x_TMS, ancho_TMS);
+        mvprintw(y, x_TMS, "%-5d %5d", i, TMS[i]);
+        y++;
+    }
+    refresh();
+}
 void imprimir_TMM(int TMM[][2], int y_renglon_TMM, int x_TMM){
     int y = y_renglon_TMM;
-    int renglones = 30;
+    int renglones = 16;
     limpiarZona(0, x_TMM, ancho_TMM);
     mvprintw(0, x_TMM, "TMM");
 

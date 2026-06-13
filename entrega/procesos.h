@@ -29,6 +29,7 @@ struct Nodo{
 extern int ancho_procesos ;
 extern int ancho_TMP ;
 extern int ancho_TMM ;
+extern int ancho_TMS;
 extern int y_header; // extern quiere decir que esta variable existe en otro archivo
 extern int y_renglon;
 extern int y_mensajes;
@@ -41,7 +42,7 @@ extern int pid;
 
 // prototipos de las funciones
 // listas
-void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc);
+void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc, int num_paginas);
 void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso);
 struct Nodo *extraerPrimero(struct Nodo **cabeza);
 struct Nodo *extraerNodo(struct Nodo **lista, int id);
@@ -57,6 +58,8 @@ struct Nodo *extraerNodo_Prioridad(struct Nodo **lista, int priory);
 struct Nodo *Fair_Share(struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int grupos, int Base);
 void GCPU_Global(struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int GID, int GCPU);
 int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, struct Nodo **lista_suspendidos, int GID);
+void RevisarNuevos( struct Nodo **lista_nuevos,struct Nodo **lista_listos,FILE *swap,int TMS[]);
+
 void TiempoEnSuspendidos(struct Nodo *proceso);
 void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_listos);
 
@@ -87,12 +90,12 @@ int JNZ(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *
 // ncurses
 void imprimirProceso(struct Nodo *p, int y_ncurse, const char *cadena);
 void imprimirlista(struct Nodo *lista, int y_ncurses, int status);
-void imprimirEstado(struct Nodo *listos, struct Nodo *ejecucion, struct Nodo *terminados, struct Nodo *suspendidos);
+void imprimirEstado(struct Nodo *listos, struct Nodo *ejecucion, struct Nodo *terminados, struct Nodo *suspendidos, struct Nodo *nuevos);
 void imprimir_TMP(int TMP[][3], int y_renglon_TMP, int x_TMP, int ContadorL, int pid);
 void limpiarZona(int y, int x, int ancho);
 void limpiarZonaTabla(int renglon, int x, int ancho);
 void imprimir_TMM(int TMM[][2], int y_renglon_TMM, int x_TMM);
-
+void imprimir_TMS(int TMS[], int y_renglon_TMS, int x_TMS);
 // otros
 void reiniciarVariables(char *comando, char *archivo);
 int kbhit(void);
@@ -115,8 +118,13 @@ void EscrituraRam(FILE *swap, char RAM[][400], int pagina, int TMP[][3], int TMM
 void in_RAM(char RAM[][400]);
 int RAMLlena(int TMM[][2]);
 int ContadorLineas(const char *archivo);
-void AlgoritmoReloj(int TMM[][2], char RAM[][400]);
+void AlgoritmoReloj(int TMM[][2], char RAM[][400], struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos);
+void actualizarTMPdeMarcoL(struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos, int pidDueno, int marcoLiberado);
 void LiberarRAM(char RAM[][400], int marco);
 int validarArchivo(const char *NombrePro);
 void liberarSWAP(FILE *swap, int TMP[][3], int num_paginas, int TMS[]);
+int marcosLS(int TMS[]);
+int marcosLR(int TMM[][2]);
+void porcentajes(int TMS[], int TMM[][2], int *porS, int *porR);
+void liberarRAMproceso(char RAM[][400], int TMM[][2], int pid);
 #endif

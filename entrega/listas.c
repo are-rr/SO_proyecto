@@ -8,7 +8,7 @@
 
 // Funciones para las listas:
 
-void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc)
+void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc, int num_paginas)
 {
     struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo)); // reservar memoria para el nuevo nodo
 
@@ -27,7 +27,7 @@ void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc
     nuevo->EDX = 0;
     nuevo->IR[0] = '\0';
     nuevo -> TMP=NULL;
-    nuevo->num_paginas = 0;
+    nuevo->num_paginas = num_paginas;
     nuevo->sig = NULL;
 
     if (*cabeza == NULL)
@@ -483,4 +483,21 @@ void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_lis
 
         actual = sig;
     }
+}
+void RevisarNuevos( struct Nodo **lista_nuevos,struct Nodo **lista_listos,FILE *swap,int TMS[]){
+    struct Nodo *procesoN = *lista_nuevos;
+    struct Nodo *sig = NULL;
+    int n = marcosLS(TMS);
+
+    while(procesoN != NULL){
+        sig = procesoN->sig;
+        if(procesoN->num_paginas <= n){
+            if (reescritura(procesoN->nombrePro, swap, procesoN->PID, TMS, procesoN->TMP) == 0){
+                extraerNodo(lista_nuevos, procesoN->PID);
+                insertarFinal(lista_listos, procesoN);
+            }
+        }
+        procesoN=sig;
+    }
+
 }
