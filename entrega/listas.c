@@ -8,7 +8,7 @@
 
 // Funciones para las listas:
 
-void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc, int num_paginas)
+void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc, int num_paginas,int num_lineas)
 {
     struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo)); // reservar memoria para el nuevo nodo
 
@@ -27,7 +27,8 @@ void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc
     nuevo->EDX = 0;
     nuevo->IR[0] = '\0';
     nuevo -> TMP=NULL;
-    nuevo->num_paginas = num_paginas;
+    nuevo->num_paginas = num_paginas; 
+    nuevo->num_lineas = num_lineas;
     nuevo->sig = NULL;
 
     if (*cabeza == NULL)
@@ -127,48 +128,57 @@ void A_terminadosError(struct Nodo **lista_ejecucion, struct Nodo **lista_termin
     }
 }
 
-int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p, FILE * swap, int TMS[])
+struct Nodo *matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos,struct Nodo **lista_suspendidos,struct Nodo **lista_nuevos, int id_p)
 {
     struct Nodo *proceso_mata = NULL;
     // NOTA: Por que no le agregamos & en este caso porque extraer nodo es **
     proceso_mata = extraerNodo(lista_ejecucion, id_p); // busca en ejecucion
     if (proceso_mata != NULL){
         insertarFinal(lista_terminados, proceso_mata);
-        liberarSWAP(swap, proceso_mata->TMP, proceso_mata->num_paginas, TMS);
-        return 1;
+        return proceso_mata;
     }
 
-    if (proceso_mata == NULL)
-    {
+    if (proceso_mata == NULL){
         proceso_mata = extraerNodo(lista_listos, id_p); // sino busca en listos
         if (proceso_mata != NULL){
             insertarFinal(lista_terminados, proceso_mata);
-            liberarSWAP(swap, proceso_mata->TMP, proceso_mata->num_paginas, TMS);
-            return 2;
+            return proceso_mata;
         }
     }
-   
-    if (proceso_mata == NULL)
-    {
+
+    if(proceso_mata == NULL){
+        proceso_mata = extraerNodo(lista_suspendidos, id_p); //Buscamos en suspendidos
+        if(proceso_mata != NULL){
+            insertarFinal(lista_terminados, proceso_mata);
+            return proceso_mata;
+        }
+    }
+    if (proceso_mata == NULL){
+        proceso_mata = extraerNodo(lista_nuevos, id_p); //buscamos en nuevos
+        if (proceso_mata != NULL){
+            insertarFinal(lista_terminados, proceso_mata);
+            return proceso_mata;
+        }
+    }
+
+    if (proceso_mata == NULL){
         struct Nodo *aux = *lista_terminados; // por ultimo en terminados
-        while (aux != NULL)
-        { // pero solo busca, no lo mata, pues ya esta terminado
+        while (aux != NULL){ // pero solo busca, no lo mata, pues ya esta terminado
             if (aux->PID == id_p)
             {
                 limpiarZona(y_mensajes, 0, ancho_procesos);
                 mvprintw(y_mensajes, 0, "El proceso con PID %d ya esta en terminados.", id_p);
                 refresh();
-                return 3;
+                return NULL;
             }
             aux = aux->sig;
         }
         limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "No se encontro el proceso con PID %d.", id_p);
         refresh();
-        return 0;
+        return NULL;
     }
-    //liberarSWAP(swap, proceso_mata->TMP, proceso_mata->num_paginas, TMS);
-    return 0;
+    return NULL;
 }
 
 struct Nodo *buscar(struct Nodo *lista, int pid)
@@ -455,7 +465,7 @@ void TiempoEnSuspendidos(struct Nodo *proceso)
     proceso->TIEMPO_SUSP = time(NULL) + tiempo;
 }
 
-void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_listos)
+void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_listos,struct Nodo *lista_ejecucion,FILE *swap,char RAM[][400],int TMM[][2],int TMS[],int *porS, int *porR)
 {
     struct Nodo *actual = *lista_suspendidos;
     struct Nodo *sig = NULL;
@@ -464,17 +474,38 @@ void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_lis
     // mvprintw(4, 0, "Revisando suspendidos...");
     // refresh();
 
-    while (actual != NULL)
-    {
+    while (actual != NULL){
         sig = actual->sig;
 
-        if (ahora >= actual->TIEMPO_SUSP)
-        {
+        if (ahora >= actual->TIEMPO_SUSP){
+            int direccion_virtual = actual->PC;
+            int pagina = direccion_virtual / 4;
+            //NOTA: por si truena, si no, no,si PC excede las lineas del proceso puede queda en error de segmento por que se recomienda verificar antes
+            /*if (pagina < 0 || pagina >= p->num_paginas) {
+                mvprintw(y_mensajes, 0,"ERROR: pagina %d fuera de rango (%d)", pagina, p->num_paginas);
+                refresh();
+                return;
+            }*/ 
+
+            if(RAMLlena(TMM)){
+                AlgoritmoReloj(TMM, RAM, *lista_listos, lista_ejecucion, *lista_suspendidos);
+                limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+                imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
+            }
+
             struct Nodo *p = extraerNodo(lista_suspendidos, actual->PID); // NOTA: Por que no usamos & aqui si es doble puntero??
 
-            if (p != NULL)
-            {
+            if (p != NULL){
                 p->TIEMPO_SUSP = 0;
+                
+                //Aqui algoritmo de reloj
+                
+                EscrituraRam(swap, RAM, pagina, p->TMP, TMM, p->PID);
+                imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
+                limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
+                imprimir_TMP(p->TMP, y_renglon_TMP, x_TMP, p->num_paginas, p->PID);
+                porcentajes(TMS, TMM, porS, porR);
+
                 insertarFinal(lista_listos, p);
                 // mvprintw(6, 0, "PID %d sale de suspendidos", p->PID);
                 // refresh();
@@ -500,4 +531,8 @@ void RevisarNuevos( struct Nodo **lista_nuevos,struct Nodo **lista_listos,FILE *
         procesoN=sig;
     }
 
+}
+
+void procesarmata(){
+    
 }

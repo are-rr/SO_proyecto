@@ -28,8 +28,8 @@ int kbhit(void){
     return 0;
 }
 
-void salirPrograma(){
-    //NOTA: Cerrar el archivo binario
+void salirPrograma(FILE *swap){
+    fclose(swap);
     endwin();
     exit(0);
 }

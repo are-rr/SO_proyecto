@@ -10,6 +10,7 @@ int ancho_procesos = 155;
 int y_header = 0;
 int y_renglon = 1;
 int y_mensajes = 3;
+int y_variable = 4;
 int y_linea_comando = 5;
 int y_header2 = 7;
 int y_procesoEjecucion = 8;
@@ -83,18 +84,24 @@ int main()
             limpiarZona(y_linea_comando, 0, ancho_procesos);
             mvprintw(y_linea_comando, 0, "> ");
             refresh();
-            
-            if (lista_suspendidos != NULL){
-                RevisarSuspendidos(&lista_suspendidos, &lista_listos);
+
+            //int entradaleida = 0;
+
+            if (lista_suspendidos != NULL)
+            {
+                RevisarSuspendidos(&lista_suspendidos, &lista_listos, lista_ejecucion, swap, RAM, TMM, TMS, &porS, &porR);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
                 move(y_linea_comando, 2);
                 refresh();
 
-                if (!kbhit()){
+                if (!kbhit())
+                {
                     continue;
                 }
             }
-            getnstr(entrada, 199);                                                                  // lee la entrada
+            //if (!entradaleida){
+            getnstr(entrada, 199);
+            //}
             num_palabras = sscanf(entrada, "%99s %99s %99s %99s", comando, archivo, extra, extra2); // sscanf(cadena, formato, &variable1, etc.);
             if (num_palabras <= 0){
 
@@ -112,7 +119,7 @@ int main()
                     num_palabras = 0;
                     continue;
                 }
-                salirPrograma();
+                salirPrograma(swap);
             }
             else if (strcmp(comando, "ejecuta") == 0)
             {
@@ -152,11 +159,11 @@ int main()
                 num_lineas = ContadorLineas(archivo);
                 paginas = (num_lineas + 3) / 4; // despues de aqui se puede obtener las paginas para la TMP
 
-                insertar(&lista_nuevos, pid, gid, archivo, 0, paginas);
+                insertar(&lista_nuevos, pid, gid, archivo, 0, paginas,num_lineas);
 
                 struct Nodo *nuevo = buscar(lista_nuevos, pid);
 
-                nuevo->num_paginas = paginas;
+                nuevo->num_paginas = paginas;//NOTA: no es redundate este si ya se lo pasas en instertar?
                 nuevo->TMP = malloc(paginas * sizeof(int[3]));
 
                 if (nuevo->TMP == NULL)
@@ -204,7 +211,7 @@ int main()
             }
             else if (strcmp(comando, "mata") == 0)
             {
-                if (lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL)
+                if (lista_listos == NULL && lista_ejecucion == NULL && lista_terminados == NULL && lista_suspendidos == NULL && lista_nuevos == NULL)
                 {
                     limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: no hay procesos que matar");
@@ -213,6 +220,109 @@ int main()
                     num_palabras = 0;
                     continue;
                 }
+                //Plogica de proceso mata ----------------------------------------------------------
+                if (num_palabras < 2)
+                {
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
+                    mvprintw(y_mensajes, 0, "(D)ERROR: falta el PID del proceso");
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
+                    refresh();
+                    comando[0] = '\0';
+                    num_PID = '\0';
+                    num_palabras = 0;
+                    continue;
+                }
+                num_PID = atoi(archivo);
+                if (!num_PID)
+                {
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
+                    mvprintw(y_mensajes, 0, "(D)ERROR: PID debe ser un entero");
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
+                    refresh();
+                    continue;
+                }
+                if (num_palabras > 2)
+                {
+                    limpiarZona(y_mensajes, 0, ancho_procesos);
+                    mvprintw(y_mensajes, 0, "(D)ERROR: demasiados argumentos");
+                    limpiarZona(y_linea_comando, 0, ancho_procesos);
+                    refresh();
+                    comando[0] = '\0';
+                    num_PID = '\0';
+                    num_palabras = 0;
+                    continue;
+                }
+                int gid_matado = -1;
+                int lista = 0;
+                struct Nodo *p_matar = buscar(lista_ejecucion, num_PID);
+
+                if (p_matar == NULL)
+                {
+                    p_matar = buscar(lista_listos, num_PID);
+                }
+                else if (p_matar != NULL)
+                {
+                    lista = 1; // Esta en lista LISTOS
+                }
+                if (p_matar == NULL)
+                {
+                    p_matar = buscar(lista_suspendidos, num_PID);
+                }
+                if (p_matar == NULL)
+                {
+                    p_matar = buscar(lista_nuevos, num_PID);
+                    lista = 2; // esta en lista NUEVOS
+                }
+                if (p_matar != NULL)
+                {
+                    gid_matado = p_matar->GID;
+                }
+                mvprintw(50, 0, "PID_matar: %d", num_PID);
+
+                refresh();
+                napms(2000);
+
+                struct Nodo *pMata = matar(&lista_ejecucion, &lista_terminados, &lista_listos, &lista_suspendidos, &lista_nuevos, num_PID);
+                if (pMata == NULL)
+                {
+                    imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
+                    continue;
+                }
+                if (gid_matado != -1 && pMata != NULL)
+                {
+                    if (Busqueda_GID(&lista_listos, &lista_ejecucion, &lista_suspendidos, pMata->GID) == 0 && lista != 2)
+                    {
+
+                        liberarSWAP(swap, pMata->TMP, pMata->num_paginas, TMS);
+                        liberarRAMproceso(RAM, TMM, pMata->PID);
+                        limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
+                        RevisarNuevos(&lista_nuevos, &lista_listos, swap, TMS);
+                        limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
+                        imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
+                        limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+                        imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
+                        porcentajes(TMS, TMM, &porS, &porR);
+
+                        grupos--;
+                    }
+                    if (lista == 2)
+                    {
+                        grupos--;
+                    }
+                }
+
+                mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
+                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
+                limpiarZona(y_linea_comando, 0, ancho_procesos);
+                refresh();
+                num_palabras = 0;
+                if (lista == 1)
+                { // 1 -> esta en lista ejecucion
+                    break;
+                }
+
+                continue;
+                //////-------------------------------------
             }
             else if (strcmp(comando, "fork") == 0)
             {
@@ -278,7 +388,7 @@ int main()
             }
             //}
         }
-
+        mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
         // Si no se tiene nada en ejecucion, pero si hay algo en listos
         if (lista_ejecucion == NULL && lista_listos != NULL)
         {
@@ -287,7 +397,7 @@ int main()
             {
                 insertarFinal(&lista_ejecucion, proceso);
             }
-            // mvprintw(y_variable,0,"numero de grupos:%d",grupos);
+             mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
             limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
             imprimir_TMP(proceso->TMP, y_renglon_TMP, x_TMP, proceso->num_paginas, proceso->PID);
@@ -316,7 +426,8 @@ int main()
         refresh();
         int desplazamiento = 0;
 
-        if (procesoEjecucion != NULL){
+        if (procesoEjecucion != NULL )
+        {
             int finArchivo = 0;
 
             while (q < quantum){
@@ -347,17 +458,18 @@ int main()
                             TiempoEnSuspendidos(procesoSuspendido);
                             procesoSuspendido->PC = contadorLinea;
                             insertarFinal(&lista_suspendidos, procesoSuspendido);
-                            AlgoritmoReloj(TMM, RAM, lista_listos, lista_ejecucion, lista_suspendidos);
+                            
+                           /* AlgoritmoReloj(TMM, RAM, lista_listos, lista_ejecucion, lista_suspendidos);
                             limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
                             imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                             EscrituraRam(swap, RAM, pagina, procesoSuspendido->TMP, TMM, procesoSuspendido->PID);
                             imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                             limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
                             imprimir_TMP(procesoSuspendido->TMP, y_renglon_TMP, x_TMP, procesoSuspendido->num_paginas, procesoSuspendido->PID);
-                            porcentajes(TMS, TMM, &porS, &porR);
+                            porcentajes(TMS, TMM, &porS, &porR);*/
                         }
 
-                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
+                        imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
                         // continue;
                         // NOTA: fallo de pagina
                         break;
@@ -406,7 +518,7 @@ int main()
 
                         grupos--;
                     }
-                    // mvprintw(y_variable,0,"numero de grupos:%d",grupos);
+                     mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                     huboError = 1;
                     comando[0] = '\0';
                     archivo[0] = '\0';
@@ -446,7 +558,7 @@ int main()
                         porcentajes(TMS, TMM, &porS, &porR);
                         grupos--;
                     }
-                    // mvprintw(y_variable,0,"numero de grupos:%d",grupos);
+                     mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
                     huboError = 1;
                     reiniciarVariables(comando, archivo);
@@ -478,7 +590,7 @@ int main()
                         porcentajes(TMS, TMM, &porS, &porR);
                         grupos--;
                     }
-                    // mvprintw(y_variable,0,"numero de grupos:%d",grupos);
+                     mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
                     huboError = 1;
                     reiniciarVariables(comando, archivo);
@@ -551,7 +663,7 @@ int main()
                             num_palabras = 0;
                             continue;
                         }
-                        salirPrograma();
+                        salirPrograma(swap);
                     }
 
                     else if (strcmp(comando, "ejecuta") == 0){
@@ -591,7 +703,7 @@ int main()
                         int ContadorL = ContadorLineas(archivo);
                         int paginas = (ContadorL + 3) / 4;
 
-                        insertar(&lista_nuevos, pid, gid, archivo, 0, paginas);
+                        insertar(&lista_nuevos, pid, gid, archivo, 0, paginas,ContadorL);
 
                         struct Nodo *nuevoP = buscar(lista_nuevos, pid);
 
@@ -646,6 +758,7 @@ int main()
                             refresh();
                             continue;
                         }
+                        mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
                     }
                     else if (strcmp(comando, "mata") == 0)
                     {
@@ -683,24 +796,41 @@ int main()
 
                         refresh();
                         int gid_matado = -1;
+                        int lista = 0;
                         struct Nodo *p_matar = buscar(lista_ejecucion, num_PID);
 
                         if (p_matar == NULL){
                             p_matar = buscar(lista_listos, num_PID);
+                        }else if(p_matar !=NULL){
+                            lista = 1;//Esta en lista LISTOS
+                        }
+                        if (p_matar == NULL){
+                            p_matar = buscar(lista_suspendidos, num_PID);
+                        }
+                        if (p_matar == NULL){
+                            p_matar = buscar(lista_nuevos, num_PID);
+                            lista = 2;//esta en lista NUEVOS
                         }
                         if (p_matar != NULL){
                             gid_matado = p_matar->GID;
                         }
+                        mvprintw(50,0,"PID_matar: %d",num_PID);
+                        
+                        refresh();
+                        napms(2000);
 
-                        int lista = matar(&lista_ejecucion, &lista_terminados, &lista_listos, num_PID,swap,TMS);
-
-                        if (gid_matado != -1)
+                        struct Nodo *pMata = matar(&lista_ejecucion, &lista_terminados, &lista_listos, &lista_suspendidos, &lista_nuevos, num_PID);
+                        if (pMata == NULL){
+                            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados,lista_suspendidos, lista_nuevos);
+                            continue;
+                        }
+                        if (gid_matado != -1 && pMata != NULL)
                         {
-                            if (Busqueda_GID(&lista_listos, &lista_ejecucion, &lista_suspendidos, procesoEjecucion->GID) == 0)
+                            if (Busqueda_GID(&lista_listos, &lista_ejecucion, &lista_suspendidos, pMata->GID) == 0 && lista != 2)
                             {
-                                
-                                liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
-                                liberarRAMproceso(RAM, TMM, procesoEjecucion->PID);
+
+                                liberarSWAP(swap, pMata->TMP, pMata->num_paginas, TMS);
+                                liberarRAMproceso(RAM, TMM, pMata->PID);
                                 limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                                 RevisarNuevos(&lista_nuevos,&lista_listos,swap,TMS);
                                 limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
@@ -708,15 +838,20 @@ int main()
                                 limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
                                 imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                                 porcentajes(TMS, TMM, &porS, &porR);
+
+                                grupos--;
+                            }
+                            if(lista == 2){
                                 grupos--;
                             }
                         }
-                        // mvprintw(y_variable,0,"numero de grupos:%d",grupos);
+
+                        mvprintw(y_variable,0,"numero de grupos:%d",grupos);
                         imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
                         limpiarZona(y_linea_comando, 0, ancho_procesos);
                         refresh();
                         num_palabras = 0;
-                        if (lista == 1){ // 1 -> esta en lista ejecucion, 2-> listos, 3 -> terminados, 0->no esta el PID
+                        if (lista == 1){ // 1 -> esta en lista ejecucion
                             break;
                         }
 

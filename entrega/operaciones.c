@@ -116,7 +116,7 @@ int JNZ_(char *arg1, int contadorLinea, const char *linea_original, struct Nodo 
     if (!Comas_1pam(linea_original, contadorLinea))
         return 0;
 
-    long valor = 0;
+    long valor = 0; //NOTA: porque es un long el valor?
     if (!Digito(arg1))
     {
         limpiarZona(y_mensajes, 0, ancho_procesos);
@@ -124,13 +124,32 @@ int JNZ_(char *arg1, int contadorLinea, const char *linea_original, struct Nodo 
         refresh();
         return 0;
     }
-    valor = atoi(arg1); // valor de la pc
+    if (proceso->ECX != 0){
+        valor = atoi(arg1); // valor de la pc
+        // que JNZ no se pase de las lineas que tiene un proceso
+        if (proceso->num_lineas > valor){
+            proceso->PC = valor;
+            limpiarZona(y_renglon, 0, ancho_procesos);
+            mvprintw(y_renglon, 0, "%-10d %-18s %10d %10d %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX, proceso->CPU, proceso->GCPU);
+            refresh();
+            return 1;
+        }
+        else{
+            limpiarZona(y_mensajes, 0, ancho_procesos);
+            mvprintw(y_mensajes, 0, "ERROR: Fuera de rango en la linea %d:\"%s\"", contadorLinea, linea_original);
+            refresh();
+            return 0;
+        }
+    }
+    else{
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: ECX no es diferente de 0 para poder ejecutar linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
+        return 0;
+    }
 
-    proceso->PC = valor;
-    limpiarZona(y_renglon, 0, ancho_procesos);
-    mvprintw(y_renglon, 0, "%-10d %-18s %10d %10d %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX, proceso->CPU, proceso->GCPU);
-    refresh();
-    return 1;
+    
+    
 }
 
 int MOV(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso)

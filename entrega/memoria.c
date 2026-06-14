@@ -222,7 +222,7 @@ int ContadorLineas(const char *archivo)
 }
 
 int punteroReloj = 0; // variable para ver en donde se quedo la manesilla
-void AlgoritmoReloj(int TMM[][2], char RAM[][400], struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos)
+void AlgoritmoReloj(int TMM[][2], char RAM[][400] ,struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos)
 {
     //NOTA:actualizar la TMP del proceso donde se libero la RAM
     while (1)
@@ -261,7 +261,9 @@ void actualizarTMPdeMarcoL(struct Nodo *lista_listos,struct Nodo *lista_ejecucio
     if(p == NULL){
         p = buscar(lista_suspendidos, pidDueno);
     }
-
+    if (p == NULL){
+        return;
+    }
     for (int i = 0; i < p->num_paginas;i++){
         if(p->TMP[i][1]==marcoLiberado){
             p->TMP[i][0] = 0;
@@ -301,10 +303,7 @@ void liberarSWAP(FILE *swap,int TMP[][3],int num_paginas, int TMS[]){
             continue; //-1
         }
         fseek(swap, ms * 400, SEEK_SET);
-        
-            //memset(relleno, 0, sizeof(relleno));
         fwrite(relleno, sizeof(char), 400, swap);
-        // fflush(swap);
 
         TMS[ms] = 0;
         //NOTA:Tambien debimos actualizar la TMP
@@ -354,12 +353,12 @@ void porcentajes(int TMS[], int TMM[][2], int *porS, int *porR){
     int marcosS = marcosLS(TMS);
     mvprintw(35, 195, "marcosS: %d", marcosS);
 
-    *porS = ((32768 - marcosS) * 100) / 32768; 
-    *porR = ((16 - marcosR) * 100) / 16;
+    *porS = 32768 - marcosS;
+    *porR = 16 - marcosR;
 
     limpiarZona(33, 195, 30);
     limpiarZona(34, 195, 30);
-    mvprintw(34, 195, "RAM en uso: %d%%", *porR);
-    mvprintw(33, 195, "SWAP en uso: %d%%", *porS);
+    mvprintw(34, 195, "RAM en uso: %d/16 marcos", *porR);
+    mvprintw(33, 195, "SWAP en uso: %d/32768 paginas", *porS);
     refresh();
 }

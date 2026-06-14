@@ -22,6 +22,7 @@ struct Nodo{
     int(*TMP)[3];
     int num_paginas;
     int TIEMPO_SUSP;
+    int num_lineas;
     struct Nodo *sig; // puntero al siguiente nodo
 };
 
@@ -36,19 +37,24 @@ extern int y_mensajes;
 extern int y_linea_comando;
 extern int y_header2;
 extern int y_procesoEjecucion;
-
+extern int y_renglon_TMS;
+extern int y_renglon_TMM;
+extern int y_renglon_TMP;
+extern int x_TMM;
+extern int x_TMS;
+extern int x_TMP;
 extern int ejecutando;
 extern int pid;
 
 // prototipos de las funciones
 // listas
-void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc, int num_paginas);
+void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc, int num_paginas, int num_lineas);
 void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso);
 struct Nodo *extraerPrimero(struct Nodo **cabeza);
 struct Nodo *extraerNodo(struct Nodo **lista, int id);
 int contarNodos(struct Nodo *lista);
 void A_terminadosError(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados);
-int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p, FILE *swap, int TMS[]);
+struct Nodo *matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, struct Nodo **lista_nuevos, int id_p);
 struct Nodo *buscar(struct Nodo *lista, int pid);
 struct Nodo *forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int nuevo_gid);
 struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int pid_comando, int pc, int nuevo_pid);
@@ -61,8 +67,7 @@ int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, stru
 void RevisarNuevos( struct Nodo **lista_nuevos,struct Nodo **lista_listos,FILE *swap,int TMS[]);
 
 void TiempoEnSuspendidos(struct Nodo *proceso);
-void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_listos);
-
+void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_listos, struct Nodo *lista_ejecucion, FILE *swap, char RAM[][400], int TMM[][2], int TMS[], int *porS, int *porR);
 // validaciones
 int Registro(char *token);
 int Operaciones(char *token, int contadorLinea, const char *linea_original);
@@ -99,7 +104,7 @@ void imprimir_TMS(int TMS[], int y_renglon_TMS, int x_TMS);
 // otros
 void reiniciarVariables(char *comando, char *archivo);
 int kbhit(void);
-void salirPrograma();
+void salirPrograma(FILE *swap);
 void ComandoVel(int ms);
 
 // Memoria
