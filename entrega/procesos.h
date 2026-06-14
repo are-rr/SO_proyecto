@@ -65,9 +65,11 @@ struct Nodo *Fair_Share(struct Nodo **lista_listos, struct Nodo **lista_suspendi
 void GCPU_Global(struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int GID, int GCPU);
 int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, struct Nodo **lista_suspendidos, int GID);
 void RevisarNuevos( struct Nodo **lista_nuevos,struct Nodo **lista_listos,FILE *swap,int TMS[]);
-
+int procesarMata(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, struct Nodo **lista_nuevos, int num_palabras, char archivo[], FILE *swap, char RAM[][400], int TMM[][2], int TMS[], int *grupos, int *porS, int *porR);
 void TiempoEnSuspendidos(struct Nodo *proceso);
 void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_listos, struct Nodo *lista_ejecucion, FILE *swap, char RAM[][400], int TMM[][2], int TMS[], int *porS, int *porR);
+int procesarFork(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int num_palabras, char archivo[], char extra[], int *pid);
+
 // validaciones
 int Registro(char *token);
 int Operaciones(char *token, int contadorLinea, const char *linea_original);

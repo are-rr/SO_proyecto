@@ -533,6 +533,118 @@ void RevisarNuevos( struct Nodo **lista_nuevos,struct Nodo **lista_listos,FILE *
 
 }
 
-void procesarmata(){
-    
+int procesarMata(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,struct Nodo **lista_listos, struct Nodo **lista_suspendidos,struct Nodo **lista_nuevos,int num_palabras,char archivo[],FILE *swap,char RAM[][400],int TMM[][2],int TMS[],int *grupos,int *porS,int *porR){
+    if (num_palabras < 2){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: falta el PID del proceso");
+        return 0;
+    }
+    if (!Digito(archivo)){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: PID debe ser un entero");
+        return 0;
+    }
+    if (num_palabras > 2){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
+        return 0;
+    }
+
+    int num_PID = atoi(archivo);
+    int lista = 0; 
+
+    struct Nodo *p_matar = buscar(*lista_ejecucion, num_PID);
+    if (p_matar != NULL){
+        lista = 1; // esta en lista LISTOS
+    }
+    if (p_matar == NULL){
+        p_matar = buscar(*lista_listos, num_PID);
+    }
+    if (p_matar == NULL){
+        p_matar = buscar(*lista_suspendidos, num_PID);
+    }
+    if (p_matar == NULL){
+        p_matar = buscar(*lista_nuevos, num_PID);
+        if (p_matar != NULL){
+            lista = 2; //esta en lista NUEVOS
+        }
+    }
+
+    if (p_matar == NULL){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: no existe el PID %d", num_PID);
+        return 0;
+    }
+
+    int gid_matado = p_matar->GID;
+
+    struct Nodo *pMata = matar(lista_ejecucion,lista_terminados,lista_listos,lista_suspendidos,lista_nuevos,num_PID);
+
+    if (pMata == NULL){
+        return 0;
+    }
+
+    if (lista != 2 && Busqueda_GID(lista_listos, lista_ejecucion, lista_suspendidos, gid_matado) == 0){
+        liberarSWAP(swap, pMata->TMP, pMata->num_paginas, TMS);
+        liberarRAMproceso(RAM, TMM, pMata->PID);
+        RevisarNuevos(lista_nuevos, lista_listos, swap, TMS);
+        limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
+        imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
+        limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+        imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
+        porcentajes(TMS, TMM, porS, porR);
+        (*grupos)--;
+    }
+    if (lista == 2){
+        (*grupos)--;
+    }
+    imprimirEstado(*lista_listos, *lista_ejecucion, *lista_terminados,*lista_suspendidos, *lista_nuevos);
+    limpiarZona(y_linea_comando, 0, ancho_procesos);
+    refresh();
+    return lista == 1; // 1 si mataste el que estaba en ejecución
+}
+
+int procesarFork(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados,struct Nodo **lista_listos,struct Nodo **lista_suspendidos,int num_palabras,char archivo[],char extra[],int *pid)
+{
+    if (num_palabras < 2){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: falta pid del proceso");
+        return 0;
+    }
+    if (num_palabras < 3){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: falta numero de instruccion");
+        return 0;
+    }
+    if (num_palabras > 3){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: demasiados argumentos");
+        return 0;
+    }
+    if (Negativo(extra)){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: PC no puede ser negativo");
+        return 0;
+    }
+    if (!Digito(archivo)){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: PID debe ser un entero");
+        return 0;
+    }
+    if (!Digito(extra)){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: PC debe ser un entero");
+        return 0;
+    }
+    int num_PID = atoi(archivo);
+    int num_PC = atoi(extra);
+    (*pid)++;
+
+    struct Nodo *nuevo = forkProcesoComando(lista_ejecucion,lista_terminados, lista_listos,lista_suspendidos, num_PID,num_PC,*pid);
+
+    if (nuevo == NULL){
+        (*pid)--;
+        return 0;
+    }
+    return 1;
 }
