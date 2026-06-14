@@ -21,7 +21,7 @@ struct Nodo{
     int PRIORY;        // prioridad
     int(*TMP)[3];
     int num_paginas;
-    int TIEMPO_SUSP;
+    int TIEMPO_SUSP; //tiempo de salida en suspendidos
     int num_lineas;
     struct Nodo *sig; // puntero al siguiente nodo
 };
@@ -74,6 +74,7 @@ int procesarFork(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, 
 int Registro(char *token);
 int Operaciones(char *token, int contadorLinea, const char *linea_original);
 int Digito(char *token);
+int valivarLimitInt(char *token, int *resultado);
 int filtroIncDecJnz(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 int Comas_2pam(const char *linea_original, int contadorLinea);
@@ -103,6 +104,7 @@ void limpiarZona(int y, int x, int ancho);
 void limpiarZonaTabla(int renglon, int x, int ancho);
 void imprimir_TMM(int TMM[][2], int y_renglon_TMM, int x_TMM);
 void imprimir_TMS(int TMS[], int y_renglon_TMS, int x_TMS);
+
 // otros
 void reiniciarVariables(char *comando, char *archivo);
 int kbhit(void);
@@ -119,10 +121,7 @@ void in_TMP(int TMP[][3], int num_paginas);
 void in_TMM(int TMM[][2]);
 int Busqueda_TMM(int TMM[][2]);
 int BitPresencia_TMP(int TMP[][3], int pagina);
-int ObtenerMarcoSwap(int TMP[][3], int pagina);
-int ObtenerMarcoRAM(int TMP[][3], int pagina);
 void EscrituraRam(FILE *swap, char RAM[][400], int pagina, int TMP[][3], int TMM[][2], int PID);
-void in_RAM(char RAM[][400]);
 int RAMLlena(int TMM[][2]);
 int ContadorLineas(const char *archivo);
 void AlgoritmoReloj(int TMM[][2], char RAM[][400], struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos);

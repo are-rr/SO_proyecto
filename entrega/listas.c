@@ -53,8 +53,7 @@ void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso)
     }
     proceso->sig = NULL; // asegura eu no apunte a otro nodo
 
-    if (*cabeza == NULL)
-    {
+    if (*cabeza == NULL){
         *cabeza = proceso;
         return;
     }
@@ -131,7 +130,6 @@ void A_terminadosError(struct Nodo **lista_ejecucion, struct Nodo **lista_termin
 struct Nodo *matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos,struct Nodo **lista_suspendidos,struct Nodo **lista_nuevos, int id_p)
 {
     struct Nodo *proceso_mata = NULL;
-    // NOTA: Por que no le agregamos & en este caso porque extraer nodo es **
     proceso_mata = extraerNodo(lista_ejecucion, id_p); // busca en ejecucion
     if (proceso_mata != NULL){
         insertarFinal(lista_terminados, proceso_mata);
@@ -294,7 +292,7 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lis
         refresh();
         return NULL;
     }
-    nuevo->num_paginas = original->num_paginas;//NOTA:analisar lineas para el proceso hijo de la TMP
+    nuevo->num_paginas = original->num_paginas;
     nuevo->TMP = malloc(nuevo->num_paginas * sizeof(int[3]));
 
     if (nuevo->TMP == NULL)
@@ -341,8 +339,7 @@ struct Nodo *extraerNodo_Prioridad(struct Nodo **lista, int priory)
     {
         if (actual->PRIORY == priory)
         {
-            if (anterior == NULL)
-            { // si es el primer nodo en la lista, no tiene anterior
+            if (anterior == NULL){ // si es el primer nodo en la lista, no tiene anterior
                 *lista = actual->sig;
             }
             else
@@ -418,7 +415,7 @@ void GCPU_Global(struct Nodo **lista_listos, struct Nodo **lista_suspendidos, in
 }
 
 // Para saber cuantos grupos tenemos en caso de que usemos "mata" o mandemos un proceso a terminados
-int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, struct Nodo **lista_suspendidos, int GID) // NOTA: para que compartan en lista_suspendidosgit
+int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, struct Nodo **lista_suspendidos, int GID) 
 {
     struct Nodo *actual = *lista_listos;
     int grupos_restantes = 0;
@@ -471,21 +468,14 @@ void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_lis
     struct Nodo *sig = NULL;
     time_t ahora = time(NULL);
 
-    // mvprintw(4, 0, "Revisando suspendidos...");
+    // mvprintw(4, 0, "revisando suspendidos");
     // refresh();
-
     while (actual != NULL){
         sig = actual->sig;
 
         if (ahora >= actual->TIEMPO_SUSP){
             int direccion_virtual = actual->PC;
             int pagina = direccion_virtual / 4;
-            //NOTA: por si truena, si no, no,si PC excede las lineas del proceso puede queda en error de segmento por que se recomienda verificar antes
-            /*if (pagina < 0 || pagina >= p->num_paginas) {
-                mvprintw(y_mensajes, 0,"ERROR: pagina %d fuera de rango (%d)", pagina, p->num_paginas);
-                refresh();
-                return;
-            }*/ 
 
             if(RAMLlena(TMM)){
                 AlgoritmoReloj(TMM, RAM, *lista_listos, lista_ejecucion, *lista_suspendidos);
@@ -493,12 +483,10 @@ void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_lis
                 imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
             }
 
-            struct Nodo *p = extraerNodo(lista_suspendidos, actual->PID); // NOTA: Por que no usamos & aqui si es doble puntero??
+            struct Nodo *p = extraerNodo(lista_suspendidos, actual->PID);
 
             if (p != NULL){
                 p->TIEMPO_SUSP = 0;
-                
-                //Aqui algoritmo de reloj
                 
                 EscrituraRam(swap, RAM, pagina, p->TMP, TMM, p->PID);
                 imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
@@ -533,7 +521,8 @@ void RevisarNuevos( struct Nodo **lista_nuevos,struct Nodo **lista_listos,FILE *
 
 }
 
-int procesarMata(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,struct Nodo **lista_listos, struct Nodo **lista_suspendidos,struct Nodo **lista_nuevos,int num_palabras,char archivo[],FILE *swap,char RAM[][400],int TMM[][2],int TMS[],int *grupos,int *porS,int *porR){
+int procesarMata(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,struct Nodo **lista_listos, struct Nodo **lista_suspendidos,struct Nodo **lista_nuevos,
+                int num_palabras,char archivo[],FILE *swap,char RAM[][400],int TMM[][2],int TMS[],int *grupos,int *porS,int *porR){
     if (num_palabras < 2){
         limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR: falta el PID del proceso");
@@ -569,7 +558,9 @@ int procesarMata(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,st
             lista = 2; //esta en lista NUEVOS
         }
     }
-
+    if (p_matar == NULL){
+        p_matar = buscar(*lista_terminados, num_PID);
+    }
     if (p_matar == NULL){
         limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR: no existe el PID %d", num_PID);
@@ -588,8 +579,8 @@ int procesarMata(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,st
         liberarSWAP(swap, pMata->TMP, pMata->num_paginas, TMS);
         liberarRAMproceso(RAM, TMM, pMata->PID);
         RevisarNuevos(lista_nuevos, lista_listos, swap, TMS);
-        limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
-        imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
+        //limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
+        //imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
         limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
         porcentajes(TMS, TMM, porS, porR);
@@ -604,7 +595,8 @@ int procesarMata(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,st
     return lista == 1; // 1 si mataste el que estaba en ejecución
 }
 
-int procesarFork(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados,struct Nodo **lista_listos,struct Nodo **lista_suspendidos,int num_palabras,char archivo[],char extra[],int *pid)
+int procesarFork(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados,struct Nodo **lista_listos,struct Nodo **lista_suspendidos,
+                int num_palabras,char archivo[],char extra[],int *pid)
 {
     if (num_palabras < 2){
         limpiarZona(y_mensajes, 0, ancho_procesos);

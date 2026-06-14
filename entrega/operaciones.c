@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include <ncurses.h>
 
 #include "procesos.h"
@@ -37,48 +38,43 @@ int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *l
     int *R1 = ObtenerRegistro(arg1, proceso);
     int valor = 0;
 
-    if (Registro(arg2))
-    {
+    if (Registro(arg2)){
         valor = *ObtenerRegistro(arg2, proceso);
-    }
-    else if (Digito(arg2))
-    {
-        valor = atoi(arg2); // convierte a tipo int
-    }
-    else
-    {
-        limpiarZona(y_mensajes, 0, ancho_procesos);
-        mvprintw(y_mensajes, 0, "Segundo argumento invalido %s en linea %d:\"%s\"", arg2, contadorLinea, linea_original);
-        refresh();
-        return 0;
+    }else{
+        if (!valivarLimitInt(arg2, &valor)){
+            limpiarZona(y_mensajes, 0, ancho_procesos);
+            mvprintw(y_mensajes, 0, "ERROR: numero invalido o fuera de rango %s en linea %d:\"%s\"", arg2, contadorLinea, linea_original);
+            refresh();
+            return 0;
+        }
     }
     //'M'=MOV, 'A'=ADD, 'S'=SUB, 'U'=MUL, 'D'=DIV
+    long long resultado = *R1;
+
     switch (tipoOp)
     {
-        // proceso->EAX = valor
-    case 'M':
-        *R1 = valor;
-        break;
-    case 'A':
-        *R1 += valor;
-        break;
-    case 'S':
-        *R1 -= valor;
-        break;
-    case 'U':
-        *R1 *= valor;
-        break;
+    case 'M':resultado = valor; break;
+    case 'A': resultado = (long long)(*R1) + valor; break;
+    case 'S': resultado = (long long)(*R1) - valor; break;
+    case 'U': resultado = (long long)(*R1) * valor;break;
     case 'D':
-        if (valor == 0)
-        {
+        if (valor == 0){
             limpiarZona(y_mensajes, 0, ancho_procesos);
             mvprintw(y_mensajes, 0, "ERROR: DIVISION POR CERO en linea %d:\"%s\"", contadorLinea, linea_original);
             refresh();
             return 0;
         }
-        *R1 /= valor;
+        resultado = (long long)(*R1) / valor;
         break;
     }
+    if (resultado > INT_MAX || resultado < INT_MIN){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: Overflow en operacion linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
+        return 0;
+    }
+
+    *R1 = (int)resultado;
     // mvprintw(y_header, 0, "%-10s %-18s %10s %10s %10s %10s %10s %10s", "PC", "IR", "EAX", "EBX", "ECX", "EDX", "CPU","GCPU");
     limpiarZona(y_renglon, 0, ancho_procesos);
     mvprintw(y_renglon, 0, "%-10d %-18s %10d %10d %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX, proceso->CPU, proceso->GCPU);
@@ -101,7 +97,15 @@ int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incre
     }
 
     int *R = ObtenerRegistro(arg1, proceso);
-    *R += incremento;
+    long long resultado = (long long)(*R) + incremento;
+
+    if (resultado > INT_MAX || resultado < INT_MIN) {
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: Overflow linea %d:\"%s\"", contadorLinea, linea_original);
+        refresh();
+        return 0;
+    }
+    *R = (int)resultado;
 
     limpiarZona(y_renglon, 0, ancho_procesos);
     mvprintw(y_renglon, 0, "%-10d %-18s %10d %10d %10d %10d %10d %10d", contadorLinea, linea_original, proceso->EAX, proceso->EBX, proceso->ECX, proceso->EDX, proceso->CPU, proceso->GCPU);
@@ -111,21 +115,27 @@ int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incre
 
 int JNZ_(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso)
 {
-    if (!filtroIncDecJnz(arg1, NULL, contadorLinea, linea_original))
+    if (!filtroIncDecJnz(arg1, NULL, contadorLinea, linea_original)){
         return 0;
-    if (!Comas_1pam(linea_original, contadorLinea))
+    }
+    if (!Comas_1pam(linea_original, contadorLinea)){
         return 0;
+    }
+    int valor = 0;
 
-    long valor = 0; //NOTA: porque es un long el valor?
-    if (!Digito(arg1))
-    {
+    if (!valivarLimitInt(arg1, &valor)){
         limpiarZona(y_mensajes, 0, ancho_procesos);
-        mvprintw(y_mensajes, 0, "ERROR: NO es Digito %s en linea %d:\"%s\"", arg1, contadorLinea, linea_original);
+        mvprintw(y_mensajes, 0, "ERROR: PC invalido o fuera de rango %s en linea %d:\"%s\"", arg1, contadorLinea, linea_original);
+        refresh();
+        return 0;
+    }
+    if (valor < 0){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: PC no puede ser negativo en linea %d:\"%s\"", contadorLinea, linea_original);
         refresh();
         return 0;
     }
     if (proceso->ECX != 0){
-        valor = atoi(arg1); // valor de la pc
         // que JNZ no se pase de las lineas que tiene un proceso
         if (proceso->num_lineas > valor){
             proceso->PC = valor;
@@ -143,44 +153,36 @@ int JNZ_(char *arg1, int contadorLinea, const char *linea_original, struct Nodo 
     }
     else{
         limpiarZona(y_mensajes, 0, ancho_procesos);
-        mvprintw(y_mensajes, 0, "ERROR: ECX no es diferente de 0 para poder ejecutar linea %d:\"%s\"", contadorLinea, linea_original);
+        mvprintw(y_mensajes, 0, "ECX no es diferente de 0 para poder ejecutar linea %d:\"%s\"", contadorLinea, linea_original);
         refresh();
-        return 0;
+        return 2;
     }
 
     
     
 }
 
-int MOV(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso)
-{
+int MOV(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso){
     return ejecutarOperaciones(arg1, arg2, contadorLinea, linea_original, 'M', proceso);
 }
-int ADD(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso)
-{
+int ADD(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso){
     return ejecutarOperaciones(arg1, arg2, contadorLinea, linea_original, 'A', proceso);
 }
-int SUB(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso)
-{
+int SUB(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso){
     return ejecutarOperaciones(arg1, arg2, contadorLinea, linea_original, 'S', proceso);
 }
-int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso)
-{
+int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso){
     return ejecutarOperaciones(arg1, arg2, contadorLinea, linea_original, 'U', proceso);
 }
-int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso)
-{
+int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso){
     return ejecutarOperaciones(arg1, arg2, contadorLinea, linea_original, 'D', proceso);
 }
-int INC(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso)
-{
+int INC(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso){
     return INC_DEC(arg1, contadorLinea, linea_original, 1, proceso);
 } // positivo para que sume
-int DEC(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso)
-{
+int DEC(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso){
     return INC_DEC(arg1, contadorLinea, linea_original, -1, proceso);
 } // argumento negativo para que decremente
-int JNZ(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso)
-{
+int JNZ(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso){
     return JNZ_(arg1, contadorLinea, linea_original, proceso);
 }

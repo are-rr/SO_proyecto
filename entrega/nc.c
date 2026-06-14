@@ -30,7 +30,6 @@ void imprimirlista(struct Nodo *lista, int y_ncurses, int status)
     case 5:
         strcpy(cadena,"Nuevos");
         break;
-        // NOTA: Agregar los if para los otros casos de terminados (mata y error)
     }
     while (lista != NULL)
     {
@@ -99,8 +98,6 @@ void imprimir_TMM(int TMM[][2], int y_renglon_TMM, int x_TMM){
     }
     refresh();
 }
-
-//void imprimir_RAM_SWAP
 void limpiarZona(int y, int x, int ancho){
     move(y, x);
     for (int i = 0; i < ancho; i++){

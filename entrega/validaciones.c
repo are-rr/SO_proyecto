@@ -2,17 +2,16 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <ncurses.h>
 #include <sys/select.h>
 #include <unistd.h>
 
 #include "procesos.h"
 
-int Registro(char *token)
-{
-    char Registros[4][10] = {"EAX", "EBX", "ECX", "EDX"}; // NOTA: checar el 10
-    for (int i = 0; i < 4; i++)
-    {
+int Registro(char *token){
+    char Registros[4][10] = {"EAX", "EBX", "ECX", "EDX"}; 
+    for (int i = 0; i < 4; i++){
         if (strcmp(token, Registros[i]) == 0)
         {
             return 1; // si encontro el registro en el arreglo
@@ -38,8 +37,7 @@ int Operaciones(char *token, int contadorLinea, const char *linea_original)
     return 0;
 }
 
-int Digito(char *token)
-{
+int Digito(char *token){
     int i = 0;
     if (token[0] == '\0') // esta vacia
         return 0;
@@ -51,6 +49,20 @@ int Digito(char *token)
             return 0;
         }
     }
+    return 1;
+}
+
+int valivarLimitInt(char *token, int *resultado){
+    long valor;
+    if (!Digito(token)){
+        return 0;
+    }
+    valor = strtol(token, NULL, 10);
+
+    if (valor > INT_MAX || valor < INT_MIN){
+        return 0;
+    }
+    *resultado = (int)valor;
     return 1;
 }
 
@@ -228,7 +240,7 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
         return 1;
     }
     i++; // para saltar la coma
-    // const char *espacio = strchr(linea_original, ' ');
+   
     int contadorEspacio = 0;
 
     for (int i = 0; linea_original[i] != '\0'; i++)

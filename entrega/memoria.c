@@ -9,21 +9,13 @@
 // memoria virtual
 int Crear_ArchivoBinario(const char *nombre, int size_IR)
 {
-
     int size_ArchivoBinario = 131072;
     size_ArchivoBinario = size_ArchivoBinario * size_IR;
     char *numeros = malloc(size_ArchivoBinario);
-    /*if (numeros == NULL) {
-        return 1;
-    }*/
-    // FILE *ArchivoBinario = fopen(nombre, "r+b");
-    // NOTA: Aqui no usar r+b_______________________Peligroso
     // NOTA: no es necesrio poner la 'b' porque en unix todo se abre en binario
 
     FILE *ArchivoBinario = fopen(nombre, "wb");
-    if (ArchivoBinario == NULL)
-    {
-        // perror("Error al abrir el archivo");
+    if (ArchivoBinario == NULL){
         return 1;
     }
 
@@ -34,18 +26,14 @@ int Crear_ArchivoBinario(const char *nombre, int size_IR)
     return 0;
 }
 
-void in_TMS(int TMS[])
-{ // tiene formato TMS[][1], sino especificas el numero de columnas, te marco error
-    for (int i = 0; i < 32768; i++)
-    {
+void in_TMS(int TMS[]){
+    for (int i = 0; i < 32768; i++){
         TMS[i] = 0; // inicializamos la tabla con todos los valores en 0
     }
 }
 
-int Busqueda_TMS(int TMS[])
-{
-    for (int i = 0; i < 32768; i++)
-    { // buscamos aquel marco libre, como es no contigua, el primero que encuentre, agarra
+int Busqueda_TMS(int TMS[]){
+    for (int i = 0; i < 32768; i++){ // buscamos aquel marco libre, como es no contigua, el primero que encuentre, agarra
         if (TMS[i] == 0)
         {
             return i; // marco libre jeje
@@ -56,49 +44,56 @@ int Busqueda_TMS(int TMS[])
 
 // paso los archivos tipo file, por que como lo vamos a utilizar en la función de reescritura, para poder escribir y leer el archivo
 // necesitamos abrir los archivos FILE tal cual
-int Paginacion(FILE *archivoProceso, FILE *swap, int PID, int TMS[], int TMP[][3])
-{
-    char instruccion[100]; // array que guarda instruccion
-    char relleno[100];     // array que guarda lo que sobra
+int Paginacion(FILE *archivoProceso, FILE *swap, int PID, int TMS[], int TMP[][3]){
+    char instruccion[100];
+    char relleno[100];
     int pagina = 0;
 
     while (1)
-    { // primero buscas un marco libre antes de poder escribirlo, pues si primero haces la lectura y no hay espacio, pss que haces xd
-        int marco = Busqueda_TMS(TMS);
-        if (marco == -1)
-        {
-            return 1; // swap lleno
-            break;
+    {
+        int instL = 0;
+
+        // leer primer instruccion para ver si acabo el archivo
+        if (fgets(instruccion, sizeof(instruccion), archivoProceso) == NULL){
+            break; // ya no hay nada que guardar
         }
 
-        int instL = 0; // la necesitamos para leer la cantidad de lineas leidas, puede que una pagina al final solamente lea 2 instrucciones
-        // además es nuestra condición de termino para el while, sino la tenemos nunca termina, pues sale cuando no lee ninguna linea
-        fseek(swap, marco * 400, SEEK_SET); // se mueve al marco de página correspondiente
+        // se busca el marco
+        int marco = Busqueda_TMS(TMS);
+        if (marco == -1){
+            return 1; //swap lleno
+        }
 
-        for (int i = 0; i < 4; i++)
-        {
-            if (fgets(instruccion, sizeof(instruccion), archivoProceso) == NULL)
-            {
+        fseek(swap, marco * 400, SEEK_SET);
+
+        //guardamos la instruccion
+        int usados = strlen(instruccion);
+        memset(relleno, '\0', sizeof(relleno));
+        fwrite(instruccion, sizeof(char), usados, swap);
+        fwrite(relleno, sizeof(char), 100 - usados, swap);
+        instL++;
+
+        // ahora guardamos las otras 3 si hay
+        for (int i = 1; i < 4; i++){
+            if (fgets(instruccion, sizeof(instruccion), archivoProceso) == NULL){
                 break;
             }
-            int usados = strlen(instruccion);
+
+            usados = strlen(instruccion);
             memset(relleno, '\0', sizeof(relleno));
-            fwrite(instruccion, sizeof(char), usados, swap); 
+            fwrite(instruccion, sizeof(char), usados, swap);
             fwrite(relleno, sizeof(char), 100 - usados, swap);
             instL++;
         }
-
-        if (instL == 0)
-        {
-            break;
-        }
+        //actualizamos TMP Y TMS
         TMS[marco] = PID;
-        TMP[pagina][2] = marco; // Gurdar en la TMP el marco del SWAP
+        TMP[pagina][2] = marco;
         pagina++;
     }
+
     return 0;
 }
-int reescritura(const char *NombrePro, FILE *ArchivoBinario, int pid, int TMS[], int TMP[][3]){//NOTA: esta funcion ya no tiene mucho sentido porque solo abre el archivo de proceso
+int reescritura(const char *NombrePro, FILE *ArchivoBinario, int pid, int TMS[], int TMP[][3]){
     FILE *archivoP = fopen(NombrePro, "r");
 
     int resultado = Paginacion(archivoP, ArchivoBinario, pid, TMS, TMP);
@@ -127,30 +122,16 @@ void in_TMM(int TMM[][2])
 
 int Busqueda_TMM(int TMM[][2])
 {
-    for (int i = 0; i < 16; i++)
-    {
-        if (TMM[i][0] == 0)
-        {
+    for (int i = 0; i < 16; i++){
+        if (TMM[i][0] == 0){
             return i;
         }
     }
     return -1;
 }
-//-------------------------------------------------------------
 
-int BitPresencia_TMP(int TMP[][3], int pagina)
-{
+int BitPresencia_TMP(int TMP[][3], int pagina){
     return TMP[pagina][0];
-}
-
-int ObtenerMarcoSwap(int TMP[][3], int pagina)
-{
-    return TMP[pagina][2];
-}
-
-int ObtenerMarcoRAM(int TMP[][3], int pagina)
-{
-    return TMP[pagina][1];
 }
 
 void EscrituraRam(FILE *swap, char RAM[][400], int pagina, int TMP[][3], int TMM[][2], int PID)
@@ -159,8 +140,7 @@ void EscrituraRam(FILE *swap, char RAM[][400], int pagina, int TMP[][3], int TMM
     int marcoSwap = TMP[pagina][2];
     int marcoRAM = Busqueda_TMM(TMM);
 
-    if (marcoRAM == -1)
-    {
+    if (marcoRAM == -1){
         mvprintw(y_mensajes, 0, "ERROR: Esta llena la RAM");
         refresh();
         return;
@@ -177,23 +157,10 @@ void EscrituraRam(FILE *swap, char RAM[][400], int pagina, int TMP[][3], int TMM
     TMM[marcoRAM][1] = 1; // BIT_REF
 }
 
-void in_RAM(char RAM[][400])
-{
-    for (int i = 0; i < 16; i++)
-    {
-        for (int j = 0; j < 400; j++)
-        {
-            RAM[i][j] = '\0';
-        }
-    }
-}
-
 int RAMLlena(int TMM[][2])
 {
-    for (int i = 0; i < 16; i++)
-    {
-        if (TMM[i][0] == 0)
-        {
+    for (int i = 0; i < 16; i++){
+        if (TMM[i][0] == 0){
             return 0; // todavía hay espacio
         }
     }
@@ -207,13 +174,10 @@ int ContadorLineas(const char *archivo)
 
     FILE *archivoP = fopen(archivo, "r");
 
-    if (archivoP == NULL)
-    {
-        // perror("Error al abrir el archivo");
+    if (archivoP == NULL){
         return 1;
     }
-    while (fgets(buffer, sizeof(buffer), archivoP) != NULL)
-    {
+    while (fgets(buffer, sizeof(buffer), archivoP) != NULL){
         contador++;
     }
 
@@ -224,11 +188,9 @@ int ContadorLineas(const char *archivo)
 int punteroReloj = 0; // variable para ver en donde se quedo la manesilla
 void AlgoritmoReloj(int TMM[][2], char RAM[][400] ,struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos)
 {
-    //NOTA:actualizar la TMP del proceso donde se libero la RAM
     while (1)
     {
-        if (TMM[punteroReloj][1] == 0)
-        { // expulsar marco
+        if (TMM[punteroReloj][1] == 0){ // expulsar marco
             int MarcoALiberar = punteroReloj;
             int pidDueno = TMM[punteroReloj][0];
 
@@ -237,7 +199,7 @@ void AlgoritmoReloj(int TMM[][2], char RAM[][400] ,struct Nodo *lista_listos, st
 
             LiberarRAM(RAM, MarcoALiberar);
 
-            TMM[punteroReloj][0] = 0; // marco libre////////////////////////////////////////////////////////////////////////////////////////
+            TMM[punteroReloj][0] = 0; // marco libre
             TMM[punteroReloj][1] = 0; // bit de uso limpio
             
             punteroReloj = (punteroReloj + 1) % 16; // avanza al siguiente marco
@@ -247,7 +209,6 @@ void AlgoritmoReloj(int TMM[][2], char RAM[][400] ,struct Nodo *lista_listos, st
         else
         { // le da una segunda oportunidad
             TMM[punteroReloj][1] = 0;
-
             punteroReloj = (punteroReloj + 1) % 16; // para que avance en circulo //si llega al 15, reinicia a 0
         }
     }
@@ -275,12 +236,9 @@ void actualizarTMPdeMarcoL(struct Nodo *lista_listos,struct Nodo *lista_ejecucio
 
 void LiberarRAM(char RAM[][400], int marco)
 {
-    // un memtset para llenar de 0 ese marco
-
     memset(RAM[marco], '\0', sizeof(RAM[marco]));
-    
-    //memset(RAM[marco], '\0', sizeof(int) * 400);
 }
+
 int validarArchivo(const char *NombrePro){
     FILE *archivoP = fopen(NombrePro, "r");
 
@@ -306,7 +264,7 @@ void liberarSWAP(FILE *swap,int TMP[][3],int num_paginas, int TMS[]){
         fwrite(relleno, sizeof(char), 400, swap);
 
         TMS[ms] = 0;
-        //NOTA:Tambien debimos actualizar la TMP
+        //actualizamos la TMP 
         TMP[i][0] = 0;
         TMP[i][1] = -1;
         TMP[i][2] = -1;
@@ -351,7 +309,7 @@ int marcosLR(int TMM[][2]){
 void porcentajes(int TMS[], int TMM[][2], int *porS, int *porR){
     int marcosR = marcosLR(TMM);
     int marcosS = marcosLS(TMS);
-    mvprintw(35, 195, "marcosS: %d", marcosS);
+   // mvprintw(35, 195, "marcosS: %d", marcosS);
 
     *porS = 32768 - marcosS;
     *porR = 16 - marcosR;
