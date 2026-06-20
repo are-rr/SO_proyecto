@@ -2,28 +2,32 @@
 #define PROCESOS_H
 
 #include <stdio.h>
-
-//estrucutra para las listas
-struct Nodo {
-    int PID;       // identificador unico
-    FILE* Archivo;//nombre del archivo, Guardar el puntero al archivo FILE *
-    char nombrePro[100]; //para el nombre del archivo
-    int EAX; //Registros
+extern int REF_SWAP[32768];
+// estrucutra para las listas
+struct Nodo{
+    int PID;             // identificador unico
+    FILE *Archivo;       // nombre del archivo, Guardar el puntero al archivo FILE *
+    char nombrePro[100]; // para el nombre del archivo
+    int EAX;             // Registros
     int EBX;
     int ECX;
     int EDX;
-    int Status;     //3=terminado, 4=Terminado-Error, 5=Terminado-mata
-    int PC;    // contador de programa(contadorLInea)
-    char IR[100];//para guardar la ultima instruccion
-    int GID; //indentificador del grupo
+    int Status;   // 3=terminado, 4=Terminado-Error, 5=Terminado-mata
+    int PC;       // contador de programa(contadorLInea)
+    char IR[100]; // para guardar la ultima instruccion
+    int GID;      // indentificador del grupo
     int CPU;
     int GCPU;
-    int PRIORY; //prioridad
-    struct Nodo *sig;  // puntero al siguiente nodo
+    int PRIORY;        // prioridad
+    int(*TMP)[3];
+    int num_paginas;
+    //int TMP[32768][3]; // NOTA: Cambiar dinamica
+    int TIEMPO_SUSP;
+    struct Nodo *sig; // puntero al siguiente nodo
 };
 
 // variables globales de ncurses
-extern int y_header;        //extern quiere decir que esta variable existe en otro archivo
+extern int y_header; // extern quiere decir que esta variable existe en otro archivo
 extern int y_renglon;
 extern int y_mensajes;
 extern int y_linea_comando;
@@ -33,70 +37,82 @@ extern int y_procesoEjecucion;
 extern int ejecutando;
 extern int pid;
 
-extern WINDOW *win_izq;
-extern WINDOW *win_der;
-extern WINDOW *win_abajo;
-
-//prototipos de las funciones
-//listas
-void insertar(struct Nodo **cabeza, int pid,int gid,const char *nombre, int pc);
+// prototipos de las funciones
+// listas
+void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc);
 void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso);
 struct Nodo *extraerPrimero(struct Nodo **cabeza);
 struct Nodo *extraerNodo(struct Nodo **lista, int id);
 int contarNodos(struct Nodo *lista);
-void A_terminadosError(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados);
-int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p);
-struct Nodo *buscar(struct Nodo *lista,int pid);
-struct Nodo* forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int nuevo_gid);
-struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion,struct Nodo **lista_terminados,struct Nodo **lista_listos,int pid_comando,int pc,int nuevo_pid);
-int validarPC(FILE *copiaArchivo,int pc_buscar);
+void A_terminadosError(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados);
+int matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, int id_p, FILE *swap, int TMS[]);
+struct Nodo *buscar(struct Nodo *lista, int pid);
+struct Nodo *forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int nuevo_gid);
+struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos,struct Nodo **lista_suspendidos, int pid_comando, int pc, int nuevo_pid);
+int validarPC(FILE *copiaArchivo, int pc_buscar);
 int CalculoPriodidad(struct Nodo **nodolis, int grupos, int Base);
-struct Nodo* extraerNodo_Prioridad(struct Nodo **lista, int priory);
-struct Nodo *Fair_Share(struct Nodo **lista_listos,int grupos,int Base);
-void GCPU_Global(struct Nodo **lista_listos, int GID, int GCPU);
-int Busqueda_GID(struct Nodo **lista_listos,struct Nodo **lista_ejecucion, int GID);
+struct Nodo *extraerNodo_Prioridad(struct Nodo **lista, int priory);
+struct Nodo *Fair_Share(struct Nodo **lista_listos, struct Nodo **lista_suspendidos,int grupos, int Base);
+void GCPU_Global(struct Nodo **lista_listos,struct Nodo**lista_suspendidos, int GID, int GCPU);
+int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, struct Nodo **lista_suspendidos, int GID);
 
-//validaciones
+void TiempoEnSuspendidos(struct Nodo *proceso);
+void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_listos);
+
+// validaciones
 int Registro(char *token);
 int Operaciones(char *token, int contadorLinea, const char *linea_original);
 int Digito(char *token);
-int filtroIncDec(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
+int filtroIncDecJnz(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original);
 int Comas_2pam(const char *linea_original, int contadorLinea);
 int Comas_1pam(const char *linea_original, int contadorLinea);
 int validarEspacios(const char *linea_original, char *instruccion, int contadorLinea);
 int Negativo(char *numero);
 
-//operaciones
+// operaciones
 int *ObtenerRegistro(char *nombre, struct Nodo *p);
-int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *linea_original,char tipoOp, struct Nodo *proceso);
-int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incremento,struct Nodo *proceso);
-int MOV(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
-int ADD(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
-int SUB(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
-int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
-int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original,struct Nodo *proceso);
-int INC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *proceso);
-int DEC(char *arg1, int contadorLinea, const char *linea_original,struct Nodo *proceso);
+int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *linea_original, char tipoOp, struct Nodo *proceso);
+int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incremento, struct Nodo *proceso);
+int MOV(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso);
+int ADD(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso);
+int SUB(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso);
+int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso);
+int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso);
+int INC(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso);
+int DEC(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso);
+int JNZ(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso);
 
-//ncurses
-//const char *statusTexto(int status);
-void imprimirProceso(struct Nodo *p,int y_ncurse,const char* cadena);
-void imprimirlista(struct Nodo *lista, int y_ncurses,int status);
-void imprimirEstado(struct Nodo *listos,struct Nodo *ejecucion,struct Nodo *terminados);
+// ncurses
+void imprimirProceso(struct Nodo *p, int y_ncurse, const char *cadena);
+void imprimirlista(struct Nodo *lista, int y_ncurses, int status);
+void imprimirEstado(struct Nodo *listos, struct Nodo *ejecucion, struct Nodo *terminados, struct Nodo *suspendidos);
+void imprimir_TMP(int TMP[][3], int y_tablaR, int pid);
 
-//otros
-void reiniciarVariables(char *comando,char *archivo);
+// otros
+void reiniciarVariables(char *comando, char *archivo);
 int kbhit(void);
 void salirPrograma();
 void ComandoVel(int ms);
 
-//Memoria
+// Memoria
 int Crear_ArchivoBinario(const char *nombre, int size_IR);
-int memoria_RAM(FILE *archivo, int size_IR);
-void in_TMS(int TMS[][1]);
-int Busqueda_TMS(int TMS[][1]);
-void Paginacion(FILE *archivoProceso,FILE *swap,int PID,int TMS[][1]);
-int reescritura(const char *NombrePro, const char *ArchivoBinario,int pid, int TMS[][1]);
-
-#endif 
+void in_TMS(int TMS[]);
+int Busqueda_TMS(int TMS[]);
+int Paginacion(FILE *archivoProceso, FILE *swap, int PID, int TMS[], int TMP[][3]);
+int reescritura(const char *NombrePro, FILE *ArchivoBinario, int pid, int TMS[], int TMP[][3]);
+void in_TMP(int TMP[][3], int num_paginas);
+void in_TMM(int TMM[][2]);
+int Busqueda_TMM(int TMM[][2]);
+int BitPresencia_TMP(int TMP[][3], int pagina);
+int ObtenerMarcoSwap(int TMP[][3], int pagina);
+int ObtenerMarcoRAM(int TMP[][3], int pagina);
+void EscrituraRam(FILE *swap, char RAM[][400], int pagina, int TMP[][3], int TMM[][2], int PID);
+void in_RAM(char RAM[][400]);
+int RAMLlena(int TMM[][2]);
+int ContadorLineas(const char *archivo);
+void AlgoritmoReloj(int TMM[][2], char RAM[][400]);
+void LiberarRAM(char RAM[][400], int marco);
+int validarArchivo(const char *NombrePro);
+void liberarSWAP(FILE *swap, int TMP[][3], int num_paginas, int TMS[]);
+#endif

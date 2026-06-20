@@ -308,10 +308,7 @@ int main()
             imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
             move(y_linea_comando, 2);
             refresh();
-            
         }
-        limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
-        imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
         // mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
         //  Si no se tiene nada en ejecucion, pero si hay algo en listos
         if (lista_ejecucion == NULL && lista_listos != NULL)
@@ -320,18 +317,17 @@ int main()
             if (proceso != NULL)
             {
                 insertarFinal(&lista_ejecucion, proceso);
-                //mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
-                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
-                limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
-                imprimir_TMP(proceso->TMP, y_renglon_TMP, x_TMP, proceso->num_paginas, proceso->PID);
-                refresh();
             }
-            
+            mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
+            imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
+            limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
+            imprimir_TMP(proceso->TMP, y_renglon_TMP, x_TMP, proceso->num_paginas, proceso->PID);
+            refresh();
         }
-        if (lista_ejecucion == NULL)
+        /* if (lista_ejecucion == NULL)
          { // si no hay nada en ejecucion vuelve a empezar
              continue;
-         }
+         }*/
 
         struct Nodo *procesoEjecucion = lista_ejecucion;
         limpiarZona(y_mensajes, 0, ancho_procesos);
@@ -373,9 +369,6 @@ int main()
                         TiempoEnSuspendidos(procesoSuspendido);
                         procesoSuspendido->PC = contadorLinea;
                         insertarFinal(&lista_suspendidos, procesoSuspendido);
-                        limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
-                        imprimir_TMP(procesoSuspendido->TMP, y_renglon_TMP, x_TMP, procesoSuspendido->num_paginas, procesoSuspendido->PID);
-                        refresh();
                     }
 
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
@@ -410,7 +403,7 @@ int main()
                     if (Busqueda_GID(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoEjecucion->GID) == 0)
                     { // revisar si todavia hay procesos con ese GID
                         liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
-                        liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
+                        liberarRAMproceso(RAM, TMM, procesoEjecucion->PID);
                         RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                         limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                         porcentajes(TMS, TMM, &porS, &porR);
@@ -445,7 +438,7 @@ int main()
                     if (Busqueda_GID(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoEjecucion->GID) == 0)
                     {
                         liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
-                        liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
+                        liberarRAMproceso(RAM, TMM, procesoEjecucion->PID);
                         RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
@@ -476,7 +469,7 @@ int main()
                     if (Busqueda_GID(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoEjecucion->GID) == 0)
                     {
                         liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
-                        liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
+                        liberarRAMproceso(RAM, TMM, procesoEjecucion->PID);
                         RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
@@ -521,7 +514,7 @@ int main()
                         if (Busqueda_GID(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoEjecucion->GID) == 0)
                         {
                             liberarSWAP(swap, procesoTerminado->TMP, procesoTerminado->num_paginas, TMS);
-                            liberarRAMproceso(RAM, TMM, procesoTerminado->GID);
+                            liberarRAMproceso(RAM, TMM, procesoEjecucion->PID);
                             RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                             // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                             // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
@@ -767,7 +760,7 @@ int main()
                 if (Busqueda_GID(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoEjecucion->GID) == 0)
                 {
                     liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
-                    liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
+                    liberarRAMproceso(RAM, TMM, procesoEjecucion->PID);
                     RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                     limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                     // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);

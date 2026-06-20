@@ -7,7 +7,7 @@
 struct Nodo
 {
     int PID;             // identificador unico
-    //FILE *Archivo;       // nombre del archivo, Guardar el puntero al archivo FILE *
+    FILE *Archivo;       // nombre del archivo, Guardar el puntero al archivo FILE *
     char nombrePro[100]; // para el nombre del archivo
     int EAX;             // Registros
     int EBX;
@@ -57,8 +57,7 @@ int contarNodos(struct Nodo *lista);
 void A_terminadosError(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados);
 struct Nodo *matar(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_terminados, struct Nodo **lista_suspendidos, struct Nodo **lista_nuevos, int pid);
 struct Nodo *buscar(struct Nodo *lista, int pid);
-struct Nodo *buscarGID(struct Nodo *lista, int gid);
-struct Nodo *forkProceso(struct Nodo *proceso_original, int nuevo_pid, int nuevo_pc);
+struct Nodo *forkProceso(struct Nodo *proceso_original, int nuevo_pid, int nuevo_gid, int nuevo_pc);
 struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_terminados, struct Nodo **lista_suspendidos, int pid_comando, int nuevo_pid, int pc);
 int CalculoPriodidad(struct Nodo **lista, int grupos, int Base);
 struct Nodo *extraerNodo_Prioridad(struct Nodo **lista, int priory);
@@ -122,11 +121,11 @@ void in_TMP(int TMP[][3], int num_paginas);
 void in_TMM(int TMM[][2]);
 int Busqueda_TMM(int TMM[][2]);
 int BitPresencia_TMP(int TMP[][3], int pagina);
-void EscrituraRam(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucion, struct Nodo *lista_listos, struct Nodo *lista_suspendidos, struct Nodo *proceso, int TMM[][2], int pagina);
+void EscrituraRam(FILE *swap, char RAM[][400], int pagina, int TMP[][3], int TMM[][2], int PID);
 int RAMLlena(int TMM[][2]);
 int ContadorLineas(const char *archivo);
 void AlgoritmoReloj(int TMM[][2], char RAM[][400], struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos);
-void actualizarTMPdeMarcoL(struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos, int gidDueno, int marcoLiberado);
+void actualizarTMPdeMarcoL(struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos, int pidDueno, int marcoLiberado);
 void LiberarRAM(char RAM[][400], int marco);
 int validarArchivo(const char *NombrePro);
 void liberarSWAP(FILE *swap, int TMP[][3], int num_paginas, int TMS[]);
@@ -134,5 +133,4 @@ int marcosLS(int TMS[]);
 int marcosLR(int TMM[][2]);
 void porcentajes(int TMS[], int TMM[][2], int *porS, int *porR);
 void liberarRAMproceso(char RAM[][400], int TMM[][2], int pid);
-void actualizarTMPGrupo(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, struct Nodo *proceso);
 #endif

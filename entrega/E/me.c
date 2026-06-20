@@ -152,10 +152,10 @@ int BitPresencia_TMP(int TMP[][3], int pagina)
     return TMP[pagina][0];
 }
 
-void EscrituraRam(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucion, struct Nodo *lista_listos, struct Nodo *lista_suspendidos, struct Nodo *proceso, int TMM[][2], int pagina)
+void EscrituraRam(FILE *swap, char RAM[][400], int pagina, int TMP[][3], int TMM[][2], int PID)
 {
-    int GID = proceso->GID;
-    int marcoSwap =proceso-> TMP[pagina][2];
+
+    int marcoSwap = TMP[pagina][2];
     int marcoRAM = Busqueda_TMM(TMM);
 
     if (marcoRAM == -1)
@@ -169,11 +169,10 @@ void EscrituraRam(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucion, str
     // puntero al bloque donde almacena los datos leidos,
     fread(RAM[marcoRAM], sizeof(char), 400, swap);
 
-    proceso->TMP[pagina][0] = 1;
-    proceso->TMP[pagina][1] = marcoRAM;
-    actualizarTMPGrupo(&lista_ejecucion, &lista_listos, &lista_suspendidos, proceso);
+    TMP[pagina][0] = 1;
+    TMP[pagina][1] = marcoRAM;
 
-    TMM[marcoRAM][0] = GID;//grupo dueno
+    TMM[marcoRAM][0] = PID;
     TMM[marcoRAM][1] = 1; // BIT_REF
 }
 
@@ -217,11 +216,10 @@ void AlgoritmoReloj(int TMM[][2], char RAM[][400], struct Nodo *lista_listos, st
         if (TMM[punteroReloj][1] == 0)
         { // expulsar marco
             int MarcoALiberar = punteroReloj;
-            int gidDueno = TMM[punteroReloj][0];
+            int pidDueno = TMM[punteroReloj][0];
 
             // actualizamos la TMP del dueño del marco
-            actualizarTMPdeMarcoL(lista_listos, lista_ejecucion, lista_suspendidos, gidDueno, MarcoALiberar);
-
+            actualizarTMPdeMarcoL(lista_listos, lista_ejecucion, lista_suspendidos, pidDueno, MarcoALiberar);
 
             LiberarRAM(RAM, MarcoALiberar);
 
@@ -240,16 +238,16 @@ void AlgoritmoReloj(int TMM[][2], char RAM[][400], struct Nodo *lista_listos, st
     }
 }
 
-void actualizarTMPdeMarcoL(struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos, int gidDueno, int marcoLiberado)
+void actualizarTMPdeMarcoL(struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos, int pidDueno, int marcoLiberado)
 {
-    struct Nodo *p = buscar(lista_ejecucion, gidDueno);
+    struct Nodo *p = buscar(lista_ejecucion, pidDueno);
     if (p == NULL)
     {
-        p = buscar(lista_listos, gidDueno);
+        p = buscar(lista_listos, pidDueno);
     }
     if (p == NULL)
     {
-        p = buscar(lista_suspendidos, gidDueno);
+        p = buscar(lista_suspendidos, pidDueno);
     }
     if (p == NULL)
     {
@@ -261,7 +259,6 @@ void actualizarTMPdeMarcoL(struct Nodo *lista_listos, struct Nodo *lista_ejecuci
         {
             p->TMP[i][0] = 0;
             p->TMP[i][1] = -1;
-            actualizarTMPGrupo(&lista_ejecucion, &lista_listos, &lista_suspendidos, p);
             return;
         }
     }
@@ -363,38 +360,4 @@ void porcentajes(int TMS[], int TMM[][2], int *porS, int *porR)
     mvprintw(34, 195, "RAM en uso: %d/16 marcos", *porR);
     mvprintw(33, 195, "SWAP en uso: %d/32768 paginas", *porS);
     refresh();
-}
-
-void actualizarTMPGrupo(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, struct Nodo *proceso)
-{
-    int GID = proceso->GID;// GID del grupo
-    struct Nodo *actual = *lista_listos;
-
-    while (actual != NULL)
-    {
-        if (actual->GID == GID){ // Encontro un proceso con el mismo GID
-            memcpy(actual->TMP, proceso->TMP, proceso->num_paginas * sizeof(int[3]));
-        }
-        actual = actual->sig;
-    }
-
-    actual = *lista_ejecucion; // se busca por si el unico proceso del grupo esta ejecutandose
-    while (actual != NULL)
-    {
-        if (actual->GID == GID)
-        {
-            memcpy(actual->TMP, proceso->TMP, proceso->num_paginas * sizeof(int[3]));
-        }
-        actual = actual->sig;
-    }
-
-    actual = *lista_suspendidos; // se busca por si el unico proceso del grupo esta ejecutandose
-    while (actual != NULL)
-    {
-        if (actual->GID == GID)
-        {
-            memcpy(actual->TMP, proceso->TMP, proceso->num_paginas * sizeof(int[3]));
-        }
-        actual = actual->sig;
-    }
 }

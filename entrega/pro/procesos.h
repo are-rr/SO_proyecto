@@ -4,10 +4,9 @@
 #include <stdio.h>
 
 // estrucutra para las listas
-struct Nodo
-{
+struct Nodo{
     int PID;             // identificador unico
-    //FILE *Archivo;       // nombre del archivo, Guardar el puntero al archivo FILE *
+    FILE *Archivo;       // nombre del archivo, Guardar el puntero al archivo FILE *
     char nombrePro[100]; // para el nombre del archivo
     int EAX;             // Registros
     int EBX;
@@ -19,18 +18,18 @@ struct Nodo
     int GID;      // indentificador del grupo
     int CPU;
     int GCPU;
-    int PRIORY; // prioridad
-    int (*TMP)[3];
+    int PRIORY;        // prioridad
+    int(*TMP)[3];
     int num_paginas;
-    int TIEMPO_SUSP; // tiempo de salida en suspendidos
+    int TIEMPO_SUSP; //tiempo de salida en suspendidos
     int num_lineas;
     struct Nodo *sig; // puntero al siguiente nodo
 };
 
 // variables globales de ncurses
-extern int ancho_procesos;
-extern int ancho_TMP;
-extern int ancho_TMM;
+extern int ancho_procesos ;
+extern int ancho_TMP ;
+extern int ancho_TMM ;
 extern int ancho_TMS;
 extern int y_header; // extern quiere decir que esta variable existe en otro archivo
 extern int y_renglon;
@@ -49,27 +48,27 @@ extern int pid;
 
 // prototipos de las funciones
 // listas
-void insertar(struct Nodo **lista, int pid, int gid, int pc, int num_paginas, int num_lineas, const char *nombre);
-void insertarFinal(struct Nodo **lista, struct Nodo *proceso);
-struct Nodo *extraerPrimero(struct Nodo **lista);
-struct Nodo *extraerNodo(struct Nodo **lista, int pid);
+void insertar(struct Nodo **cabeza, int pid, int gid, const char *nombre, int pc, int num_paginas, int num_lineas);
+void insertarFinal(struct Nodo **cabeza, struct Nodo *proceso);
+struct Nodo *extraerPrimero(struct Nodo **cabeza);
+struct Nodo *extraerNodo(struct Nodo **lista, int id);
 int contarNodos(struct Nodo *lista);
 void A_terminadosError(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados);
-struct Nodo *matar(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_terminados, struct Nodo **lista_suspendidos, struct Nodo **lista_nuevos, int pid);
+struct Nodo *matar(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, struct Nodo **lista_nuevos, int id_p);
 struct Nodo *buscar(struct Nodo *lista, int pid);
-struct Nodo *buscarGID(struct Nodo *lista, int gid);
-struct Nodo *forkProceso(struct Nodo *proceso_original, int nuevo_pid, int nuevo_pc);
-struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_terminados, struct Nodo **lista_suspendidos, int pid_comando, int nuevo_pid, int pc);
-int CalculoPriodidad(struct Nodo **lista, int grupos, int Base);
+struct Nodo *forkProceso(struct Nodo *original, int nuevo_pid, int nuevo_pc, int nuevo_gid);
+struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int pid_comando, int pc, int nuevo_pid);
+int validarPC(FILE *copiaArchivo, int pc_buscar);
+int CalculoPriodidad(struct Nodo **nodolis, int grupos, int Base);
 struct Nodo *extraerNodo_Prioridad(struct Nodo **lista, int priory);
 struct Nodo *Fair_Share(struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int grupos, int Base);
 void GCPU_Global(struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int GID, int GCPU);
-int Busqueda_GID(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int GID);
-void RevisarNuevos(FILE *swap, struct Nodo **lista_listos, struct Nodo **lista_nuevos, int TMS[]);
-int procesarMata(FILE *swap, char RAM[][400], char archivo[], struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_terminados, struct Nodo **lista_suspendidos, struct Nodo **lista_nuevos, int TMM[][2], int TMS[], int num_palabras, int *grupos, int *porS, int *porR);
+int Busqueda_GID(struct Nodo **lista_listos, struct Nodo **lista_ejecucion, struct Nodo **lista_suspendidos, int GID);
+void RevisarNuevos( struct Nodo **lista_nuevos,struct Nodo **lista_listos,FILE *swap,int TMS[]);
+int procesarMata(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, struct Nodo **lista_nuevos, int num_palabras, char archivo[], FILE *swap, char RAM[][400], int TMM[][2], int TMS[], int *grupos, int *porS, int *porR);
 void TiempoEnSuspendidos(struct Nodo *proceso);
-void RevisarSuspendidos(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int TMM[][2], int TMS[], int *porS, int *porR);
-int procesarFork(char archivo[], char extra[], struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_terminados, struct Nodo **lista_suspendidos, int num_palabras, int *pid);
+void RevisarSuspendidos(struct Nodo **lista_suspendidos, struct Nodo **lista_listos, struct Nodo *lista_ejecucion, FILE *swap, char RAM[][400], int TMM[][2], int TMS[], int *porS, int *porR);
+int procesarFork(struct Nodo **lista_ejecucion, struct Nodo **lista_terminados, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, int num_palabras, char archivo[], char extra[], int *pid);
 
 // validaciones
 int Registro(char *token);
@@ -122,11 +121,11 @@ void in_TMP(int TMP[][3], int num_paginas);
 void in_TMM(int TMM[][2]);
 int Busqueda_TMM(int TMM[][2]);
 int BitPresencia_TMP(int TMP[][3], int pagina);
-void EscrituraRam(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucion, struct Nodo *lista_listos, struct Nodo *lista_suspendidos, struct Nodo *proceso, int TMM[][2], int pagina);
+void EscrituraRam(FILE *swap, char RAM[][400], int pagina, int TMP[][3], int TMM[][2], int PID);
 int RAMLlena(int TMM[][2]);
 int ContadorLineas(const char *archivo);
 void AlgoritmoReloj(int TMM[][2], char RAM[][400], struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos);
-void actualizarTMPdeMarcoL(struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos, int gidDueno, int marcoLiberado);
+void actualizarTMPdeMarcoL(struct Nodo *lista_listos, struct Nodo *lista_ejecucion, struct Nodo *lista_suspendidos, int pidDueno, int marcoLiberado);
 void LiberarRAM(char RAM[][400], int marco);
 int validarArchivo(const char *NombrePro);
 void liberarSWAP(FILE *swap, int TMP[][3], int num_paginas, int TMS[]);
@@ -134,5 +133,4 @@ int marcosLS(int TMS[]);
 int marcosLR(int TMM[][2]);
 void porcentajes(int TMS[], int TMM[][2], int *porS, int *porR);
 void liberarRAMproceso(char RAM[][400], int TMM[][2], int pid);
-void actualizarTMPGrupo(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, struct Nodo *proceso);
 #endif

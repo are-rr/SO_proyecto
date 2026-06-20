@@ -204,22 +204,8 @@ struct Nodo *buscar(struct Nodo *lista, int pid)
     }
     return NULL;
 }
-struct Nodo *buscarGID(struct Nodo *lista, int gid)
-{
-    struct Nodo *actual = lista;
 
-    while (actual != NULL)
-    {
-        if (actual->GID == gid)
-        {
-            return actual;
-        }
-        actual = actual->sig;
-    }
-    return NULL;
-}
-
-struct Nodo *forkProceso(struct Nodo *proceso_original, int nuevo_pid, int nuevo_pc)
+struct Nodo *forkProceso(struct Nodo *proceso_original, int nuevo_pid, int nuevo_gid, int nuevo_pc)
 {
     struct Nodo *nuevo = (struct Nodo *)malloc(sizeof(struct Nodo));
 
@@ -228,10 +214,10 @@ struct Nodo *forkProceso(struct Nodo *proceso_original, int nuevo_pid, int nuevo
         return NULL;
     }
 
-    nuevo->GID = proceso_original->GID;
+    nuevo->GID = nuevo_gid;
     nuevo->PID = nuevo_pid;
     strcpy(nuevo->nombrePro, proceso_original->nombrePro);
-    //nuevo->Archivo = fopen(proceso_original->nombrePro, "r"); // requiere tener su propio puntero
+    nuevo->Archivo = fopen(proceso_original->nombrePro, "r"); // requiere tener su propio puntero
     nuevo->EAX = 0;
     nuevo->EBX = 0;
     nuevo->ECX = 0;
@@ -258,8 +244,7 @@ struct Nodo *forkProceso(struct Nodo *proceso_original, int nuevo_pid, int nuevo
     return nuevo;
 }
 
-struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_terminados, struct Nodo **lista_suspendidos,
-                                 int pid_comando, int nuevo_pid, int pc)
+struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_terminados, struct Nodo **lista_suspendidos, int pid_comando, int nuevo_pid, int pc)
 {
     struct Nodo *original = NULL;
     struct Nodo *nuevo = NULL;
@@ -291,7 +276,7 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lis
         return NULL;
     }
 
-    nuevo = forkProceso(original, nuevo_pid, pc);
+    nuevo = forkProceso(original, nuevo_pid, pc, original->GID);
 
     if (nuevo == NULL)
     {
@@ -502,7 +487,7 @@ void RevisarSuspendidos(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucio
             {
                 p->TIEMPO_SUSP = 0; // limpiamos su tiempito
 
-                EscrituraRam(swap, RAM,lista_ejecucion,*lista_listos,*lista_suspendidos,p, TMM, pagina); // cargamos la pagina que necesita el proceso
+                EscrituraRam(swap, RAM, pagina, p->TMP, TMM, p->PID); // cargamos la pagina que necesita el proceso
                 imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                 limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
                 imprimir_TMP(p->TMP, y_renglon_TMP, x_TMP, p->num_paginas, p->PID);
