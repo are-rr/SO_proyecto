@@ -491,7 +491,7 @@ void RevisarSuspendidos(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucio
 
             if (RAMLlena(TMM))
             {
-                AlgoritmoReloj(TMM, RAM, *lista_listos, lista_ejecucion, *lista_suspendidos);
+                AlgoritmoReloj(RAM, lista_ejecucion, *lista_listos, *lista_suspendidos, TMM);
                 limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
                 imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
             }
@@ -506,7 +506,7 @@ void RevisarSuspendidos(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucio
                 imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                 limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
                 imprimir_TMP(p->TMP, y_renglon_TMP, x_TMP, p->num_paginas, p->PID);
-                porcentajes(TMS, TMM, porS, porR);
+                porcentajes(TMM, TMS, porS, porR);
 
                 insertarFinal(lista_listos, p); // insertamos al final de listos
                 // mvprintw(6, 0, "PID %d sale de suspendidos", p->PID);
@@ -528,7 +528,7 @@ void RevisarNuevos(FILE *swap, struct Nodo **lista_listos, struct Nodo **lista_n
         sig = procesoN->sig;
         if (procesoN->num_paginas <= n)
         {
-            if (reescritura(procesoN->nombrePro, swap, procesoN->PID, TMS, procesoN->TMP) == 0)
+            if (reescritura(swap, procesoN->nombrePro, procesoN->TMP, TMS, procesoN->PID) == 0)
             {
                 extraerNodo(lista_nuevos, procesoN->PID);
                 insertarFinal(lista_listos, procesoN);
@@ -606,14 +606,14 @@ int procesarMata(FILE *swap, char RAM[][400], char archivo[], struct Nodo **list
 
     if (lista != 2 && Busqueda_GID(lista_ejecucion, lista_listos, lista_suspendidos, gid_matado) == 0)
     {
-        liberarSWAP(swap, pMata->TMP, pMata->num_paginas, TMS);
+        liberarSWAP(swap, pMata->TMP, TMS, pMata->num_paginas);
         liberarRAMproceso(RAM, TMM, pMata->PID);
         RevisarNuevos(swap, lista_listos, lista_nuevos, TMS);
         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
         limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
-        porcentajes(TMS, TMM, porS, porR);
+        porcentajes(TMM, TMS, porS, porR);
         (*grupos)--;
     }
     if (lista == 2)

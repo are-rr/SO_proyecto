@@ -6,7 +6,7 @@
 
 #include "procesos.h"
 // recibe el nombre de un registro y un proceso
-int *ObtenerRegistro(char *nombre, struct Nodo *p)
+int *ObtenerRegistro(struct Nodo *p, char *nombre)
 {
     if (strcmp(nombre, "EAX") == 0)
     {
@@ -27,19 +27,19 @@ int *ObtenerRegistro(char *nombre, struct Nodo *p)
     return NULL;
 } // devuleve la direccion del registro correspondiente dentro del proceso
 
-int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *linea_original, char tipoOp, struct Nodo *proceso)
+int ejecutarOperaciones(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea, char tipoOp)
 {
-    if (!filtro(arg1, arg2, contadorLinea, linea_original))
+    if (!filtro(arg1, arg2, linea_original, contadorLinea))
         return 0;
     if (!Comas_2pam(linea_original, contadorLinea))
         return 0;
     //*acceder al contenido apuntado
     // R1 = &proceso->EAX
-    int *R1 = ObtenerRegistro(arg1, proceso);
+    int *R1 = ObtenerRegistro(proceso, arg1);
     int valor = 0;
 
     if (Registro(arg2)){
-        valor = *ObtenerRegistro(arg2, proceso);
+        valor = *ObtenerRegistro(proceso, arg2);
     }else{
         if (!valivarLimitInt(arg2, &valor)){
             limpiarZona(y_mensajes, 0, ancho_procesos);
@@ -82,9 +82,9 @@ int ejecutarOperaciones(char *arg1, char *arg2, int contadorLinea, const char *l
     return 1;
 }
 
-int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incremento, struct Nodo *proceso)
+int INC_DEC(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea, int incremento)
 {
-    if (!filtroIncDecJnz(arg1, NULL, contadorLinea, linea_original))
+    if (!filtroIncDecJnz(arg1, NULL, linea_original, contadorLinea))
         return 0;
     if (!Comas_1pam(linea_original, contadorLinea))
         return 0;
@@ -96,7 +96,7 @@ int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incre
         return 0;
     }
 
-    int *R = ObtenerRegistro(arg1, proceso);
+    int *R = ObtenerRegistro(proceso, arg1);
     long long resultado = (long long)(*R) + incremento;
 
     if (resultado > INT_MAX || resultado < INT_MIN) {
@@ -113,9 +113,10 @@ int INC_DEC(char *arg1, int contadorLinea, const char *linea_original, int incre
     return 1;
 }
 
-int JNZ_(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso)
+int JNZ_(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea)
 {
-    if (!filtroIncDecJnz(arg1, NULL, contadorLinea, linea_original)){
+    if (!filtroIncDecJnz(arg1, NULL, linea_original, contadorLinea))
+    {
         return 0;
     }
     if (!Comas_1pam(linea_original, contadorLinea)){
@@ -157,32 +158,29 @@ int JNZ_(char *arg1, int contadorLinea, const char *linea_original, struct Nodo 
         refresh();
         return 2;
     }
-
-    
-    
 }
 
-int MOV(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso){
-    return ejecutarOperaciones(arg1, arg2, contadorLinea, linea_original, 'M', proceso);
+int MOV(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea){
+    return ejecutarOperaciones(proceso, arg1, arg2, linea_original, contadorLinea, 'M');
 }
-int ADD(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso){
-    return ejecutarOperaciones(arg1, arg2, contadorLinea, linea_original, 'A', proceso);
+int ADD(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea){
+    return ejecutarOperaciones(proceso, arg1, arg2, linea_original, contadorLinea, 'A');
 }
-int SUB(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso){
-    return ejecutarOperaciones(arg1, arg2, contadorLinea, linea_original, 'S', proceso);
+int SUB(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea){
+    return ejecutarOperaciones(proceso, arg1, arg2, linea_original, contadorLinea, 'S');
 }
-int MUL(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso){
-    return ejecutarOperaciones(arg1, arg2, contadorLinea, linea_original, 'U', proceso);
+int MUL(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea){
+    return ejecutarOperaciones(proceso, arg1, arg2, linea_original, contadorLinea, 'U');
 }
-int DIV(char *arg1, char *arg2, int contadorLinea, const char *linea_original, struct Nodo *proceso){
-    return ejecutarOperaciones(arg1, arg2, contadorLinea, linea_original, 'D', proceso);
+int DIV(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea){
+    return ejecutarOperaciones(proceso, arg1, arg2, linea_original, contadorLinea, 'D');
 }
-int INC(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso){
-    return INC_DEC(arg1, contadorLinea, linea_original, 1, proceso);
+int INC(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea){
+    return INC_DEC(proceso, arg1, linea_original, contadorLinea, 1);
 } // positivo para que sume
-int DEC(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso){
-    return INC_DEC(arg1, contadorLinea, linea_original, -1, proceso);
+int DEC(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea){
+    return INC_DEC(proceso, arg1, linea_original, contadorLinea, -1);
 } // argumento negativo para que decremente
-int JNZ(char *arg1, int contadorLinea, const char *linea_original, struct Nodo *proceso){
-    return JNZ_(arg1, contadorLinea, linea_original, proceso);
+int JNZ(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea){
+    return JNZ_(proceso, arg1, linea_original, contadorLinea);
 }

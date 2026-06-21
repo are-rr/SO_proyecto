@@ -181,10 +181,10 @@ int main()
                     //  ver si se puede cargar a swap
                     if (nuevo->num_paginas <= marcos_libres)
                     {
-                        int result_reescritura = reescritura(archivo, swap, pid, TMS, nuevo->TMP);
+                        int result_reescritura = reescritura(swap, archivo, nuevo->TMP, TMS, pid);
                         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
-                        porcentajes(TMS, TMM, &porS, &porR);
+                        porcentajes(TMM, TMS, &porS, &porR);
 
                         if (result_reescritura == 1)
                         { // no cupo
@@ -409,11 +409,11 @@ int main()
 
                     if (Busqueda_GID(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoEjecucion->GID) == 0)
                     { // revisar si todavia hay procesos con ese GID
-                        liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
+                        liberarSWAP(swap, procesoEjecucion->TMP, TMS, procesoEjecucion->num_paginas);
                         liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
                         RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                         limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
-                        porcentajes(TMS, TMM, &porS, &porR);
+                        porcentajes(TMM, TMS, &porS, &porR);
                         limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
                         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
@@ -438,20 +438,20 @@ int main()
 
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
                 // Sintaxis para los espacios y Verifica si la instruccion es valida
-                if (!validarEspacios(linea_original, instruccion, contadorLinea) || !Operaciones(instruccion, contadorLinea, linea_original))
+                if (!validarEspacios(linea_original, instruccion, contadorLinea) || !Operaciones(instruccion, linea_original, contadorLinea))
                 {
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion, &lista_terminados);
                     if (Busqueda_GID(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoEjecucion->GID) == 0)
                     {
-                        liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
+                        liberarSWAP(swap, procesoEjecucion->TMP, TMS, procesoEjecucion->num_paginas);
                         liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
                         RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                         limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
                         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
-                        porcentajes(TMS, TMM, &porS, &porR);
+                        porcentajes(TMM, TMS, &porS, &porR);
                         grupos--;
                     }
                     // mvprintw(y_variable,0,"numero de grupos:%d",grupos);
@@ -461,28 +461,28 @@ int main()
                     break;
                 }
 
-                if ((strcmp(instruccion, "MOV") == 0 && !MOV(arg1, arg2, contadorLinea, linea_original, procesoEjecucion)) ||
-                    (strcmp(instruccion, "ADD") == 0 && !ADD(arg1, arg2, contadorLinea, linea_original, procesoEjecucion)) ||
-                    (strcmp(instruccion, "SUB") == 0 && !SUB(arg1, arg2, contadorLinea, linea_original, procesoEjecucion)) ||
-                    (strcmp(instruccion, "MUL") == 0 && !MUL(arg1, arg2, contadorLinea, linea_original, procesoEjecucion)) ||
-                    (strcmp(instruccion, "DIV") == 0 && !DIV(arg1, arg2, contadorLinea, linea_original, procesoEjecucion)) ||
-                    (strcmp(instruccion, "INC") == 0 && !INC(arg1, contadorLinea, linea_original, procesoEjecucion)) ||
-                    (strcmp(instruccion, "DEC") == 0 && !DEC(arg1, contadorLinea, linea_original, procesoEjecucion)) ||
-                    (strcmp(instruccion, "JNZ") == 0 && JNZ(arg1, contadorLinea, linea_original, procesoEjecucion) == 0))
+                if ((strcmp(instruccion, "MOV") == 0 && !MOV(procesoEjecucion, arg1, arg2, linea_original, contadorLinea)) ||
+                    (strcmp(instruccion, "ADD") == 0 && !ADD(procesoEjecucion, arg1, arg2, linea_original, contadorLinea)) ||
+                    (strcmp(instruccion, "SUB") == 0 && !SUB(procesoEjecucion, arg1, arg2, linea_original, contadorLinea)) ||
+                    (strcmp(instruccion, "MUL") == 0 && !MUL(procesoEjecucion, arg1, arg2, linea_original, contadorLinea)) ||
+                    (strcmp(instruccion, "DIV") == 0 && !DIV(procesoEjecucion, arg1, arg2, linea_original, contadorLinea)) ||
+                    (strcmp(instruccion, "INC") == 0 && !INC(procesoEjecucion, arg1, linea_original, contadorLinea)) ||
+                    (strcmp(instruccion, "DEC") == 0 && !DEC(procesoEjecucion, arg1, linea_original, contadorLinea)) ||
+                    (strcmp(instruccion, "JNZ") == 0 && JNZ(procesoEjecucion, arg1, linea_original, contadorLinea) == 0))
                 {
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion, &lista_terminados);
 
                     if (Busqueda_GID(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoEjecucion->GID) == 0)
                     {
-                        liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
+                        liberarSWAP(swap, procesoEjecucion->TMP, TMS, procesoEjecucion->num_paginas);
                         liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
                         RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                         limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
                         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
-                        porcentajes(TMS, TMM, &porS, &porR);
+                        porcentajes(TMM, TMS, &porS, &porR);
                         grupos--;
                     }
                     mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
@@ -491,11 +491,11 @@ int main()
                     reiniciarVariables(comando, archivo);
                     break;
                 }
-                else if (strcmp(instruccion, "JNZ") == 0 && JNZ(arg1, contadorLinea, linea_original, procesoEjecucion) == 1)
+                else if (strcmp(instruccion, "JNZ") == 0 && JNZ(procesoEjecucion, arg1, linea_original, contadorLinea) == 1)
                 {
                     contadorLinea = procesoEjecucion->PC;
                 }
-                else if (strcmp(instruccion, "JNZ") == 0 && JNZ(arg1, contadorLinea, linea_original, procesoEjecucion) == 2)
+                else if (strcmp(instruccion, "JNZ") == 0 && JNZ(procesoEjecucion, arg1, linea_original, contadorLinea) == 2)
                 {
                     q++;
                 }
@@ -520,14 +520,14 @@ int main()
                         insertarFinal(&lista_terminados, procesoTerminado);
                         if (Busqueda_GID(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoEjecucion->GID) == 0)
                         {
-                            liberarSWAP(swap, procesoTerminado->TMP, procesoTerminado->num_paginas, TMS);
+                            liberarSWAP(swap, procesoTerminado->TMP, TMS, procesoTerminado->num_paginas);
                             liberarRAMproceso(RAM, TMM, procesoTerminado->GID);
                             RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                             // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                             // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                             limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
                             imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
-                            porcentajes(TMS, TMM, &porS, &porR);
+                            porcentajes(TMM, TMS, &porS, &porR);
                             grupos--;
                         }
                     }
@@ -633,9 +633,9 @@ int main()
                             if (nuevoP->num_paginas <= marcos_libres)
                             {
                                 // ver si se peude cargar a swap
-                                int result_reescritura = reescritura(archivo, swap, pid, TMS, nuevoP->TMP);
+                                int result_reescritura = reescritura(swap, archivo,nuevoP->TMP, TMS, pid);
                                 // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
-                                porcentajes(TMS, TMM, &porS, &porR);
+                                porcentajes(TMM, TMS, &porS, &porR);
                                 if (result_reescritura == 1)
                                 { // no cupo
                                     mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
@@ -766,14 +766,14 @@ int main()
                 A_terminadosError(&lista_ejecucion, &lista_terminados);
                 if (Busqueda_GID(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoEjecucion->GID) == 0)
                 {
-                    liberarSWAP(swap, procesoEjecucion->TMP, procesoEjecucion->num_paginas, TMS);
+                    liberarSWAP(swap, procesoEjecucion->TMP, TMS, procesoEjecucion->num_paginas);
                     liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
                     RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                     limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                     // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                     limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
                     imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
-                    porcentajes(TMS, TMM, &porS, &porR);
+                    porcentajes(TMM, TMS, &porS, &porR);
                     grupos--;
                 }
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);

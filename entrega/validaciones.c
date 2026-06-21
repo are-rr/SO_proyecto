@@ -20,7 +20,7 @@ int Registro(char *token){
     return 0;
 }
 
-int Operaciones(char *token, int contadorLinea, const char *linea_original)
+int Operaciones(char *token, const char *linea_original, int contadorLinea)
 {
     char Instrucciones[9][10] = {"MOV", "ADD", "SUB", "MUL", "DIV", "INC", "DEC", "END", "JNZ"};
     for (int i = 0; i < 9; i++)
@@ -66,7 +66,8 @@ int valivarLimitInt(char *token, int *resultado){
     return 1;
 }
 
-int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original){
+int filtro(char *arg1, char *arg2, const char *linea_original, int contadorLinea)
+{
     if (arg1 == NULL || arg2 == NULL){
         move(y_mensajes, 0);
         clrtoeol();
@@ -84,7 +85,7 @@ int filtro(char *arg1, char *arg2, int contadorLinea, const char *linea_original
     return 1;
 }
 
-int filtroIncDecJnz(char *arg1, char *arg2, int contadorLinea, const char *linea_original)
+int filtroIncDecJnz(char *arg1, char *arg2, const char *linea_original, int contadorLinea)
 {
     if (arg1 == NULL)
     {
@@ -175,7 +176,7 @@ int Comas_1pam(const char *linea_original, int contadorLinea)
 int validarEspacios(const char *linea_original, char *instruccion, int contadorLinea)
 {
     int i = 0;
-    if (!Operaciones(instruccion, contadorLinea, linea_original))
+    if (!Operaciones(instruccion, linea_original, contadorLinea))
     {
         return 0;
     }
