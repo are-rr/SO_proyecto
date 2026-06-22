@@ -363,8 +363,7 @@ int main()
                 pagina = direccion_virtual / 4;
                 desplazamiento = direccion_virtual % 4;
 
-                if (BitPresencia_TMP(procesoEjecucion->TMP, pagina) == 0)
-                { // RAM
+                if (BitPresencia_TMP(procesoEjecucion->TMP, pagina) == 0){ // RAM
 
                     // RAM llena
                     struct Nodo *procesoSuspendido = extraerNodo(&lista_ejecucion, procesoEjecucion->PID);
@@ -372,6 +371,7 @@ int main()
                     {
                         TiempoEnSuspendidos(procesoSuspendido);
                         procesoSuspendido->PC = contadorLinea;
+                        //actualizarTMPGrupo(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoSuspendido);
                         insertarFinal(&lista_suspendidos, procesoSuspendido);
                         limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
                         imprimir_TMP(procesoSuspendido->TMP, y_renglon_TMP, x_TMP, procesoSuspendido->num_paginas, procesoSuspendido->PID);

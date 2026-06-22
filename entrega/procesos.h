@@ -130,11 +130,11 @@ void EscrituraRam(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucion, str
 void AlgoritmoReloj(char RAM[][400], struct Nodo *lista_ejecucion, struct Nodo *lista_listos, struct Nodo *lista_suspendidos, int TMM[][2]);
 void actualizarTMPdeMarcoL(struct Nodo *lista_ejecucion, struct Nodo *lista_listos, struct Nodo *lista_suspendidos, int gidDueno, int marcoLiberado);
 void LiberarRAM(char RAM[][400], int marco);
-void liberarRAMproceso(char RAM[][400], int TMM[][2], int pid);
+void liberarRAMproceso(char RAM[][400], int TMM[][2], int gid);
 void liberarSWAP(FILE *swap, int TMP[][3], int TMS[], int num_paginas);
 int marcosLS(int TMS[]);
 int marcosLR(int TMM[][2]);
 void porcentajes(int TMM[][2], int TMS[], int *porS, int *porR);
 void actualizarTMPGrupo(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, struct Nodo **lista_suspendidos, struct Nodo *proceso);
-
+int BusquedaBitP(struct Nodo *lista_ejecucion, struct Nodo *lista_listos, struct Nodo *lista_suspendidos, struct Nodo *proceso, int pagina);
 #endif

@@ -495,14 +495,17 @@ void RevisarSuspendidos(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucio
                 limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
                 imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
             }
+
+
             // no se usa &lista_suspendidos porque lista_suspendidos ya es un doble puntero
             struct Nodo *p = extraerNodo(lista_suspendidos, actual->PID);
 
             if (p != NULL)
             {
                 p->TIEMPO_SUSP = 0; // limpiamos su tiempito
-
-                EscrituraRam(swap, RAM,lista_ejecucion,*lista_listos,*lista_suspendidos,p, TMM, pagina); // cargamos la pagina que necesita el proceso
+                if((BusquedaBitP(lista_ejecucion,*lista_listos,*lista_suspendidos,p,pagina))==0){
+                    EscrituraRam(swap, RAM, lista_ejecucion, *lista_listos, *lista_suspendidos, p, TMM, pagina); // cargamos la pagina que necesita el proceso
+                }
                 imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                 limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
                 imprimir_TMP(p->TMP, y_renglon_TMP, x_TMP, p->num_paginas, p->PID);
@@ -607,7 +610,7 @@ int procesarMata(FILE *swap, char RAM[][400], char archivo[], struct Nodo **list
     if (lista != 2 && Busqueda_GID(lista_ejecucion, lista_listos, lista_suspendidos, gid_matado) == 0)
     {
         liberarSWAP(swap, pMata->TMP, TMS, pMata->num_paginas);
-        liberarRAMproceso(RAM, TMM, pMata->PID);
+        liberarRAMproceso(RAM, TMM, pMata->GID);
         RevisarNuevos(swap, lista_listos, lista_nuevos, TMS);
         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);

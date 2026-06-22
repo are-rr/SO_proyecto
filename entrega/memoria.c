@@ -218,7 +218,7 @@ void AlgoritmoReloj(char RAM[][400], struct Nodo *lista_ejecucion, struct Nodo *
 }
 
 void actualizarTMPdeMarcoL(struct Nodo *lista_ejecucion, struct Nodo *lista_listos, struct Nodo *lista_suspendidos, int gidDueno, int marcoLiberado){
-    struct Nodo *p = buscar(lista_ejecucion, gidDueno);
+    struct Nodo *p = buscarGID(lista_ejecucion, gidDueno);
 
     if (p == NULL){
         p = buscar(lista_listos, gidDueno);
@@ -243,10 +243,10 @@ void LiberarRAM(char RAM[][400], int marco){
     memset(RAM[marco], '\0', sizeof(RAM[marco]));
 }
 
-void liberarRAMproceso(char RAM[][400], int TMM[][2], int pid)
+void liberarRAMproceso(char RAM[][400], int TMM[][2], int gid)
 {
     for (int i = 0; i < 16; i++){
-        if (TMM[i][0] == pid){
+        if (TMM[i][0] == gid){
             memset(RAM[i], '\0', 400);
 
             TMM[i][0] = 0; // marco libre
@@ -338,4 +338,47 @@ void actualizarTMPGrupo(struct Nodo **lista_ejecucion, struct Nodo **lista_listo
         }
         actual = actual->sig;
     }
+}
+
+int BusquedaBitP(struct Nodo *lista_ejecucion, struct Nodo *lista_listos, struct Nodo *lista_suspendidos, struct Nodo *proceso,int pagina){
+    int GID = proceso->GID; // GID del grupo
+    struct Nodo *actual = lista_listos;
+
+    while (actual != NULL)
+    {
+        if (actual->GID == GID)
+        { // Encontro un proceso con el mismo GID
+            if(actual->TMP[pagina][0] == 1 ){
+                return 1;
+            }
+        }
+        actual = actual->sig;
+    }
+
+    actual = lista_ejecucion; // se busca por si el unico proceso del grupo esta ejecutandose
+    while (actual != NULL)
+    {
+        if (actual->GID == GID)
+        {
+            if (actual->TMP[pagina][0] == 1)
+            {
+                return 1;
+            }
+        }
+        actual = actual->sig;
+    }
+
+    actual = lista_suspendidos; // se busca por si el unico proceso del grupo esta ejecutandose
+    while (actual != NULL)
+    {
+        if (actual->GID == GID)
+        {
+            if (actual->TMP[pagina][0] == 1)
+            {
+                return 1;
+            }
+        }
+        actual = actual->sig;
+    }
+    return 0;
 }
