@@ -7,6 +7,7 @@
 
 // cordenadas de fila
 int ancho_procesos = 155;
+int ancho_tablas = 35;
 int y_header = 0;
 int y_renglon = 1;
 int y_mensajes = 3;
@@ -15,17 +16,14 @@ int y_linea_comando = 5;
 int y_header2 = 7;
 int y_procesoEjecucion = 8;
 
-int ancho_TMP = 35;
 int y_header_TMP = 1;
 int y_renglon_TMP = 2;
 int x_TMP = 160;
 
-int ancho_TMM = 35;
 int y_header_TMM = 1;
 int y_renglon_TMM = 2;
 int x_TMM = 195;
 
-int ancho_TMS = 35;
 int y_header_TMS = 33;
 int y_renglon_TMS = 34;
 int x_TMS = 160;
@@ -207,6 +205,8 @@ int main()
                 }
                 else
                 {
+                    pid--;
+                    gid--;
                     limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "ERROR: El proceso es mas grande que el swap.");
                     reiniciarVariables(comando, archivo);
@@ -310,7 +310,7 @@ int main()
             refresh();
             
         }
-        limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+        limpiarZonaTabla(y_renglon_TMM, x_TMM);
         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
         // mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
         //  Si no se tiene nada en ejecucion, pero si hay algo en listos
@@ -322,7 +322,7 @@ int main()
                 insertarFinal(&lista_ejecucion, proceso);
                 //mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
-                limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
+                limpiarZonaTabla(y_renglon_TMP, x_TMP);
                 imprimir_TMP(proceso->TMP, y_renglon_TMP, x_TMP, proceso->num_paginas, proceso->PID);
                 refresh();
             }
@@ -373,7 +373,7 @@ int main()
                         procesoSuspendido->PC = contadorLinea;
                         //actualizarTMPGrupo(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoSuspendido);
                         insertarFinal(&lista_suspendidos, procesoSuspendido);
-                        limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
+                        limpiarZonaTabla(y_renglon_TMP, x_TMP);
                         imprimir_TMP(procesoSuspendido->TMP, y_renglon_TMP, x_TMP, procesoSuspendido->num_paginas, procesoSuspendido->PID);
                         refresh();
                     }
@@ -412,14 +412,14 @@ int main()
                         liberarSWAP(swap, procesoEjecucion->TMP, TMS, procesoEjecucion->num_paginas);
                         liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
                         RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
-                        limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
+                        limpiarZonaTabla(y_renglon_TMS, x_TMS);
                         porcentajes(TMM, TMS, &porS, &porR);
-                        limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+                        limpiarZonaTabla(y_renglon_TMM, x_TMM);
                         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                         grupos--;
                     }
-                    mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
+                    //mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
                     huboError = 1;
                     comando[0] = '\0';
                     archivo[0] = '\0';
@@ -449,7 +449,7 @@ int main()
                         RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
-                        limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+                        limpiarZonaTabla(y_renglon_TMM, x_TMM);
                         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                         porcentajes(TMM, TMS, &porS, &porR);
                         grupos--;
@@ -480,12 +480,12 @@ int main()
                         RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
-                        limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+                        limpiarZonaTabla(y_renglon_TMM, x_TMM);
                         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                         porcentajes(TMM, TMS, &porS, &porR);
                         grupos--;
                     }
-                    mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
+                    //mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
                     imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
                     huboError = 1;
                     reiniciarVariables(comando, archivo);
@@ -525,7 +525,7 @@ int main()
                             RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
                             // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                             // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
-                            limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+                            limpiarZonaTabla(y_renglon_TMM, x_TMM);
                             imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                             porcentajes(TMM, TMS, &porS, &porR);
                             grupos--;
@@ -664,6 +664,8 @@ int main()
                             limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "ERROR: El proceso es mas grande que el swap.");
                             reiniciarVariables(comando, archivo);
+                            pid--;
+                            gid--;
                             refresh();
                             continue;
                         }
@@ -742,7 +744,7 @@ int main()
 
             if (lista_ejecucion == NULL)
             {
-                limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
+                limpiarZonaTabla(y_renglon_TMP, x_TMP);
                 reiniciarVariables(comando, archivo);
                 continue;
             }
@@ -769,9 +771,9 @@ int main()
                     liberarSWAP(swap, procesoEjecucion->TMP, TMS, procesoEjecucion->num_paginas);
                     liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
                     RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
-                    limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
+                    limpiarZonaTabla(y_renglon_TMS, x_TMS);
                     // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
-                    limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+                    limpiarZonaTabla(y_renglon_TMM, x_TMM);
                     imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                     porcentajes(TMM, TMS, &porS, &porR);
                     grupos--;

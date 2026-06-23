@@ -469,6 +469,7 @@ void TiempoEnSuspendidos(struct Nodo *proceso)
 {
     srand(time(NULL));
     int tiempo = rand() % 9 + 2; // entre 2 a 10 segundos
+    //proceso->TIEMPO_SUSP = time(NULL) + 0;
     proceso->TIEMPO_SUSP = time(NULL) + tiempo;
 }
 
@@ -492,7 +493,7 @@ void RevisarSuspendidos(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucio
             if (RAMLlena(TMM))
             {
                 AlgoritmoReloj(RAM, lista_ejecucion, *lista_listos, *lista_suspendidos, TMM);
-                limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+                limpiarZonaTabla(y_renglon_TMM, x_TMM);
                 imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
             }
 
@@ -507,7 +508,7 @@ void RevisarSuspendidos(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucio
                     EscrituraRam(swap, RAM, lista_ejecucion, *lista_listos, *lista_suspendidos, p, TMM, pagina); // cargamos la pagina que necesita el proceso
                 }
                 imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
-                limpiarZonaTabla(y_renglon_TMP, x_TMP, ancho_TMP);
+                limpiarZonaTabla(y_renglon_TMP, x_TMP);
                 imprimir_TMP(p->TMP, y_renglon_TMP, x_TMP, p->num_paginas, p->PID);
                 porcentajes(TMM, TMS, porS, porR);
 
@@ -614,7 +615,7 @@ int procesarMata(FILE *swap, char RAM[][400], char archivo[], struct Nodo **list
         RevisarNuevos(swap, lista_listos, lista_nuevos, TMS);
         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
-        limpiarZonaTabla(y_renglon_TMM, x_TMM, ancho_TMM);
+        limpiarZonaTabla(y_renglon_TMM, x_TMM);
         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
         porcentajes(TMM, TMS, porS, porR);
         (*grupos)--;

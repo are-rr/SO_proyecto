@@ -88,14 +88,12 @@ int INC_DEC(struct Nodo *proceso, char *arg1, const char *linea_original, int co
         return 0;
     if (!Comas_1pam(linea_original, contadorLinea))
         return 0;
-    if (!Registro(arg1))
-    {
+    if (!Registro(arg1)){
         limpiarZona(y_mensajes, 0, ancho_procesos);
         mvprintw(y_mensajes, 0, "ERROR: NO es Registro %s en linea %d:\"%s\"", arg1, contadorLinea, linea_original);
         refresh();
         return 0;
     }
-
     int *R = ObtenerRegistro(proceso, arg1);
     long long resultado = (long long)(*R) + incremento;
 

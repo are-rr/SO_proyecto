@@ -59,13 +59,13 @@ void imprimirEstado(struct Nodo *listos, struct Nodo *ejecucion, struct Nodo *te
 void imprimir_TMP(int TMP[][3], int y_renglon_TMP, int x_TMP,int paginas,int pid){
     int y = y_renglon_TMP;
     int renglones = 30;
-    limpiarZona(0, x_TMP, ancho_TMM);
+    limpiarZona(0, x_TMP, ancho_tablas);
     mvprintw(0, x_TMP, "TMP de proceso: %d", pid);
     if(paginas < renglones){
         renglones = paginas;
     }
     for (int i = 0; i < renglones; i++){
-        limpiarZona(y, x_TMP, ancho_TMM);
+        limpiarZona(y, x_TMP, ancho_tablas);
         mvprintw(y, x_TMP, "%-5d %5d %5d %5d", i, TMP[i][0], TMP[i][1], TMP[i][2]);
         y++;
     }
@@ -75,11 +75,11 @@ void imprimir_TMP(int TMP[][3], int y_renglon_TMP, int x_TMP,int paginas,int pid
 void imprimir_TMS(int TMS[], int y_renglon_TMS, int x_TMS){
     int y = y_renglon_TMS;
     int renglones = 28;
-    limpiarZona(32, x_TMS, ancho_TMS);
+    limpiarZona(32, x_TMS, ancho_tablas);
     mvprintw(32, x_TMS, "TMS");
     
     for (int i = 0; i < renglones; i++){
-        limpiarZona(y, x_TMS, ancho_TMS);
+        limpiarZona(y, x_TMS, ancho_tablas);
         mvprintw(y, x_TMS, "%-5d %5d", i, TMS[i]);
         y++;
     }
@@ -88,11 +88,11 @@ void imprimir_TMS(int TMS[], int y_renglon_TMS, int x_TMS){
 void imprimir_TMM(int TMM[][2], int y_renglon_TMM, int x_TMM){
     int y = y_renglon_TMM;
     int renglones = 16;
-    limpiarZona(0, x_TMM, ancho_TMM);
+    limpiarZona(0, x_TMM, ancho_tablas);
     mvprintw(0, x_TMM, "TMM");
 
     for (int i = 0; i < renglones; i++){
-        limpiarZona(y, x_TMM, ancho_TMM);
+        limpiarZona(y, x_TMM, ancho_tablas);
         mvprintw(y, x_TMM, "%-5d %5d %5d", i, TMM[i][0], TMM[i][1]);
         y++;
     }
@@ -105,8 +105,8 @@ void limpiarZona(int y, int x, int ancho){
     }
 }
 
-void limpiarZonaTabla(int renglon, int x,int ancho){
+void limpiarZonaTabla(int renglon, int x){
     for (int i = 0; i < 30; i++){
-        limpiarZona(renglon + i, x, ancho);
+        limpiarZona(renglon + i, x, ancho_tablas);
     }
 }
