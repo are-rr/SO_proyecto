@@ -84,16 +84,16 @@ int Negativo(char *numero);
 // operaciones
 int *ObtenerRegistro(struct Nodo * p, char * nombre);
 int ejecutarOperaciones(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea, char tipoOp);
-int INC_DEC(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea, int incremento);
-int JNZ_(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea);
+int INC_DEC(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea, int incremento);
+int JNZ_(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea);
 int MOV(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea);
 int ADD(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea);
 int SUB(struct Nodo * proceso, char * arg1, char *arg2, const char *linea_original, int contadorLinea);
 int MUL(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea);
 int DIV(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea);
-int INC(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea);
-int DEC(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea);
-int JNZ(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea);
+int INC(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea);
+int DEC(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea);
+int JNZ(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea);
 
 // ncurses
 void imprimirProceso(struct Nodo *p, int y_ncurse, const char *cadena);

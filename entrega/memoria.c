@@ -305,8 +305,8 @@ void porcentajes(int TMM[][2], int TMS[], int *porS, int *porR)
     *porS = 32768 - marcosS;
     *porR = 16 - marcosR;
 
-    limpiarZona(33, 195, 30);
-    limpiarZona(34, 195, 30);
+    limpiarZona(33, 195, 40);
+    limpiarZona(34, 195, 40);
     mvprintw(34, 195, "RAM en uso: %d/16 marcos", *porR);
     mvprintw(33, 195, "SWAP en uso: %d/32768 paginas", *porS);
     refresh();

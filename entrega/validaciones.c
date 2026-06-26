@@ -94,7 +94,7 @@ int filtroIncDecJnz(char *arg1, char *arg2, const char *linea_original, int cont
     else if (arg2 != NULL)
     {
         limpiarZona(y_mensajes, 0, ancho_procesos);
-        mvprintw(y_mensajes, 0, "ERROR INC/DEC solo debe tener un argumento en linea %d:\"%s\"", contadorLinea, linea_original);
+        mvprintw(y_mensajes, 0, "ERROR INC/DEC/JNZ solo debe tener un argumento en linea %d:\"%s\"", contadorLinea, linea_original);
         refresh();
         return 0;
     }
@@ -227,7 +227,7 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
     }*/
     //i++; // para saltar la coma
    
-    int contadorEspacio = 0;
+    /*int contadorEspacio = 0;
 
     for (int i = 0; linea_original[i] != '\0'; i++)
     {
@@ -240,7 +240,7 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
         mvprintw(y_mensajes, 0, "ERROR sintaxis linea %d:\"%s\"", contadorLinea, linea_original);
         refresh();
         return 0;
-    }
+    }*/
 
     for (int j = 0; linea_original[j] != '\0'; j++)
     {

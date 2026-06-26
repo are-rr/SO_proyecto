@@ -466,9 +466,9 @@ int main()
                     (strcmp(instruccion, "SUB") == 0 && !SUB(procesoEjecucion, arg1, arg2, linea_original, contadorLinea)) ||
                     (strcmp(instruccion, "MUL") == 0 && !MUL(procesoEjecucion, arg1, arg2, linea_original, contadorLinea)) ||
                     (strcmp(instruccion, "DIV") == 0 && !DIV(procesoEjecucion, arg1, arg2, linea_original, contadorLinea)) ||
-                    (strcmp(instruccion, "INC") == 0 && !INC(procesoEjecucion, arg1, linea_original, contadorLinea)) ||
-                    (strcmp(instruccion, "DEC") == 0 && !DEC(procesoEjecucion, arg1, linea_original, contadorLinea)) ||
-                    (strcmp(instruccion, "JNZ") == 0 && JNZ(procesoEjecucion, arg1, linea_original, contadorLinea) == 0))
+                    (strcmp(instruccion, "INC") == 0 && !INC(procesoEjecucion, arg1, arg2, linea_original, contadorLinea)) ||
+                    (strcmp(instruccion, "DEC") == 0 && !DEC(procesoEjecucion, arg1, arg2, linea_original, contadorLinea)) ||
+                    (strcmp(instruccion, "JNZ") == 0 && JNZ(procesoEjecucion, arg1, arg2, linea_original, contadorLinea) == 0))
                 {
                     strcpy(procesoEjecucion->IR, linea_original);
                     A_terminadosError(&lista_ejecucion, &lista_terminados);
@@ -491,11 +491,11 @@ int main()
                     reiniciarVariables(comando, archivo);
                     break;
                 }
-                else if (strcmp(instruccion, "JNZ") == 0 && JNZ(procesoEjecucion, arg1, linea_original, contadorLinea) == 1)
+                else if (strcmp(instruccion, "JNZ") == 0 && JNZ(procesoEjecucion, arg1, arg2, linea_original, contadorLinea) == 1)
                 {
                     contadorLinea = procesoEjecucion->PC;
                 }
-                else if (strcmp(instruccion, "JNZ") == 0 && JNZ(procesoEjecucion, arg1, linea_original, contadorLinea) == 2)
+                else if (strcmp(instruccion, "JNZ") == 0 && JNZ(procesoEjecucion, arg1, arg2, linea_original, contadorLinea) == 2)
                 {
                     q++;
                 }

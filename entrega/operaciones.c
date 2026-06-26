@@ -82,9 +82,9 @@ int ejecutarOperaciones(struct Nodo *proceso, char *arg1, char *arg2, const char
     return 1;
 }
 
-int INC_DEC(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea, int incremento)
+int INC_DEC(struct Nodo *proceso, char *arg1,char *arg2, const char *linea_original, int contadorLinea, int incremento)
 {
-    if (!filtroIncDecJnz(arg1, NULL, linea_original, contadorLinea))
+    if (!filtroIncDecJnz(arg1, arg2, linea_original, contadorLinea))
         return 0;
     if (!Comas_1pam(linea_original, contadorLinea))
         return 0;
@@ -111,9 +111,9 @@ int INC_DEC(struct Nodo *proceso, char *arg1, const char *linea_original, int co
     return 1;
 }
 
-int JNZ_(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea)
+int JNZ_(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea)
 {
-    if (!filtroIncDecJnz(arg1, NULL, linea_original, contadorLinea))
+    if (!filtroIncDecJnz(arg1, arg2, linea_original, contadorLinea))
     {
         return 0;
     }
@@ -173,12 +173,15 @@ int MUL(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original
 int DIV(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea){
     return ejecutarOperaciones(proceso, arg1, arg2, linea_original, contadorLinea, 'D');
 }
-int INC(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea){
-    return INC_DEC(proceso, arg1, linea_original, contadorLinea, 1);
+int INC(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea)
+{
+    return INC_DEC(proceso, arg1, arg2, linea_original, contadorLinea, 1);
 } // positivo para que sume
-int DEC(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea){
-    return INC_DEC(proceso, arg1, linea_original, contadorLinea, -1);
+int DEC(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea)
+{
+    return INC_DEC(proceso, arg1, arg2, linea_original, contadorLinea, -1);
 } // argumento negativo para que decremente
-int JNZ(struct Nodo *proceso, char *arg1, const char *linea_original, int contadorLinea){
-    return JNZ_(proceso, arg1, linea_original, contadorLinea);
+int JNZ(struct Nodo *proceso, char *arg1, char *arg2, const char *linea_original, int contadorLinea)
+{
+    return JNZ_(proceso, arg1, arg2, linea_original, contadorLinea);
 }
