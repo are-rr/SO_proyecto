@@ -142,7 +142,7 @@ int main()
 
                 pid++;
                 gid++;
-                // grupos++;
+
                 //  primero pasar a nuevos
                 if (!validarArchivo(archivo))
                 {
@@ -174,8 +174,6 @@ int main()
 
                     in_TMP(nuevo->TMP, nuevo->num_paginas);
                     int marcos_libres = marcosLS(TMS);
-                    // if (paginas <= 32768)
-                    //{
                     //  ver si se puede cargar a swap
                     if (nuevo->num_paginas <= marcos_libres)
                     {
@@ -183,17 +181,14 @@ int main()
                         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                         porcentajes(TMM, TMS, &porS, &porR);
-                        // NOTA:cambios para reescritura
-                        // if(!reescritura(swap, archivo, nuevo->TMP, TMS, pid)){
-                        if (result_reescritura == 0)
+                        if (result_reescritura == 1)
                         { // no cupo
                             mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
                             reiniciarVariables(comando, archivo);
                             refresh();
                             continue;
                         }
-                        // else if(reescritura(swap, archivo, nuevo->TMP, TMS, pid)){
-                        else if (result_reescritura == 1)
+                        else if (result_reescritura == 0)
                         {                                                     // Si es exite y cabe en swap pasamos a Listos
                             struct Nodo *p = extraerNodo(&lista_nuevos, pid); // pasamos a listos si todo bien
                             if (p != NULL)
@@ -375,7 +370,6 @@ int main()
                     {
                         TiempoEnSuspendidos(procesoSuspendido);
                         procesoSuspendido->PC = contadorLinea;
-                        //actualizarTMPGrupo(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoSuspendido);
                         insertarFinal(&lista_suspendidos, procesoSuspendido);
                         limpiarZonaTabla(y_renglon_TMP, x_TMP);
                         imprimir_TMP(procesoSuspendido->TMP, y_renglon_TMP, x_TMP, procesoSuspendido->num_paginas, procesoSuspendido->PID);
@@ -548,8 +542,6 @@ int main()
 
                 if (kbhit())
                 {
-                    // imprimirlista(procesoEjecucion, y_procesoEjecucion);
-
                     limpiarZona(y_linea_comando, 0, ancho_procesos);
                     refresh();
                     mvprintw(y_linea_comando, 0, "(D)> "); // Linea de comando que interrumpe(Dentro del kbhit)
@@ -598,7 +590,7 @@ int main()
 
                         pid++;
                         gid++;
-                        // grupos++;
+
                         //  primero pasar a nuevos
                         if (!validarArchivo(archivo))
                         {
@@ -633,25 +625,21 @@ int main()
 
                             in_TMP(nuevoP->TMP, nuevoP->num_paginas);
                             int marcos_libres = marcosLS(TMS);
-                            // if (paginas <= 32768)
-                            //{
+                            
                             if (nuevoP->num_paginas <= marcos_libres)
                             {
                                 // ver si se peude cargar a swap
-                                //NOTA: cambio por los returns:
                                 int result_reescritura = reescritura(swap, archivo,nuevoP->TMP, TMS, pid);
                                 // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                                 porcentajes(TMM, TMS, &porS, &porR);
-                                // if(!reescritura(swap, archivo, nuevo->TMP, TMS, pid)){
-                                if (result_reescritura == 0)
+                                if (result_reescritura == 1)
                                 { // no cupo
                                     mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
                                     reiniciarVariables(comando, archivo);
                                     refresh();
                                     continue;
                                 }
-                                // else if(reescritura(swap, archivo, nuevo->TMP, TMS, pid)){
-                                else if (result_reescritura == 1)
+                                else if (result_reescritura == 0)
                                 {
                                     struct Nodo *p = extraerNodo(&lista_nuevos, pid); // pasamos a listos si todo bien
                                     if (p != NULL)
@@ -678,7 +666,6 @@ int main()
                             refresh();
                             continue;
                         }
-                        // mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
                     }
                     else if (strcmp(comando, "mata") == 0)
                     {

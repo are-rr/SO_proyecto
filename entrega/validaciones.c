@@ -208,39 +208,6 @@ int validarEspacios(const char *linea_original, char *instruccion, int contadorL
         return 0;
     }
     i++; // validar espacio
-    // arg1
-    /*while (linea_original[i] && linea_original[i] != ',' && linea_original[i] != ' ') //NOTA: puede ser inecesario y solo sumarle 3 por el registro
-    {
-        i++;
-    }
-    // en caso de INC y DEC
-    if (strcmp(instruccion, "INC") == 0 || strcmp(instruccion, "DEC") == 0)
-    {
-        if (linea_original[i] != '\0')
-        {
-            limpiarZona(y_mensajes, 0, ancho_procesos);
-            mvprintw(y_mensajes, 0, "ERROR sintaxis linea %d:\"%s\" %s solo lleva 1 argumento y sin espacios extra", contadorLinea, linea_original, instruccion);
-            refresh();
-            return 0;
-        }
-        return 1;
-    }*/
-    //i++; // para saltar la coma
-   
-    /*int contadorEspacio = 0;
-
-    for (int i = 0; linea_original[i] != '\0'; i++)
-    {
-        if (linea_original[i] == ' ')
-            contadorEspacio++;
-    }
-    if (contadorEspacio > 1)
-    {
-        limpiarZona(y_mensajes, 0, ancho_procesos);
-        mvprintw(y_mensajes, 0, "ERROR sintaxis linea %d:\"%s\"", contadorLinea, linea_original);
-        refresh();
-        return 0;
-    }*/
 
     for (int j = 0; linea_original[j] != '\0'; j++)
     {

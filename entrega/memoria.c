@@ -111,7 +111,7 @@ int Paginacion(FILE *archivoProceso, FILE *swap, int TMP[][3], int TMS[], int PI
         // se busca el marco
         int marco = Busqueda_TMS(TMS);
         if (marco == -1){
-            return 0; // swap lleno
+            return 1; // swap lleno
         }
 
         // archivo donde me movere,desplazamiento(cuantos bytes me movere),origen
@@ -143,7 +143,7 @@ int Paginacion(FILE *archivoProceso, FILE *swap, int TMP[][3], int TMS[], int PI
         pagina++;
     }
 
-    return 1;
+    return 0;
 }
 
 int reescritura(FILE *ArchivoBinario, const char *NombrePro, int TMP[][3], int TMS[], int pid){
@@ -159,7 +159,7 @@ int BitPresencia_TMP(int TMP[][3], int pagina){
     return TMP[pagina][0];
 }
 
-int RAMLlena(int TMM[][2]){//NOTA: cambio estos returns???????????????????????
+int RAMLlena(int TMM[][2]){
     for (int i = 0; i < 16; i++){
         if (TMM[i][0] == 0){
             return 0; // todavía hay espacio

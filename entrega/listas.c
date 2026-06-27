@@ -231,7 +231,6 @@ struct Nodo *forkProceso(struct Nodo *proceso_original, int nuevo_pid, int nuevo
     nuevo->GID = proceso_original->GID;
     nuevo->PID = nuevo_pid;
     strcpy(nuevo->nombrePro, proceso_original->nombrePro);
-    //nuevo->Archivo = fopen(proceso_original->nombrePro, "r"); // requiere tener su propio puntero
     nuevo->EAX = 0;
     nuevo->EBX = 0;
     nuevo->ECX = 0;

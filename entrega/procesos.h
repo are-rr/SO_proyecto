@@ -7,7 +7,6 @@
 struct Nodo
 {
     int PID;             // identificador unico
-    //FILE *Archivo;       // nombre del archivo, Guardar el puntero al archivo FILE *
     char nombrePro[100]; // para el nombre del archivo
     int EAX;             // Registros
     int EBX;
