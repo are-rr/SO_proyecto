@@ -63,7 +63,7 @@ int main()
     char RAM[16][400];
 
     char *ArchivoBinario = "archivoBinario.bin";
-    if (Crear_ArchivoBinario(ArchivoBinario, 100) == 0)
+    if (Crear_ArchivoBinario(ArchivoBinario, 100))
     {
         refresh();
     }
@@ -144,7 +144,7 @@ int main()
                 gid++;
                 // grupos++;
                 //  primero pasar a nuevos
-                if (validarArchivo(archivo) == 1)
+                if (!validarArchivo(archivo))
                 {
                     limpiarZona(y_mensajes, 0, ancho_procesos);
                     mvprintw(y_mensajes, 0, "No se pudo abrir el archivo %s", archivo);
@@ -183,15 +183,17 @@ int main()
                         // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
                         // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                         porcentajes(TMM, TMS, &porS, &porR);
-
-                        if (result_reescritura == 1)
+                        // NOTA:cambios para reescritura
+                        // if(!reescritura(swap, archivo, nuevo->TMP, TMS, pid)){
+                        if (result_reescritura == 0)
                         { // no cupo
                             mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
                             reiniciarVariables(comando, archivo);
                             refresh();
                             continue;
                         }
-                        else if (result_reescritura == 0)
+                        // else if(reescritura(swap, archivo, nuevo->TMP, TMS, pid)){
+                        else if (result_reescritura == 1)
                         {                                                     // Si es exite y cabe en swap pasamos a Listos
                             struct Nodo *p = extraerNodo(&lista_nuevos, pid); // pasamos a listos si todo bien
                             if (p != NULL)
@@ -290,11 +292,13 @@ int main()
                     num_palabras = 0;
                     continue;
                 }
+                limpiarZona(y_mensajes, 0, ancho_procesos);
             }
             else
             {
                 limpiarZona(y_mensajes, 0, ancho_procesos);
                 mvprintw(y_mensajes, 0, "Comando no valido");
+                limpiarZona(y_linea_comando, 0, ancho_procesos);
                 refresh();
                 comando[0] = '\0';
                 archivo[0] = '\0';
@@ -596,10 +600,11 @@ int main()
                         gid++;
                         // grupos++;
                         //  primero pasar a nuevos
-                        if (validarArchivo(archivo) == 1)
+                        if (!validarArchivo(archivo))
                         {
                             limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "No se pudo abrir el archivo %s", archivo);
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             refresh();
                             pid--;
                             gid--;
@@ -633,17 +638,20 @@ int main()
                             if (nuevoP->num_paginas <= marcos_libres)
                             {
                                 // ver si se peude cargar a swap
+                                //NOTA: cambio por los returns:
                                 int result_reescritura = reescritura(swap, archivo,nuevoP->TMP, TMS, pid);
                                 // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                                 porcentajes(TMM, TMS, &porS, &porR);
-                                if (result_reescritura == 1)
+                                // if(!reescritura(swap, archivo, nuevo->TMP, TMS, pid)){
+                                if (result_reescritura == 0)
                                 { // no cupo
                                     mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
                                     reiniciarVariables(comando, archivo);
                                     refresh();
                                     continue;
                                 }
-                                else if (result_reescritura == 0)
+                                // else if(reescritura(swap, archivo, nuevo->TMP, TMS, pid)){
+                                else if (result_reescritura == 1)
                                 {
                                     struct Nodo *p = extraerNodo(&lista_nuevos, pid); // pasamos a listos si todo bien
                                     if (p != NULL)
@@ -664,6 +672,7 @@ int main()
                             limpiarZona(y_mensajes, 0, ancho_procesos);
                             mvprintw(y_mensajes, 0, "ERROR: El proceso es mas grande que el swap.");
                             reiniciarVariables(comando, archivo);
+                            limpiarZona(y_linea_comando, 0, ancho_procesos);
                             pid--;
                             gid--;
                             refresh();
@@ -729,6 +738,7 @@ int main()
                             num_palabras = 0;
                             continue;
                         }
+                       
                     }
                     else
                     { // La interrupcion con un comando que no es Salir o Ejecuta o mata

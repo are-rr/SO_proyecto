@@ -15,7 +15,7 @@ int Crear_ArchivoBinario(const char *nombre, int size_IR){
 
     FILE *ArchivoBinario = fopen(nombre, "wb"); // lo abrimos w=write, b=binary
     if (ArchivoBinario == NULL){
-        return 1;
+        return 0;
     }
     // direccion,valor,cantidad_bytes
     memset(numeros, 0, size_ArchivoBinario);
@@ -24,7 +24,7 @@ int Crear_ArchivoBinario(const char *nombre, int size_IR){
     // se lee desde numeros, cada elemento mide 1byte,escribe 13..elementos,
     fclose(ArchivoBinario);
     free(numeros); // liberamos la copia temporal
-    return 0;
+    return 1;
 }
 
 void in_TMS(int TMS[]){
@@ -70,10 +70,10 @@ int validarArchivo(const char *NombrePro){
     FILE *archivoP = fopen(NombrePro, "r");
 
     if (archivoP == NULL){
-        return 1;
+        return 0;
     }
     fclose(archivoP);
-    return 0;
+    return 1;
 }
 
 int ContadorLineas(const char *archivo){
@@ -83,7 +83,7 @@ int ContadorLineas(const char *archivo){
     FILE *archivoP = fopen(archivo, "r");
 
     if (archivoP == NULL){
-        return 1;
+        return 0;
     }
     while (fgets(buffer, sizeof(buffer), archivoP) != NULL){
         contador++;
@@ -111,7 +111,7 @@ int Paginacion(FILE *archivoProceso, FILE *swap, int TMP[][3], int TMS[], int PI
         // se busca el marco
         int marco = Busqueda_TMS(TMS);
         if (marco == -1){
-            return 1; // swap lleno
+            return 0; // swap lleno
         }
 
         // archivo donde me movere,desplazamiento(cuantos bytes me movere),origen
@@ -143,7 +143,7 @@ int Paginacion(FILE *archivoProceso, FILE *swap, int TMP[][3], int TMS[], int PI
         pagina++;
     }
 
-    return 0;
+    return 1;
 }
 
 int reescritura(FILE *ArchivoBinario, const char *NombrePro, int TMP[][3], int TMS[], int pid){
@@ -159,7 +159,7 @@ int BitPresencia_TMP(int TMP[][3], int pagina){
     return TMP[pagina][0];
 }
 
-int RAMLlena(int TMM[][2]){
+int RAMLlena(int TMM[][2]){//NOTA: cambio estos returns???????????????????????
     for (int i = 0; i < 16; i++){
         if (TMM[i][0] == 0){
             return 0; // todavía hay espacio

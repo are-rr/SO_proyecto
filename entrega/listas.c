@@ -504,7 +504,7 @@ void RevisarSuspendidos(FILE *swap, char RAM[][400], struct Nodo *lista_ejecucio
             if (p != NULL)
             {
                 p->TIEMPO_SUSP = 0; // limpiamos su tiempito
-                if((BusquedaBitP(lista_ejecucion,*lista_listos,*lista_suspendidos,p,pagina))==0){
+                if((!BusquedaBitP(lista_ejecucion,*lista_listos,*lista_suspendidos,p,pagina))){
                     EscrituraRam(swap, RAM, lista_ejecucion, *lista_listos, *lista_suspendidos, p, TMM, pagina); // cargamos la pagina que necesita el proceso
                 }
                 imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
