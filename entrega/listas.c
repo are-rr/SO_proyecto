@@ -472,7 +472,7 @@ int Busqueda_GID(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, stru
 void TiempoEnSuspendidos(struct Nodo *proceso)
 {
     srand(time(NULL));
-    int tiempo = rand() % 9 + 2; // entre 2 a 10 segundos
+    int tiempo = 0;// rand() % 9 + 2; // entre 2 a 10 segundos
     //proceso->TIEMPO_SUSP = time(NULL) + 0;
     proceso->TIEMPO_SUSP = time(NULL) + tiempo;
 }
@@ -529,11 +529,12 @@ void RevisarNuevos(FILE *swap, struct Nodo **lista_listos, struct Nodo **lista_n
 {
     struct Nodo *procesoN = *lista_nuevos;
     struct Nodo *sig = NULL;
-    int n = marcosLS(TMS);
 
     while (procesoN != NULL)
     {
         sig = procesoN->sig;
+        int n = marcosLS(TMS);
+
         if (procesoN->num_paginas <= n)
         {
             if (reescritura(swap, procesoN->nombrePro, procesoN->TMP, TMS, procesoN->PID) == 0)
@@ -617,8 +618,8 @@ int procesarMata(FILE *swap, char RAM[][400], char archivo[], struct Nodo **list
         liberarSWAP(swap, pMata->TMP, TMS, pMata->num_paginas);
         liberarRAMproceso(RAM, TMM, pMata->GID);
         RevisarNuevos(swap, lista_listos, lista_nuevos, TMS);
-        // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
-        // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
+        limpiarZonaTabla(y_renglon_TMS, x_TMS);
+        imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
         limpiarZonaTabla(y_renglon_TMM, x_TMM);
         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
         porcentajes(TMM, TMS, porS, porR);

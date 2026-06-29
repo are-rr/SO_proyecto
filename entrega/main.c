@@ -178,8 +178,8 @@ int main()
                     if (nuevo->num_paginas <= marcos_libres)
                     {
                         int result_reescritura = reescritura(swap, archivo, nuevo->TMP, TMS, pid);
-                        // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
-                        // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
+                         limpiarZonaTabla(y_renglon_TMS, x_TMS);
+                         imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                         porcentajes(TMM, TMS, &porS, &porR);
                         if (result_reescritura == 1)
                         { // no cupo
@@ -222,6 +222,7 @@ int main()
                     num_palabras = 0;
                     continue;
                 }
+                
                 int mato_ejecucion = procesarMata(swap, RAM, archivo, &lista_ejecucion, &lista_listos, &lista_terminados, &lista_suspendidos, &lista_nuevos,
                                                   TMM, TMS, num_palabras, &grupos, &porS, &porR);
                 if (mato_ejecucion)
@@ -412,7 +413,8 @@ int main()
                         porcentajes(TMM, TMS, &porS, &porR);
                         limpiarZonaTabla(y_renglon_TMM, x_TMM);
                         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
-                        // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
+                        limpiarZonaTabla(y_renglon_TMS, x_TMS);
+                        imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                         grupos--;
                     }
                     //mvprintw(y_variable, 0, "numero de grupos:%d", grupos);
@@ -443,8 +445,8 @@ int main()
                         liberarSWAP(swap, procesoEjecucion->TMP, TMS, procesoEjecucion->num_paginas);
                         liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
                         RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
-                        // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
-                        // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
+                        limpiarZonaTabla(y_renglon_TMS, x_TMS);
+                        imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                         limpiarZonaTabla(y_renglon_TMM, x_TMM);
                         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                         porcentajes(TMM, TMS, &porS, &porR);
@@ -474,8 +476,8 @@ int main()
                         liberarSWAP(swap, procesoEjecucion->TMP, TMS, procesoEjecucion->num_paginas);
                         liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
                         RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
-                        // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
-                        // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
+                        limpiarZonaTabla(y_renglon_TMS, x_TMS);
+                        imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                         limpiarZonaTabla(y_renglon_TMM, x_TMM);
                         imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                         porcentajes(TMM, TMS, &porS, &porR);
@@ -519,8 +521,8 @@ int main()
                             liberarSWAP(swap, procesoTerminado->TMP, TMS, procesoTerminado->num_paginas);
                             liberarRAMproceso(RAM, TMM, procesoTerminado->GID);
                             RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
-                            // limpiarZonaTabla(y_renglon_TMS, x_TMS, ancho_TMS);
-                            // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
+                            limpiarZonaTabla(y_renglon_TMS, x_TMS);
+                         imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                             limpiarZonaTabla(y_renglon_TMM, x_TMM);
                             imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                             porcentajes(TMM, TMS, &porS, &porR);
@@ -628,10 +630,12 @@ int main()
                             {
                                 // ver si se peude cargar a swap
                                 int result_reescritura = reescritura(swap, archivo,nuevoP->TMP, TMS, pid);
-                                // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
+                                limpiarZonaTabla(y_renglon_TMS, x_TMS);
+                                imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
                                 porcentajes(TMM, TMS, &porS, &porR);
                                 if (result_reescritura == 1)
                                 { // no cupo
+                                    
                                     mvprintw(y_mensajes, 0, "Proceso %d queda en nuevos: no hay espacio en swap", pid);
                                     reiniciarVariables(comando, archivo);
                                     refresh();
