@@ -101,8 +101,6 @@ int Paginacion(FILE *archivoProceso, FILE *swap, int TMP[][3], int TMS[], int PI
     int pagina = 0;
 
     while (1){
-        int instL = 0;
-
         // leer primer instruccion para ver si acabo el archivo
         if (fgets(instruccion, sizeof(instruccion), archivoProceso) == NULL){
             break; // ya no hay nada que guardar
@@ -123,7 +121,6 @@ int Paginacion(FILE *archivoProceso, FILE *swap, int TMP[][3], int TMS[], int PI
                                                 // direccion,tamaño_elementos,cantidad_elemetos,archivo
         fwrite(instruccion, sizeof(char), usados, swap);
         fwrite(relleno, sizeof(char), 100 - usados, swap);
-        instL++;
 
         // ahora guardamos las otras 3 si hay
         for (int i = 1; i < 4; i++){
@@ -135,7 +132,6 @@ int Paginacion(FILE *archivoProceso, FILE *swap, int TMP[][3], int TMS[], int PI
             memset(relleno, '\0', sizeof(relleno));
             fwrite(instruccion, sizeof(char), usados, swap);
             fwrite(relleno, sizeof(char), 100 - usados, swap);
-            instL++;
         }
         // actualizamos TMP Y TMS
         TMS[marco] = PID;
@@ -221,10 +217,10 @@ void actualizarTMPdeMarcoL(struct Nodo *lista_ejecucion, struct Nodo *lista_list
     struct Nodo *p = buscarGID(lista_ejecucion, gidDueno);
 
     if (p == NULL){
-        p = buscar(lista_listos, gidDueno);
+        p = buscarGID(lista_listos, gidDueno);
     }
     if (p == NULL){
-        p = buscar(lista_suspendidos, gidDueno);
+        p = buscarGID(lista_suspendidos, gidDueno);
     }
     if (p == NULL){
         return;

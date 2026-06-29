@@ -75,7 +75,7 @@ struct Nodo *extraerPrimero(struct Nodo **lista)
         return NULL;
     }
     struct Nodo *temp = *lista; // guarda el primer nodo
-    *lista = (*lista)->sig;     // mueve la cabeza al siguiente //NOTA:investifar (*)
+    *lista = (*lista)->sig;     // mueve la cabeza al siguiente 
     temp->sig = NULL;           // desconecta el nodo
     return temp;
 }
@@ -289,7 +289,12 @@ struct Nodo *forkProcesoComando(struct Nodo **lista_ejecucion, struct Nodo **lis
         refresh();
         return NULL;
     }
-
+    if(pc>original->num_lineas){
+        limpiarZona(y_mensajes, 0, ancho_procesos);
+        mvprintw(y_mensajes, 0, "ERROR: PC mayor que las lineas del proceso a duplicar");
+        refresh();
+        return NULL;
+    }
     nuevo = forkProceso(original, nuevo_pid, pc);
 
     if (nuevo == NULL)

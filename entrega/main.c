@@ -353,8 +353,6 @@ int main()
 
         if (procesoEjecucion != NULL)
         {
-            int finArchivo = 0;
-
             while (q < quantum)
             {
 
@@ -756,29 +754,7 @@ int main()
                 GCPU_Global(&lista_listos, &lista_suspendidos, procesoEjecucion->GID, gcpu_acum);
                 imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
             }
-            else if (encontroEND == 0 && huboError == 0 && finArchivo == 1)
-            { // se acbo el archivo sin END
-                limpiarZona(y_mensajes, 0, ancho_procesos);
-                mvprintw(y_mensajes, 0, "ERROR: Fin de archivo sin END");
-                refresh();
-
-                A_terminadosError(&lista_ejecucion, &lista_terminados);
-                if (Busqueda_GID(&lista_ejecucion, &lista_listos, &lista_suspendidos, procesoEjecucion->GID) == 0)
-                {
-                    liberarSWAP(swap, procesoEjecucion->TMP, TMS, procesoEjecucion->num_paginas);
-                    liberarRAMproceso(RAM, TMM, procesoEjecucion->GID);
-                    RevisarNuevos(swap, &lista_listos, &lista_nuevos, TMS);
-                    limpiarZonaTabla(y_renglon_TMS, x_TMS);
-                    // imprimir_TMS(TMS, y_renglon_TMS, x_TMS);
-                    limpiarZonaTabla(y_renglon_TMM, x_TMM);
-                    imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
-                    porcentajes(TMM, TMS, &porS, &porR);
-                    grupos--;
-                }
-                imprimirEstado(lista_listos, lista_ejecucion, lista_terminados, lista_suspendidos, lista_nuevos);
-                reiniciarVariables(comando, archivo);
-                continue;
-            }
+           
         }
     }
     endwin();
