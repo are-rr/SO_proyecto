@@ -472,8 +472,9 @@ int Busqueda_GID(struct Nodo **lista_ejecucion, struct Nodo **lista_listos, stru
 void TiempoEnSuspendidos(struct Nodo *proceso)
 {
     srand(time(NULL));
-    int tiempo = 0;// rand() % 9 + 2; // entre 2 a 10 segundos
-    //proceso->TIEMPO_SUSP = time(NULL) + 0;
+    int tiempo = 0;
+    //rand() % 9 + 2; // entre 2 a 10 segundos
+    // proceso->TIEMPO_SUSP = time(NULL) + 0;
     proceso->TIEMPO_SUSP = time(NULL) + tiempo;
 }
 

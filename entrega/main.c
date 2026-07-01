@@ -383,6 +383,9 @@ int main()
 
                 int MarcoRAM = procesoEjecucion->TMP[pagina][1];
                 memcpy(linea, &RAM[MarcoRAM][desplazamiento * 100], 100);
+                TMM[MarcoRAM][1] = 1;
+                limpiarZonaTabla(y_renglon_TMM, x_TMM);
+                imprimir_TMM(TMM, y_renglon_TMM, x_TMM);
                 refresh();
 
                 q++;
@@ -495,7 +498,7 @@ int main()
                 }
                 else if (strcmp(instruccion, "JNZ") == 0 && JNZ(procesoEjecucion, arg1, arg2, linea_original, contadorLinea) == 2)
                 {
-                    q++;
+
                 }
 
                 else if ((strcmp(instruccion, "END") == 0))
